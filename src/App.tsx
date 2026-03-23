@@ -20,6 +20,7 @@ import ControlRunDetail from "./pages/control/ControlRunDetail";
 import ControlProviderList from "./pages/control/ControlProviderList";
 import ControlProviderDetail from "./pages/control/ControlProviderDetail";
 import OfficePage from "./pages/control/OfficePage";
+import HRDashboard from "./pages/control/HRDashboard";
 
 const queryClient = new QueryClient();
 
