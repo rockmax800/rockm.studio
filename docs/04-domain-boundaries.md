@@ -654,3 +654,71 @@ Suggested high-level structure:
 ├─ scripts/
 └─ audits/
 ```
+
+Rules:
+
+- product documents live in `docs/`
+- approved examples live in `examples/`
+- frontend code lives in `frontend/`
+- backend code lives in `backend/`
+- tests live in `tests/`
+- automation and checks live in `scripts/`
+- audit exports or logs live in `audits/` or external storage
+
+---
+
+## 10 — Boundary Failure Modes
+
+Common failure patterns this document is meant to prevent:
+
+- product rules hidden in chat instead of docs
+- frontend task inventing backend structure
+- backend task changing unrelated modules
+- review agent acting like implementer
+- task and run being treated as the same object
+- all repository files being stuffed into context
+- generated artifact being treated as approved truth
+- founder losing visibility into current state
+
+---
+
+## 11 — Boundary Invariants
+
+The following must always remain true:
+
+- every task has one current owning domain
+- every run belongs to one task
+- every artifact has a source task or run
+- every review verdict references an artifact
+- canonical docs cannot be silently overridden by generated outputs
+- backend schema changes require explicit schema ownership
+- release approval cannot be inferred from implementation completion
+- founder decisions must be traceable
+
+---
+
+## 12 — Open Questions
+
+These will be resolved in later documents:
+
+- exact task states
+- exact run states
+- exact review states
+- schema for agent permissions
+- structure of context pack
+- artifact versioning rules
+- approval flow for GitHub PR merge
+- retry and rollback behavior
+
+---
+
+## 13 — Initial Decision
+
+For V1, AI Workshop OS will operate as a single-founder internal system with:
+
+- one founder control plane
+- one canonical docs workspace
+- one task orchestration layer
+- separate frontend and backend delivery tracks
+- separate review and QA authority
+- GitHub integration as execution support, not as truth authority
