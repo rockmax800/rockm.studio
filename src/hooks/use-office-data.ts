@@ -92,6 +92,7 @@ export function useOfficeData() {
         const taskRuns = runs.filter((r: any) => r.task_id === t.id);
         const latestRun = taskRuns[0] ?? null;
         const role = t.owner_role_id ? rolesById[t.owner_role_id] : null;
+        const employee = t.owner_role_id ? employeesByRoleId[t.owner_role_id] : null;
         const taskPredictions = predictionsByTask[t.id] ?? [];
         return {
           id: t.id,
@@ -109,6 +110,8 @@ export function useOfficeData() {
           role_success_rate: role?.success_rate ?? null,
           role_performance_score: role?.performance_score ?? null,
           role_team_id: role?.team_id ?? null,
+          employee_name: employee?.name ?? null,
+          employee_reputation: employee?.reputation_score ?? null,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };
