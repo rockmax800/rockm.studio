@@ -28,6 +28,8 @@ interface PixelAgentProps {
   employeeReputation?: number | null;
   employeeStatus?: string | null;
   isNewHire?: boolean;
+  isExperiment?: boolean;
+  isTopPerformer?: boolean;
   onClick: () => void;
 }
 
@@ -45,6 +47,8 @@ export function PixelAgent({
   employeeReputation,
   employeeStatus,
   isNewHire,
+  isExperiment,
+  isTopPerformer,
   onClick,
 }: PixelAgentProps) {
   const isBlocked = state === "blocked";
