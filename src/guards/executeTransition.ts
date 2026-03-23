@@ -41,8 +41,9 @@ export async function executeTransition({
   const result = await guard({ entityId, fromState, toState, context });
 
   if (!result.allowed) {
+    const denied = result as { allowed: false; reason: string };
     throw new GuardError({
-      message: result.reason,
+      message: denied.reason,
       entityType,
       entityId,
       fromState,
