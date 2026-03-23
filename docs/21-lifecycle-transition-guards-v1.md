@@ -368,8 +368,8 @@ function guardRunTransition(run, to_state):
 | A4 | `under_review` | `accepted` | review state is `approved` or `approved_with_notes` (review must not be in `in_progress` or `needs_clarification`) | emit `artifact.accepted` event | review is non-terminal |
 | A5 | `under_review` | `rejected` | rejection reason exists (review verdict = rejected) | emit `artifact.rejected` event | no rejection reason |
 | A6 | `accepted` | `frozen` | founder or system locks canonical output; freeze_reason recorded | emit `artifact.frozen` event; set canonical_flag = true | no freeze reason |
-| A7 | `accepted` | `superseded` | newer approved artifact version linked; supersedes_artifact_id recorded | emit `artifact.superseded` event | no replacement linked |
-| A8 | `rejected` | `superseded` | corrected artifact replaces rejected output; supersedes_artifact_id recorded | emit `artifact.superseded` event | no replacement linked |
+| A7 | `accepted` | `superseded` | replacement artifact exists with supersedes_artifact_id == this artifact.id | emit `artifact.superseded` event | no replacement artifact with explicit link |
+| A8 | `rejected` | `superseded` | replacement artifact exists with supersedes_artifact_id == this artifact.id | emit `artifact.superseded` event | no replacement artifact with explicit link |
 | A9 | `frozen` | `archived` | project or version closed; archival_reason recorded | emit `artifact.archived` event | no archival reason |
 | A10 | `accepted` | `archived` | non-canonical artifact retired; archival_reason recorded | emit `artifact.archived` event | no archival reason |
 
