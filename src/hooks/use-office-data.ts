@@ -55,6 +55,7 @@ export function useOfficeData() {
         supabase.from("activity_events").select("*").order("created_at", { ascending: false }).limit(100),
         supabase.from("office_events").select("*").order("timestamp", { ascending: false }).limit(200),
         supabase.from("autonomy_settings").select("*").limit(10),
+        supabase.from("blog_posts" as any).select("id, status").order("created_at", { ascending: false }).limit(10),
         supabase.from("agent_roles").select("id, name, code, success_rate, performance_score, status, team_id, max_parallel_tasks, capacity_score").eq("status", "active"),
         supabase.from("approvals").select("id").eq("state", "pending"),
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
