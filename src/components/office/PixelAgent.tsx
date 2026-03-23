@@ -51,9 +51,12 @@ export function PixelAgent({
 
   const sprite = (roleCode && ROLE_SPRITES[roleCode]) || "/pixel/agent.png";
 
-  // PART 8 — Performance heatmap tint
+  // PART 6 — Reputation-based tint (overrides role success rate)
   let perfOverlay = "";
-  if (successRate !== null && successRate !== undefined) {
+  if (employeeReputation !== null && employeeReputation !== undefined) {
+    if (employeeReputation < 0.2) perfOverlay = "bg-red-500/15";
+    else if (employeeReputation > 0.5) perfOverlay = "bg-emerald-500/10";
+  } else if (successRate !== null && successRate !== undefined) {
     if (successRate < 0.4) perfOverlay = "bg-red-500/15";
     else if (successRate >= 0.8) perfOverlay = "bg-emerald-500/10";
   }
