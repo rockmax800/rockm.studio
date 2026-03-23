@@ -11,16 +11,18 @@ import { OfficeTopBar } from "@/components/office/OfficeTopBar";
 import { useOfficeData, useRefreshOffice, type OfficeEvent } from "@/hooks/use-office-data";
 import { RefreshCw } from "lucide-react";
 
-// Zone grid definition — coordinates for the pixel office layout
+// Zone grid — expanded with QA (PART 6) and Release (PART 7) rooms
 const ZONES = [
   { key: "ready", label: "Ready", states: ["ready", "assigned"], icon: "/pixel/desk.png", col: 1, row: 1 },
-  { key: "in_progress", label: "In Progress", states: ["in_progress"], icon: "/pixel/server.png", col: 2, row: 1 },
-  { key: "waiting_review", label: "Review", states: ["waiting_review"], icon: "/pixel/review.png", col: 3, row: 1 },
+  { key: "in_progress", label: "In Progress", states: ["in_progress"], icon: "/pixel/monitor.png", col: 2, row: 1 },
+  { key: "waiting_review", label: "Review Room", states: ["waiting_review"], icon: "/pixel/review.png", col: 3, row: 1 },
   { key: "rework", label: "Rework", states: ["rework_required"], icon: "/pixel/desk.png", col: 1, row: 2 },
   { key: "escalated", label: "Escalated", states: ["escalated"], icon: "/pixel/qa.png", col: 2, row: 2 },
   { key: "blocked", label: "Blocked", states: ["blocked"], icon: "/pixel/server.png", col: 3, row: 2 },
   { key: "approved", label: "Approved", states: ["approved"], icon: "/pixel/review.png", col: 1, row: 3 },
   { key: "done", label: "Done", states: ["done"], icon: "/pixel/release.png", col: 2, row: 3 },
+  { key: "qa", label: "QA Lab", states: [], icon: "/pixel/qa.png", col: 3, row: 3 },
+  { key: "release", label: "Release Room", states: [], icon: "/pixel/release.png", col: 1, row: 4 },
 ] as const;
 
 interface TaskCard {
@@ -34,6 +36,10 @@ interface TaskCard {
   latest_run_state: string | null;
   has_pending_review: boolean;
   has_pending_approval: boolean;
+  role_code: string | null;
+  role_name: string | null;
+  role_success_rate: number | null;
+  role_performance_score: number | null;
 }
 
 type FeedMode = "office" | "activity";
@@ -51,7 +57,11 @@ export default function OfficePage() {
       : data.allTasks
     : [];
 
-  // Derived stats for top bar
+  // PART 6 — QA zone: tasks with domain=qa
+  const qaTasks = filteredTasks.filter(t => t.domain === "qa" && !["done", "cancelled"].includes(t.state));
+  // PART 7 — Release room: tasks with domain=release OR project in_review
+  const releaseTasks = filteredTasks.filter(t => t.domain === "release" && !["done", "cancelled"].includes(t.state));
+
   const stats = useMemo(() => {
     if (!data) return { activeTasks: 0, runningAgents: 0, pendingApprovals: 0, providerCount: 0 };
     const active = filteredTasks.filter(t => !["done", "cancelled"].includes(t.state)).length;
@@ -66,8 +76,8 @@ export default function OfficePage() {
       {error && <p className="text-destructive">Error: {(error as Error).message}</p>}
       {data && (
         <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
-          {/* PART 8 — Performance Top Bar */}
-          <OfficeTopBar {...stats} leanMode={data.leanMode} />
+          {/* PART 8+10 — Performance Top Bar with founder */}
+          <OfficeTopBar {...stats} leanMode={data.leanMode} pendingInboxCount={data.pendingInboxCount} />
 
           <div className="flex gap-3 flex-1 min-h-0">
             {/* LEFT — Project selector */}
@@ -106,14 +116,23 @@ export default function OfficePage() {
               <div
                 className="grid gap-3 h-full"
                 style={{
-                  gridTemplateColumns: "repeat(3, minmax(180px, 1fr))",
-                  gridTemplateRows: "repeat(3, minmax(140px, 1fr))",
+                  gridTemplateColumns: "repeat(3, minmax(170px, 1fr))",
+                  gridTemplateRows: "repeat(4, minmax(120px, 1fr))",
                 }}
               >
                 {ZONES.map((zone) => {
-                  const zoneTasks = filteredTasks.filter((t) =>
-                    (zone.states as readonly string[]).includes(t.state)
-                  );
+                  // Normal state-based zones
+                  let zoneTasks: TaskCard[];
+                  if (zone.key === "qa") {
+                    zoneTasks = qaTasks;
+                  } else if (zone.key === "release") {
+                    zoneTasks = releaseTasks;
+                  } else {
+                    zoneTasks = filteredTasks.filter((t) =>
+                      (zone.states as readonly string[]).includes(t.state)
+                    );
+                  }
+
                   return (
                     <div
                       key={zone.key}
@@ -129,10 +148,12 @@ export default function OfficePage() {
                           <PixelAgent
                             key={task.id}
                             taskTitle={task.title}
-                            roleName={task.owner_role_id ? task.domain : null}
+                            roleName={task.role_name}
+                            roleCode={task.role_code}
                             state={task.state}
                             latestRunState={task.latest_run_state}
                             hasPendingReview={task.has_pending_review}
+                            successRate={task.role_success_rate}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
@@ -140,11 +161,12 @@ export default function OfficePage() {
                     </div>
                   );
                 })}
-                {/* Empty cell at col 3 row 3 — decorative */}
-                <div
-                  style={{ gridColumn: 3, gridRow: 3 }}
-                  className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center"
-                >
+
+                {/* Remaining grid cells for row 4 — decorative */}
+                <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
+                  <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                </div>
+                <div style={{ gridColumn: 3, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
                   <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
                 </div>
               </div>
