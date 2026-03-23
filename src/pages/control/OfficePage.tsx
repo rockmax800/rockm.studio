@@ -158,7 +158,7 @@ export default function OfficePage() {
           <div className="flex-1 overflow-x-auto">
             <div className="flex gap-3 h-full min-w-max">
               {ZONES.map((zone) => {
-                const zoneTasks = filteredTasks.filter((t) => zone.states.includes(t.state));
+                const zoneTasks = filteredTasks.filter((t) => (zone.states as readonly string[]).includes(t.state));
                 return (
                   <div
                     key={zone.key}
