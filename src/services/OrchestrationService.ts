@@ -4,6 +4,7 @@
 
 import { validateTransition, type EntityType, type TransitionContext } from "@/guards";
 import { ConcurrencyError } from "@/guards/ConcurrencyError";
+import { taskStateToZone } from "@/lib/officeZones";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -121,6 +122,28 @@ export class OrchestrationService {
           event_payload: { ...metadata, from_version: currentVersion, to_version: currentVersion + 1 },
         },
       });
+
+      // 6. Emit OfficeEvent for task transitions (PART 4)
+      if (entityType === "task") {
+        const fromZone = taskStateToZone(fromState);
+        const toZone = taskStateToZone(toState);
+        try {
+          await (tx as any).office_events.create({
+            data: {
+              project_id: projectId,
+              entity_type: "task",
+              entity_id: entityId,
+              event_type: `task.${fromState}_to_${toState}`,
+              from_zone: fromZone,
+              to_zone: toZone,
+              actor_role_id: actorRoleId,
+              timestamp: now,
+            },
+          });
+        } catch {
+          // Best-effort — office_events table may not exist yet
+        }
+      }
 
       return updated;
     }, { isolationLevel: "Serializable" });
