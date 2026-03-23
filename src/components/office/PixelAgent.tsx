@@ -28,6 +28,8 @@ interface PixelAgentProps {
   employeeReputation?: number | null;
   employeeStatus?: string | null;
   isNewHire?: boolean;
+  isExperiment?: boolean;
+  isTopPerformer?: boolean;
   onClick: () => void;
 }
 
@@ -45,6 +47,8 @@ export function PixelAgent({
   employeeReputation,
   employeeStatus,
   isNewHire,
+  isExperiment,
+  isTopPerformer,
   onClick,
 }: PixelAgentProps) {
   const isBlocked = state === "blocked";
@@ -128,6 +132,16 @@ export function PixelAgent({
         {isNewHire && (
           <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
             NEW HIRE
+          </Badge>
+        )}
+        {isExperiment && !isNewHire && (
+          <Badge variant="secondary" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5">
+            EXPERIMENT
+          </Badge>
+        )}
+        {isTopPerformer && !isNewHire && (
+          <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
+            ⭐ TOP
           </Badge>
         )}
         {employeeName && (

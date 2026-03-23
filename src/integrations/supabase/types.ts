@@ -812,6 +812,99 @@ export type Database = {
           },
         ]
       }
+      model_benchmarks: {
+        Row: {
+          avg_cost: number
+          avg_latency: number
+          avg_success_rate: number
+          bug_rate: number
+          created_at: string
+          id: string
+          model_market_id: string
+          sample_size: number
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          avg_cost?: number
+          avg_latency?: number
+          avg_success_rate?: number
+          bug_rate?: number
+          created_at?: string
+          id?: string
+          model_market_id: string
+          sample_size?: number
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avg_cost?: number
+          avg_latency?: number
+          avg_success_rate?: number
+          bug_rate?: number
+          created_at?: string
+          id?: string
+          model_market_id?: string
+          sample_size?: number
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_benchmarks_model_market_id_fkey"
+            columns: ["model_market_id"]
+            isOneToOne: false
+            referencedRelation: "model_market"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_benchmarks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_market: {
+        Row: {
+          avg_latency_score: number
+          avg_quality_score: number
+          created_at: string
+          estimated_cost_per_1k_tokens: number
+          id: string
+          last_updated: string
+          max_context: number
+          model_name: string
+          provider: string
+          reliability_score: number
+        }
+        Insert: {
+          avg_latency_score?: number
+          avg_quality_score?: number
+          created_at?: string
+          estimated_cost_per_1k_tokens?: number
+          id?: string
+          last_updated?: string
+          max_context?: number
+          model_name: string
+          provider: string
+          reliability_score?: number
+        }
+        Update: {
+          avg_latency_score?: number
+          avg_quality_score?: number
+          created_at?: string
+          estimated_cost_per_1k_tokens?: number
+          id?: string
+          last_updated?: string
+          max_context?: number
+          model_name?: string
+          provider?: string
+          reliability_score?: number
+        }
+        Relationships: []
+      }
       office_events: {
         Row: {
           actor_role_id: string | null

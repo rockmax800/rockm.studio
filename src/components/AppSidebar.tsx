@@ -13,6 +13,7 @@ import {
   Shield,
   Building2,
   Crown,
+  ShoppingBag,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -52,6 +53,7 @@ const controlNav = [
   { title: "Founder Pro", url: "/control/founder", icon: Crown },
   { title: "Office", url: "/control/office", icon: Building2 },
   { title: "AI HR", url: "/control/hr", icon: Bot },
+  { title: "Hiring Market", url: "/control/hiring-market", icon: ShoppingBag },
   { title: "Provider Control", url: "/control/providers", icon: Unplug },
 ];
 

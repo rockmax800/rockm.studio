@@ -46,7 +46,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number, agent_role_id").order("run_number", { ascending: false }),
@@ -60,7 +60,10 @@ export function useOfficeData() {
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
         supabase.from("teams").select("*"),
         supabase.from("company_mode_settings").select("*").limit(1),
-        supabase.from("ai_employees").select("id, name, role_id, reputation_score, status, hired_at"),
+        supabase.from("ai_employees").select("id, name, role_id, role_code, reputation_score, status, hired_at, model_name, team_id, provider"),
+        supabase.from("prompt_experiments").select("role_id, status").eq("status", "active"),
+        supabase.from("model_benchmarks" as any).select("model_market_id, team_id, avg_success_rate"),
+        supabase.from("model_market" as any).select("id, model_name"),
       ]);
 
       const tasks = tasksRes.data ?? [];
@@ -75,6 +78,24 @@ export function useOfficeData() {
       const employees = employeesRes.data ?? [];
       const employeesByRoleId = Object.fromEntries(employees.map((e: any) => [e.role_id, e]));
       const companySettings = (companyRes.data ?? [])[0] ?? null;
+
+      // Experiment lookup by role_id
+      const experiments = experimentsRes.data ?? [];
+      const experimentRoleIds = new Set(experiments.map((e: any) => e.role_id));
+
+      // Top performer lookup: best model per team from benchmarks
+      const benchmarksData = (benchmarksRes.data ?? []) as any[];
+      const marketModelsData = (marketModelsRes.data ?? []) as any[];
+      const marketModelsById = Object.fromEntries(marketModelsData.map((m: any) => [m.id, m]));
+      const topModelPerTeam: Record<string, string> = {};
+      for (const team of teams) {
+        const teamBenchmarks = benchmarksData.filter((b: any) => b.team_id === team.id);
+        if (teamBenchmarks.length > 0) {
+          const best = teamBenchmarks.reduce((a: any, b: any) => a.avg_success_rate > b.avg_success_rate ? a : b);
+          const mm = marketModelsById[best.model_market_id];
+          if (mm) topModelPerTeam[team.id] = mm.model_name;
+        }
+      }
 
       // Index predictions by task_id
       const predictionsByTask: Record<string, BottleneckPrediction[]> = {};
@@ -114,6 +135,10 @@ export function useOfficeData() {
           employee_reputation: employee?.reputation_score ?? null,
           employee_status: employee?.status ?? null,
           is_new_hire: employee ? (new Date(employee.hired_at).getTime() > Date.now() - 3600000) : false,
+          is_experiment: role ? experimentRoleIds.has(role.id) : false,
+          is_top_performer: (employee && employee.team_id && employee.model_name)
+            ? topModelPerTeam[employee.team_id] === employee.model_name
+            : false,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };
