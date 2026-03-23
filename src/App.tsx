@@ -9,6 +9,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import TasksPage from "./pages/Tasks";
 import DocsWorkspace from "./pages/DocsWorkspace";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import ProvidersPage from "./pages/Providers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/reviews" element={<PlaceholderPage title="Reviews" description="No reviews yet. Submit an artifact for validation to begin." />} />
           <Route path="/approvals" element={<PlaceholderPage title="Approvals" description="No founder decisions waiting. Delivery is moving without blocked approval gates." />} />
           <Route path="/agents" element={<PlaceholderPage title="Agents" description="Agent registry will show roles, capabilities, and current workload." />} />
+          <Route path="/providers" element={<ProvidersPage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" description="System settings and configuration." />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

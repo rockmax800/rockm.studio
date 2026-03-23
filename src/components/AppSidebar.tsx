@@ -9,6 +9,7 @@ import {
   Bot,
   BookOpen,
   Settings,
+  Unplug,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -38,6 +39,7 @@ const mainNav = [
 
 const systemNav = [
   { title: "Agents", url: "/agents", icon: Bot },
+  { title: "Providers", url: "/providers", icon: Unplug },
   { title: "Docs", url: "/docs", icon: BookOpen },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
