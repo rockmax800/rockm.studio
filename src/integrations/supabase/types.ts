@@ -1,0 +1,1105 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.4"
+  }
+  public: {
+    Tables: {
+      activity_events: {
+        Row: {
+          actor_role_id: string | null
+          actor_type: Database["public"]["Enums"]["actor_type"]
+          created_at: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          event_payload: Json | null
+          event_type: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          actor_role_id?: string | null
+          actor_type?: Database["public"]["Enums"]["actor_type"]
+          created_at?: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          event_payload?: Json | null
+          event_type: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          actor_role_id?: string | null
+          actor_type?: Database["public"]["Enums"]["actor_type"]
+          created_at?: string
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          event_payload?: Json | null
+          event_type?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_events_actor_role_id_fkey"
+            columns: ["actor_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_roles: {
+        Row: {
+          allowed_actions: Json | null
+          allowed_domains: Json | null
+          code: string
+          created_at: string
+          description: string
+          forbidden_actions: Json | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["agent_role_status"]
+          updated_at: string
+        }
+        Insert: {
+          allowed_actions?: Json | null
+          allowed_domains?: Json | null
+          code: string
+          created_at?: string
+          description: string
+          forbidden_actions?: Json | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["agent_role_status"]
+          updated_at?: string
+        }
+        Update: {
+          allowed_actions?: Json | null
+          allowed_domains?: Json | null
+          code?: string
+          created_at?: string
+          description?: string
+          forbidden_actions?: Json | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["agent_role_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      approvals: {
+        Row: {
+          approval_type: Database["public"]["Enums"]["approval_type"]
+          closed_at: string | null
+          consequence_if_approved: string | null
+          consequence_if_rejected: string | null
+          created_at: string
+          decided_at: string | null
+          founder_decision_note: string | null
+          id: string
+          project_id: string
+          recommendation: string | null
+          requested_by_role_id: string | null
+          state: Database["public"]["Enums"]["approval_state"]
+          summary: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["approval_target_type"]
+          updated_at: string
+        }
+        Insert: {
+          approval_type: Database["public"]["Enums"]["approval_type"]
+          closed_at?: string | null
+          consequence_if_approved?: string | null
+          consequence_if_rejected?: string | null
+          created_at?: string
+          decided_at?: string | null
+          founder_decision_note?: string | null
+          id?: string
+          project_id: string
+          recommendation?: string | null
+          requested_by_role_id?: string | null
+          state?: Database["public"]["Enums"]["approval_state"]
+          summary: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["approval_target_type"]
+          updated_at?: string
+        }
+        Update: {
+          approval_type?: Database["public"]["Enums"]["approval_type"]
+          closed_at?: string | null
+          consequence_if_approved?: string | null
+          consequence_if_rejected?: string | null
+          created_at?: string
+          decided_at?: string | null
+          founder_decision_note?: string | null
+          id?: string
+          project_id?: string
+          recommendation?: string | null
+          requested_by_role_id?: string | null
+          state?: Database["public"]["Enums"]["approval_state"]
+          summary?: string
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["approval_target_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_requested_by_role_id_fkey"
+            columns: ["requested_by_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artifacts: {
+        Row: {
+          artifact_type: Database["public"]["Enums"]["artifact_type"]
+          canonical_flag: boolean
+          content_text: string | null
+          created_at: string
+          external_ref: string | null
+          file_path: string | null
+          id: string
+          project_id: string
+          run_id: string | null
+          state: Database["public"]["Enums"]["artifact_state"]
+          storage_kind: Database["public"]["Enums"]["storage_kind"]
+          summary: string | null
+          supersedes_artifact_id: string | null
+          task_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artifact_type: Database["public"]["Enums"]["artifact_type"]
+          canonical_flag?: boolean
+          content_text?: string | null
+          created_at?: string
+          external_ref?: string | null
+          file_path?: string | null
+          id?: string
+          project_id: string
+          run_id?: string | null
+          state?: Database["public"]["Enums"]["artifact_state"]
+          storage_kind?: Database["public"]["Enums"]["storage_kind"]
+          summary?: string | null
+          supersedes_artifact_id?: string | null
+          task_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artifact_type?: Database["public"]["Enums"]["artifact_type"]
+          canonical_flag?: boolean
+          content_text?: string | null
+          created_at?: string
+          external_ref?: string | null
+          file_path?: string | null
+          id?: string
+          project_id?: string
+          run_id?: string | null
+          state?: Database["public"]["Enums"]["artifact_state"]
+          storage_kind?: Database["public"]["Enums"]["storage_kind"]
+          summary?: string | null
+          supersedes_artifact_id?: string | null
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artifacts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_supersedes_artifact_id_fkey"
+            columns: ["supersedes_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "artifacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      context_packs: {
+        Row: {
+          assumptions: Json | null
+          created_at: string
+          id: string
+          included_artifact_ids: Json | null
+          included_document_ids: Json | null
+          included_file_paths: Json | null
+          missing_context_notes: string | null
+          project_id: string
+          summary: string | null
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          assumptions?: Json | null
+          created_at?: string
+          id?: string
+          included_artifact_ids?: Json | null
+          included_document_ids?: Json | null
+          included_file_paths?: Json | null
+          missing_context_notes?: string | null
+          project_id: string
+          summary?: string | null
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          assumptions?: Json | null
+          created_at?: string
+          id?: string
+          included_artifact_ids?: Json | null
+          included_document_ids?: Json | null
+          included_file_paths?: Json | null
+          missing_context_notes?: string | null
+          project_id?: string
+          summary?: string | null
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "context_packs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "context_packs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          content_markdown: string
+          created_at: string
+          doc_type: Database["public"]["Enums"]["doc_type"]
+          file_path: string
+          id: string
+          project_id: string
+          source_artifact_id: string | null
+          source_task_id: string | null
+          status: Database["public"]["Enums"]["doc_status"]
+          title: string
+          updated_at: string
+          version_label: string | null
+        }
+        Insert: {
+          content_markdown?: string
+          created_at?: string
+          doc_type?: Database["public"]["Enums"]["doc_type"]
+          file_path: string
+          id?: string
+          project_id: string
+          source_artifact_id?: string | null
+          source_task_id?: string | null
+          status?: Database["public"]["Enums"]["doc_status"]
+          title: string
+          updated_at?: string
+          version_label?: string | null
+        }
+        Update: {
+          content_markdown?: string
+          created_at?: string
+          doc_type?: Database["public"]["Enums"]["doc_type"]
+          file_path?: string
+          id?: string
+          project_id?: string
+          source_artifact_id?: string | null
+          source_task_id?: string | null
+          status?: Database["public"]["Enums"]["doc_status"]
+          title?: string
+          updated_at?: string
+          version_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_documents_source_artifact"
+            columns: ["source_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "artifacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_documents_source_task"
+            columns: ["source_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          current_phase: string | null
+          founder_notes: string | null
+          id: string
+          name: string
+          project_type: string | null
+          purpose: string
+          slug: string
+          state: Database["public"]["Enums"]["project_state"]
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          current_phase?: string | null
+          founder_notes?: string | null
+          id?: string
+          name: string
+          project_type?: string | null
+          purpose: string
+          slug: string
+          state?: Database["public"]["Enums"]["project_state"]
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          current_phase?: string | null
+          founder_notes?: string | null
+          id?: string
+          name?: string
+          project_type?: string | null
+          purpose?: string
+          slug?: string
+          state?: Database["public"]["Enums"]["project_state"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          artifact_id: string
+          blocking_issues: Json | null
+          closed_at: string | null
+          created_at: string
+          id: string
+          non_blocking_notes: Json | null
+          project_id: string
+          reason: string | null
+          reviewer_role_id: string
+          state: Database["public"]["Enums"]["review_state"]
+          suggested_next_step: string | null
+          task_id: string | null
+          updated_at: string
+          verdict: Database["public"]["Enums"]["review_verdict"] | null
+        }
+        Insert: {
+          artifact_id: string
+          blocking_issues?: Json | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          non_blocking_notes?: Json | null
+          project_id: string
+          reason?: string | null
+          reviewer_role_id: string
+          state?: Database["public"]["Enums"]["review_state"]
+          suggested_next_step?: string | null
+          task_id?: string | null
+          updated_at?: string
+          verdict?: Database["public"]["Enums"]["review_verdict"] | null
+        }
+        Update: {
+          artifact_id?: string
+          blocking_issues?: Json | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          non_blocking_notes?: Json | null
+          project_id?: string
+          reason?: string | null
+          reviewer_role_id?: string
+          state?: Database["public"]["Enums"]["review_state"]
+          suggested_next_step?: string | null
+          task_id?: string | null
+          updated_at?: string
+          verdict?: Database["public"]["Enums"]["review_verdict"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_artifact_id_fkey"
+            columns: ["artifact_id"]
+            isOneToOne: false
+            referencedRelation: "artifacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_role_id_fkey"
+            columns: ["reviewer_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      runs: {
+        Row: {
+          agent_role_id: string
+          context_pack_id: string | null
+          created_at: string
+          duration_ms: number | null
+          ended_at: string | null
+          failure_reason: string | null
+          id: string
+          output_summary: string | null
+          project_id: string
+          retry_of_run_id: string | null
+          run_number: number
+          started_at: string | null
+          state: Database["public"]["Enums"]["run_state"]
+          status_summary: string | null
+          superseded_by_run_id: string | null
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_role_id: string
+          context_pack_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          ended_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          output_summary?: string | null
+          project_id: string
+          retry_of_run_id?: string | null
+          run_number: number
+          started_at?: string | null
+          state?: Database["public"]["Enums"]["run_state"]
+          status_summary?: string | null
+          superseded_by_run_id?: string | null
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_role_id?: string
+          context_pack_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          ended_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          output_summary?: string | null
+          project_id?: string
+          retry_of_run_id?: string | null
+          run_number?: number
+          started_at?: string | null
+          state?: Database["public"]["Enums"]["run_state"]
+          status_summary?: string | null
+          superseded_by_run_id?: string | null
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "runs_agent_role_id_fkey"
+            columns: ["agent_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_context_pack_id_fkey"
+            columns: ["context_pack_id"]
+            isOneToOne: false
+            referencedRelation: "context_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_retry_of_run_id_fkey"
+            columns: ["retry_of_run_id"]
+            isOneToOne: false
+            referencedRelation: "runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_superseded_by_run_id_fkey"
+            columns: ["superseded_by_run_id"]
+            isOneToOne: false
+            referencedRelation: "runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          acceptance_criteria: Json
+          blocker_reason: string | null
+          closed_at: string | null
+          constraints: Json | null
+          created_at: string
+          domain: Database["public"]["Enums"]["task_domain"]
+          escalation_reason: string | null
+          expected_output_type: Database["public"]["Enums"]["task_output_type"]
+          id: string
+          owner_role_id: string | null
+          parent_task_id: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          purpose: string
+          requested_outcome: string | null
+          state: Database["public"]["Enums"]["task_state"]
+          title: string
+          updated_at: string
+          urgency: Database["public"]["Enums"]["task_urgency"] | null
+        }
+        Insert: {
+          acceptance_criteria?: Json
+          blocker_reason?: string | null
+          closed_at?: string | null
+          constraints?: Json | null
+          created_at?: string
+          domain: Database["public"]["Enums"]["task_domain"]
+          escalation_reason?: string | null
+          expected_output_type: Database["public"]["Enums"]["task_output_type"]
+          id?: string
+          owner_role_id?: string | null
+          parent_task_id?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          purpose: string
+          requested_outcome?: string | null
+          state?: Database["public"]["Enums"]["task_state"]
+          title: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["task_urgency"] | null
+        }
+        Update: {
+          acceptance_criteria?: Json
+          blocker_reason?: string | null
+          closed_at?: string | null
+          constraints?: Json | null
+          created_at?: string
+          domain?: Database["public"]["Enums"]["task_domain"]
+          escalation_reason?: string | null
+          expected_output_type?: Database["public"]["Enums"]["task_output_type"]
+          id?: string
+          owner_role_id?: string | null
+          parent_task_id?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string
+          purpose?: string
+          requested_outcome?: string | null
+          state?: Database["public"]["Enums"]["task_state"]
+          title?: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["task_urgency"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_owner_role_id_fkey"
+            columns: ["owner_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      actor_type: "founder" | "system" | "agent_role"
+      agent_role_status: "active" | "inactive"
+      approval_state:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "deferred"
+        | "expired"
+        | "closed"
+      approval_target_type:
+        | "project"
+        | "task"
+        | "artifact"
+        | "review"
+        | "document"
+      approval_type:
+        | "project_activation"
+        | "architecture"
+        | "schema"
+        | "scope_change"
+        | "release"
+        | "cancellation"
+      artifact_state:
+        | "created"
+        | "classified"
+        | "submitted"
+        | "under_review"
+        | "accepted"
+        | "rejected"
+        | "superseded"
+        | "frozen"
+        | "archived"
+      artifact_type:
+        | "document"
+        | "architecture"
+        | "frontend"
+        | "backend"
+        | "schema"
+        | "test"
+        | "review"
+        | "release"
+      doc_status: "draft" | "active" | "canonical" | "superseded" | "archived"
+      doc_type:
+        | "brief"
+        | "domain"
+        | "lifecycle"
+        | "collaboration"
+        | "agent_instructions"
+        | "ui_spec"
+        | "data_model"
+        | "other"
+      entity_type:
+        | "project"
+        | "document"
+        | "task"
+        | "context_pack"
+        | "run"
+        | "artifact"
+        | "review"
+        | "approval"
+      project_state:
+        | "draft"
+        | "scoped"
+        | "active"
+        | "blocked"
+        | "in_review"
+        | "paused"
+        | "completed"
+        | "archived"
+      review_state:
+        | "created"
+        | "in_progress"
+        | "needs_clarification"
+        | "approved"
+        | "approved_with_notes"
+        | "rejected"
+        | "escalated"
+        | "closed"
+      review_verdict:
+        | "approved"
+        | "approved_with_notes"
+        | "rejected"
+        | "escalated"
+      run_state:
+        | "created"
+        | "preparing"
+        | "running"
+        | "produced_output"
+        | "failed"
+        | "timed_out"
+        | "cancelled"
+        | "superseded"
+        | "finalized"
+      storage_kind: "db_text" | "file_path" | "github_ref" | "external"
+      task_domain:
+        | "founder_control"
+        | "docs"
+        | "orchestration"
+        | "frontend"
+        | "backend"
+        | "review"
+        | "qa"
+        | "release"
+      task_output_type:
+        | "document"
+        | "frontend"
+        | "backend"
+        | "schema"
+        | "review"
+        | "approval_packet"
+        | "test"
+        | "release"
+      task_priority: "low" | "medium" | "high" | "critical"
+      task_state:
+        | "draft"
+        | "ready"
+        | "assigned"
+        | "in_progress"
+        | "waiting_review"
+        | "rework_required"
+        | "blocked"
+        | "escalated"
+        | "approved"
+        | "done"
+        | "cancelled"
+      task_urgency: "normal" | "high" | "blocker"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      actor_type: ["founder", "system", "agent_role"],
+      agent_role_status: ["active", "inactive"],
+      approval_state: [
+        "pending",
+        "approved",
+        "rejected",
+        "deferred",
+        "expired",
+        "closed",
+      ],
+      approval_target_type: [
+        "project",
+        "task",
+        "artifact",
+        "review",
+        "document",
+      ],
+      approval_type: [
+        "project_activation",
+        "architecture",
+        "schema",
+        "scope_change",
+        "release",
+        "cancellation",
+      ],
+      artifact_state: [
+        "created",
+        "classified",
+        "submitted",
+        "under_review",
+        "accepted",
+        "rejected",
+        "superseded",
+        "frozen",
+        "archived",
+      ],
+      artifact_type: [
+        "document",
+        "architecture",
+        "frontend",
+        "backend",
+        "schema",
+        "test",
+        "review",
+        "release",
+      ],
+      doc_status: ["draft", "active", "canonical", "superseded", "archived"],
+      doc_type: [
+        "brief",
+        "domain",
+        "lifecycle",
+        "collaboration",
+        "agent_instructions",
+        "ui_spec",
+        "data_model",
+        "other",
+      ],
+      entity_type: [
+        "project",
+        "document",
+        "task",
+        "context_pack",
+        "run",
+        "artifact",
+        "review",
+        "approval",
+      ],
+      project_state: [
+        "draft",
+        "scoped",
+        "active",
+        "blocked",
+        "in_review",
+        "paused",
+        "completed",
+        "archived",
+      ],
+      review_state: [
+        "created",
+        "in_progress",
+        "needs_clarification",
+        "approved",
+        "approved_with_notes",
+        "rejected",
+        "escalated",
+        "closed",
+      ],
+      review_verdict: [
+        "approved",
+        "approved_with_notes",
+        "rejected",
+        "escalated",
+      ],
+      run_state: [
+        "created",
+        "preparing",
+        "running",
+        "produced_output",
+        "failed",
+        "timed_out",
+        "cancelled",
+        "superseded",
+        "finalized",
+      ],
+      storage_kind: ["db_text", "file_path", "github_ref", "external"],
+      task_domain: [
+        "founder_control",
+        "docs",
+        "orchestration",
+        "frontend",
+        "backend",
+        "review",
+        "qa",
+        "release",
+      ],
+      task_output_type: [
+        "document",
+        "frontend",
+        "backend",
+        "schema",
+        "review",
+        "approval_packet",
+        "test",
+        "release",
+      ],
+      task_priority: ["low", "medium", "high", "critical"],
+      task_state: [
+        "draft",
+        "ready",
+        "assigned",
+        "in_progress",
+        "waiting_review",
+        "rework_required",
+        "blocked",
+        "escalated",
+        "approved",
+        "done",
+        "cancelled",
+      ],
+      task_urgency: ["normal", "high", "blocker"],
+    },
+  },
+} as const
