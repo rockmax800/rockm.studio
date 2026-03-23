@@ -36,13 +36,27 @@ export interface AutonomySettings {
   auto_execute_implementation: boolean;
   auto_retry_enabled: boolean;
   max_parallel_runs: number;
+  max_autonomy_depth: number;
+  autonomy_token_budget: number;
 }
 
 const DEFAULT_SETTINGS: AutonomySettings = {
-  auto_generate_tasks: false,
+  auto_generate_tasks: true,
   auto_execute_implementation: false,
-  auto_retry_enabled: true,
-  max_parallel_runs: 3,
+  auto_retry_enabled: false,
+  max_parallel_runs: 1,
+  max_autonomy_depth: 3,
+  autonomy_token_budget: 15000,
+};
+
+// Lean mode: pipeline stops after decomposition (depth 3)
+const LEAN_PIPELINE_DEPTH: Record<string, number> = {
+  idea: 0,
+  spec: 1,
+  architecture: 2,
+  decomposition: 3,
+  qa: 4,
+  release: 5,
 };
 
 // Pipeline step definitions
@@ -138,9 +152,20 @@ export class AutonomyPipelineService {
       return null;
     }
 
+    // Token budget check
+    const budgetOk = await this.checkTokenBudget(projectId, settings);
+    if (!budgetOk) return null;
+
+    // Depth check
+    if (LEAN_PIPELINE_DEPTH.spec > settings.max_autonomy_depth) {
+      logInfo("autonomy_spec_skipped", { projectId, reason: "exceeds max_autonomy_depth" });
+      return null;
+    }
+
     const sourceArtifact = await this.getLatestApprovedArtifact(sourceTaskId);
+    // PART 4: Only include snapshot summary + last approved artifact, not full history
     const contextSummary = sourceArtifact
-      ? `Based on approved brief:\n${sourceArtifact.summary ?? sourceArtifact.title}`
+      ? `Based on approved brief:\n${(sourceArtifact.summary ?? sourceArtifact.title).slice(0, 2000)}`
       : "Generate detailed product spec.";
 
     const role = await this.resolveRole(PIPELINE_STEPS.spec.roleCode);
@@ -151,9 +176,8 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
-    if (settings.auto_execute_implementation) {
-      await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
-    }
+    // Lean mode: auto-assign + start for planning tasks (spec/arch/decomp) only
+    await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
 
     await this.officeEmitter.emitOfficeEvent({
       projectId, entityType: "task", entityId: task.id,
@@ -169,9 +193,17 @@ export class AutonomyPipelineService {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
 
+    const budgetOk = await this.checkTokenBudget(projectId, settings);
+    if (!budgetOk) return null;
+
+    if (LEAN_PIPELINE_DEPTH.architecture > settings.max_autonomy_depth) {
+      logInfo("autonomy_arch_skipped", { projectId, reason: "exceeds max_autonomy_depth" });
+      return null;
+    }
+
     const sourceArtifact = await this.getLatestApprovedArtifact(sourceTaskId);
     const contextSummary = sourceArtifact
-      ? `Based on approved spec:\n${sourceArtifact.summary ?? sourceArtifact.title}`
+      ? `Based on approved spec:\n${(sourceArtifact.summary ?? sourceArtifact.title).slice(0, 2000)}`
       : "Generate system architecture.";
 
     const role = await this.resolveRole(PIPELINE_STEPS.architecture.roleCode);
@@ -182,9 +214,8 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
-    if (settings.auto_execute_implementation) {
-      await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
-    }
+    // Lean mode: auto-execute planning tasks
+    await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
 
     await this.officeEmitter.emitOfficeEvent({
       projectId, entityType: "task", entityId: task.id,
@@ -200,9 +231,17 @@ export class AutonomyPipelineService {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
 
+    const budgetOk = await this.checkTokenBudget(projectId, settings);
+    if (!budgetOk) return null;
+
+    if (LEAN_PIPELINE_DEPTH.decomposition > settings.max_autonomy_depth) {
+      logInfo("autonomy_decomp_skipped", { projectId, reason: "exceeds max_autonomy_depth" });
+      return null;
+    }
+
     const sourceArtifact = await this.getLatestApprovedArtifact(sourceTaskId);
     const contextSummary = sourceArtifact
-      ? `Based on approved architecture:\n${sourceArtifact.summary ?? sourceArtifact.title}`
+      ? `Based on approved architecture:\n${(sourceArtifact.summary ?? sourceArtifact.title).slice(0, 2000)}`
       : "Generate implementation task breakdown.";
 
     const role = await this.resolveRole(PIPELINE_STEPS.decomposition.roleCode);
@@ -213,9 +252,8 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
-    if (settings.auto_execute_implementation) {
-      await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
-    }
+    // Lean mode: auto-execute decomposition (planning task)
+    await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
 
     await this.officeEmitter.emitOfficeEvent({
       projectId, entityType: "task", entityId: task.id,
@@ -225,7 +263,7 @@ export class AutonomyPipelineService {
     return { taskId: task.id, step: "decomposition" };
   }
 
-  // ─── PART 5: Auto Implementation Loop ───
+  // ─── PART 5: Implementation Loop (DISABLED in lean mode) ───
 
   async executeImplementationTasks({
     projectId,
@@ -235,9 +273,11 @@ export class AutonomyPipelineService {
     taskIds: string[];
   }) {
     const settings = await this.getSettings(projectId);
+
+    // Lean mode: always disabled
     if (!settings.auto_execute_implementation) {
-      logInfo("autonomy_impl_skipped", { projectId, reason: "auto_execute_implementation disabled" });
-      return { started: 0, skipped: taskIds.length };
+      logInfo("autonomy_impl_disabled", { projectId, reason: "lean mode — auto_execute_implementation=false" });
+      return { started: 0, skipped: taskIds.length, reason: "Implementation disabled in lean mode. Tasks remain in ready state for founder." };
     }
 
     // Respect max_parallel_runs
@@ -276,11 +316,17 @@ export class AutonomyPipelineService {
     return { started, skipped: taskIds.length - started };
   }
 
-  // ─── PART 6: QA Task ───
+  // ─── PART 6: QA Task (DISABLED in lean mode) ───
 
   async triggerQA({ projectId }: { projectId: string }) {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
+
+    // Lean mode: QA is depth 4, beyond default max_autonomy_depth=3
+    if (LEAN_PIPELINE_DEPTH.qa > settings.max_autonomy_depth) {
+      logInfo("autonomy_qa_skipped", { projectId, reason: "exceeds max_autonomy_depth (lean mode)" });
+      return { skipped: true, reason: "QA auto-generation disabled in lean mode" };
+    }
 
     const role = await this.resolveRole(PIPELINE_STEPS.qa.roleCode);
     const task = await this.createPipelineTask({
@@ -290,6 +336,7 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
+    // Never auto-execute in lean mode
     if (settings.auto_execute_implementation) {
       await this.assignAndStartTask(task.id, role.id, projectId, "QA test plan generation");
     }
@@ -302,11 +349,17 @@ export class AutonomyPipelineService {
     return { taskId: task.id, step: "qa" };
   }
 
-  // ─── PART 7: Release Candidate ───
+  // ─── PART 7: Release Candidate (DISABLED in lean mode) ───
 
   async triggerRelease({ projectId }: { projectId: string }) {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
+
+    // Lean mode: Release is depth 5, beyond default max_autonomy_depth=3
+    if (LEAN_PIPELINE_DEPTH.release > settings.max_autonomy_depth) {
+      logInfo("autonomy_release_skipped", { projectId, reason: "exceeds max_autonomy_depth (lean mode)" });
+      return { skipped: true, reason: "Release auto-generation disabled in lean mode" };
+    }
 
     const role = await this.resolveRole(PIPELINE_STEPS.release.roleCode);
     const task = await this.createPipelineTask({
@@ -429,9 +482,63 @@ export class AutonomyPipelineService {
   }
 
   private async getLatestApprovedArtifact(taskId: string) {
+    // PART 4: Only return summary + title, not full content — limit context size
     return this.prisma.artifacts.findFirst({
       where: { task_id: taskId, state: { in: ["accepted", "frozen"] } },
       orderBy: { created_at: "desc" },
+      select: { id: true, title: true, summary: true, state: true },
     }).catch(() => null);
+  }
+
+  // ─── PART 5: Token Budget Enforcement ───
+
+  private async checkTokenBudget(projectId: string, settings: AutonomySettings): Promise<boolean> {
+    try {
+      const usageLogs = await this.prisma.provider_usage_logs.findMany({
+        where: { project_id: projectId },
+        select: { total_tokens: true },
+      });
+
+      const totalTokens = usageLogs.reduce((sum: number, log: any) => sum + (log.total_tokens ?? 0), 0);
+
+      if (totalTokens >= settings.autonomy_token_budget) {
+        logInfo("autonomy_budget_exceeded", { projectId, totalTokens, budget: settings.autonomy_token_budget });
+
+        // Create escalation task for founder
+        try {
+          const role = await this.resolveRole("product_strategist");
+          await this.prisma.tasks.create({
+            data: {
+              project_id: projectId,
+              title: "Autonomy budget exceeded — manual review required",
+              purpose: `Autonomy token budget of ${settings.autonomy_token_budget} tokens exceeded (used: ${totalTokens}). Pipeline halted. Founder must review and decide next steps.`,
+              domain: "founder_control",
+              expected_output_type: "document",
+              owner_role_id: role.id,
+              state: "draft",
+              priority: "high",
+              urgency: "blocker",
+              acceptance_criteria: [],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          });
+
+          await this.officeEmitter.emitOfficeEvent({
+            projectId,
+            entityType: "project",
+            entityId: projectId,
+            eventType: "autonomy_budget_exceeded",
+          });
+        } catch { /* best-effort escalation */ }
+
+        return false;
+      }
+
+      return true;
+    } catch {
+      // If we can't check budget, allow execution
+      return true;
+    }
   }
 }

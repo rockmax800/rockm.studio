@@ -67,7 +67,7 @@ export default function OfficePage() {
       {data && (
         <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
           {/* PART 8 — Performance Top Bar */}
-          <OfficeTopBar {...stats} />
+          <OfficeTopBar {...stats} leanMode={data.leanMode} />
 
           <div className="flex gap-3 flex-1 min-h-0">
             {/* LEFT — Project selector */}
