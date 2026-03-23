@@ -193,9 +193,17 @@ export class AutonomyPipelineService {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
 
+    const budgetOk = await this.checkTokenBudget(projectId, settings);
+    if (!budgetOk) return null;
+
+    if (LEAN_PIPELINE_DEPTH.architecture > settings.max_autonomy_depth) {
+      logInfo("autonomy_arch_skipped", { projectId, reason: "exceeds max_autonomy_depth" });
+      return null;
+    }
+
     const sourceArtifact = await this.getLatestApprovedArtifact(sourceTaskId);
     const contextSummary = sourceArtifact
-      ? `Based on approved spec:\n${sourceArtifact.summary ?? sourceArtifact.title}`
+      ? `Based on approved spec:\n${(sourceArtifact.summary ?? sourceArtifact.title).slice(0, 2000)}`
       : "Generate system architecture.";
 
     const role = await this.resolveRole(PIPELINE_STEPS.architecture.roleCode);
@@ -206,9 +214,8 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
-    if (settings.auto_execute_implementation) {
-      await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
-    }
+    // Lean mode: auto-execute planning tasks
+    await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
 
     await this.officeEmitter.emitOfficeEvent({
       projectId, entityType: "task", entityId: task.id,
@@ -224,9 +231,17 @@ export class AutonomyPipelineService {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
 
+    const budgetOk = await this.checkTokenBudget(projectId, settings);
+    if (!budgetOk) return null;
+
+    if (LEAN_PIPELINE_DEPTH.decomposition > settings.max_autonomy_depth) {
+      logInfo("autonomy_decomp_skipped", { projectId, reason: "exceeds max_autonomy_depth" });
+      return null;
+    }
+
     const sourceArtifact = await this.getLatestApprovedArtifact(sourceTaskId);
     const contextSummary = sourceArtifact
-      ? `Based on approved architecture:\n${sourceArtifact.summary ?? sourceArtifact.title}`
+      ? `Based on approved architecture:\n${(sourceArtifact.summary ?? sourceArtifact.title).slice(0, 2000)}`
       : "Generate implementation task breakdown.";
 
     const role = await this.resolveRole(PIPELINE_STEPS.decomposition.roleCode);
@@ -237,9 +252,8 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
-    if (settings.auto_execute_implementation) {
-      await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
-    }
+    // Lean mode: auto-execute decomposition (planning task)
+    await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
 
     await this.officeEmitter.emitOfficeEvent({
       projectId, entityType: "task", entityId: task.id,
