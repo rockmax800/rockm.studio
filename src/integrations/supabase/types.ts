@@ -479,6 +479,45 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          approved_at: string | null
+          content: string
+          created_at: string
+          event_reference_id: string | null
+          event_type: string
+          id: string
+          platform: string
+          status: string
+          title: string
+          tone: string
+        }
+        Insert: {
+          approved_at?: string | null
+          content?: string
+          created_at?: string
+          event_reference_id?: string | null
+          event_type: string
+          id?: string
+          platform?: string
+          status?: string
+          title: string
+          tone?: string
+        }
+        Update: {
+          approved_at?: string | null
+          content?: string
+          created_at?: string
+          event_reference_id?: string | null
+          event_type?: string
+          id?: string
+          platform?: string
+          status?: string
+          title?: string
+          tone?: string
+        }
+        Relationships: []
+      }
       bottleneck_predictions: {
         Row: {
           confidence_score: number
