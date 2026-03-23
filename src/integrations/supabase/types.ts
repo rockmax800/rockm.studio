@@ -374,6 +374,54 @@ export type Database = {
           },
         ]
       }
+      bottleneck_predictions: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          explanation: string | null
+          id: string
+          prediction_type: string
+          resolved: boolean
+          role_id: string | null
+          task_id: string
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          prediction_type: string
+          resolved?: boolean
+          role_id?: string | null
+          task_id: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          prediction_type?: string
+          resolved?: boolean
+          role_id?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bottleneck_predictions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bottleneck_predictions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       context_packs: {
         Row: {
           assumptions: Json | null
