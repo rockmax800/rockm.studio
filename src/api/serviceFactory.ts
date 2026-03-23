@@ -9,9 +9,10 @@ import { RunService } from "@/services/RunService";
 import { ArtifactService } from "@/services/ArtifactService";
 import { ReviewService } from "@/services/ReviewService";
 import { ApprovalService } from "@/services/ApprovalService";
+import { ProviderService } from "@/services/ProviderService";
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: any) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -38,13 +39,18 @@ export function getServices() {
     artifactService: new ArtifactService(prisma, orchestration),
     reviewService: new ReviewService(prisma, orchestration),
     approvalService: new ApprovalService(prisma, orchestration),
+    providerService: new ProviderService(prisma),
   };
 }
+
+// Alias for convenience
+export const createServices = getServices;
 
 export function errorResponse(error: unknown, fallbackStatus = 500) {
   const message = error instanceof Error ? error.message : "Unknown error";
   const isGuardError = error instanceof Error && error.name === "GuardError";
   const isConcurrencyError = error instanceof Error && error.name === "ConcurrencyError";
-  const status = isGuardError ? 400 : isConcurrencyError ? 409 : fallbackStatus;
+  const isTimeoutError = error instanceof Error && error.message.toLowerCase().includes("timed out");
+  const status = isGuardError ? 400 : isConcurrencyError ? 409 : isTimeoutError ? 504 : fallbackStatus;
   return { status, body: { error: message } };
 }
