@@ -1,13 +1,6 @@
 // UC-06 Resolve Review — Approve
 // UC-07 Resolve Review — Reject (Rework Loop)
-// Transitions (Approve):
-// Review: in_progress → approved/approved_with_notes → closed
-// Artifact: under_review → accepted
-// Task: waiting_review → approved
-// Transitions (Reject):
-// Review: in_progress → rejected → closed
-// Artifact: under_review → rejected
-// Task: waiting_review → rework_required
+// Hardened with Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -24,7 +17,7 @@ interface PrismaTransactionClient {
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -73,7 +66,6 @@ export class ReviewService {
       });
     }
 
-    // Load and validate inside transaction
     const { review, artifact, task } = await this.prisma.$transaction(async (tx) => {
       const review = await tx.reviews.findUniqueOrThrow({ where: { id: reviewId } });
       const artifact = await tx.artifacts.findUniqueOrThrow({ where: { id: review.artifact_id } });
@@ -81,7 +73,6 @@ export class ReviewService {
         ? await tx.tasks.findUniqueOrThrow({ where: { id: review.task_id } })
         : null;
 
-      // Validate review state
       if (review.state !== "in_progress") {
         throw new GuardError({
           message: `Review must be in "in_progress" to approve. Current: "${review.state}"`,
@@ -92,7 +83,6 @@ export class ReviewService {
         });
       }
 
-      // Validate artifact state
       if (artifact.state !== "under_review") {
         throw new GuardError({
           message: `Artifact must be in "under_review" to accept. Current: "${artifact.state}"`,
@@ -103,7 +93,6 @@ export class ReviewService {
         });
       }
 
-      // Store verdict and notes on review record
       const now = new Date().toISOString();
       await tx.reviews.update({
         where: { id: reviewId },
@@ -115,11 +104,10 @@ export class ReviewService {
       });
 
       return { review, artifact, task };
-    });
+    }, { isolationLevel: "Serializable" });
 
     const projectId = review.project_id;
 
-    // 1. Transition review: in_progress → approved / approved_with_notes
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
@@ -130,7 +118,6 @@ export class ReviewService {
       metadata: { use_case: "UC-06", trigger: "reviewer approved", verdict },
     });
 
-    // 2. Transition review: approved/approved_with_notes → closed
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
@@ -141,7 +128,6 @@ export class ReviewService {
       metadata: { use_case: "UC-06", trigger: "review finalized" },
     });
 
-    // 3. Transition artifact: under_review → accepted
     await this.orchestration.transitionEntity({
       entityType: "artifact",
       entityId: artifact.id,
@@ -151,7 +137,6 @@ export class ReviewService {
       metadata: { use_case: "UC-06", trigger: "artifact accepted after review", review_id: reviewId },
     });
 
-    // 4. Transition task: waiting_review → approved (if task exists)
     if (task) {
       await this.orchestration.transitionEntity({
         entityType: "task",
@@ -187,7 +172,6 @@ export class ReviewService {
       });
     }
 
-    // Load and validate inside transaction
     const { review, artifact, task } = await this.prisma.$transaction(async (tx) => {
       const review = await tx.reviews.findUniqueOrThrow({ where: { id: reviewId } });
       const artifact = await tx.artifacts.findUniqueOrThrow({ where: { id: review.artifact_id } });
@@ -195,7 +179,6 @@ export class ReviewService {
         ? await tx.tasks.findUniqueOrThrow({ where: { id: review.task_id } })
         : null;
 
-      // Validate review state
       if (review.state !== "in_progress") {
         throw new GuardError({
           message: `Review must be in "in_progress" to reject. Current: "${review.state}"`,
@@ -206,7 +189,6 @@ export class ReviewService {
         });
       }
 
-      // Validate artifact state
       if (artifact.state !== "under_review") {
         throw new GuardError({
           message: `Artifact must be in "under_review" to reject. Current: "${artifact.state}"`,
@@ -217,7 +199,6 @@ export class ReviewService {
         });
       }
 
-      // Store reason and blocking issues on review record
       const now = new Date().toISOString();
       await tx.reviews.update({
         where: { id: reviewId },
@@ -230,11 +211,10 @@ export class ReviewService {
       });
 
       return { review, artifact, task };
-    });
+    }, { isolationLevel: "Serializable" });
 
     const projectId = review.project_id;
 
-    // 1. Transition review: in_progress → rejected
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
@@ -245,7 +225,6 @@ export class ReviewService {
       metadata: { use_case: "UC-07", trigger: "reviewer rejected", reason },
     });
 
-    // 2. Transition review: rejected → closed
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
@@ -256,7 +235,6 @@ export class ReviewService {
       metadata: { use_case: "UC-07", trigger: "rejection finalized", reason },
     });
 
-    // 3. Transition artifact: under_review → rejected
     await this.orchestration.transitionEntity({
       entityType: "artifact",
       entityId: artifact.id,
@@ -266,7 +244,6 @@ export class ReviewService {
       metadata: { use_case: "UC-07", trigger: "artifact rejected after review", review_id: reviewId, reason },
     });
 
-    // 4. Transition task: waiting_review → rework_required (if task exists)
     if (task) {
       await this.orchestration.transitionEntity({
         entityType: "task",

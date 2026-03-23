@@ -1,8 +1,6 @@
 // UC-01 Activate Project
 // UC-12 Complete Project Milestone
-// Transitions:
-// Activate: scoped → active
-// Complete: in_review → completed (+ approval → closed)
+// Hardened with Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -19,7 +17,7 @@ interface PrismaTransactionClient {
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -100,7 +98,7 @@ export class ProjectService {
       }
 
       return null;
-    });
+    }, { isolationLevel: "Serializable" });
 
     const updated = await this.orchestration.transitionEntity({
       entityType: "project",
@@ -134,7 +132,6 @@ export class ProjectService {
     const { project, approval } = await this.prisma.$transaction(async (tx) => {
       const project = await tx.projects.findUniqueOrThrow({ where: { id: projectId } });
 
-      // 1. Validate project state
       if (project.state !== "in_review") {
         throw new GuardError({
           message: `Project must be in "in_review" state to complete milestone. Current: "${project.state}"`,
@@ -145,7 +142,6 @@ export class ProjectService {
         });
       }
 
-      // 2. Validate release approval exists and is approved
       const approval = await tx.approvals.findFirst({
         where: {
           project_id: projectId,
@@ -166,7 +162,6 @@ export class ProjectService {
         });
       }
 
-      // 3. Validate all tasks are terminal
       const nonTerminalTasks = await tx.tasks.count({
         where: {
           project_id: projectId,
@@ -185,9 +180,8 @@ export class ProjectService {
       }
 
       return { project, approval };
-    });
+    }, { isolationLevel: "Serializable" });
 
-    // 4. Transition project → completed
     const updated = await this.orchestration.transitionEntity({
       entityType: "project",
       entityId: projectId,
@@ -201,7 +195,6 @@ export class ProjectService {
       },
     });
 
-    // 5. Transition approval → closed
     await this.orchestration.transitionEntity({
       entityType: "approval",
       entityId: approval.id,

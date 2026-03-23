@@ -1,13 +1,9 @@
 // UC-03 Start Run
 // UC-16 Retry Run
-// Requires:
-// - Task in assigned (for start)
-// - Project active
-// - ContextPack exists
-// - Run in failed/timed_out (for retry)
-// Transitions:
-// Start: Run created → preparing, Task assigned → in_progress
-// Retry: Original Run → superseded, New Run created → preparing
+// Hardened with:
+// - Double run prevention
+// - Retry idempotency
+// - Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -24,7 +20,7 @@ interface PrismaTransactionClient {
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -40,6 +36,8 @@ interface OrchestrationServiceLike {
     guardContext?: Record<string, unknown>;
   }) => Promise<any>;
 }
+
+const ACTIVE_RUN_STATES = ["created", "preparing", "running"] as const;
 
 export class RunService {
   private prisma: PrismaLike;
@@ -91,6 +89,23 @@ export class RunService {
         });
       }
 
+      // PART 2 — Prevent double run start
+      const activeRunCount = await tx.runs.count({
+        where: {
+          task_id: taskId,
+          state: { in: [...ACTIVE_RUN_STATES] },
+        },
+      });
+      if (activeRunCount > 0) {
+        throw new GuardError({
+          message: `Run already active for task "${taskId}". Cannot start another run while one is in progress.`,
+          entityType: "run",
+          entityId: taskId,
+          fromState: "none",
+          toState: "created",
+        });
+      }
+
       const contextPack = await tx.context_packs.findFirst({ where: { task_id: taskId } });
       if (!contextPack) {
         throw new GuardError({
@@ -119,7 +134,7 @@ export class RunService {
       });
 
       return { run, task };
-    });
+    }, { isolationLevel: "Serializable" });
 
     // Transition Run: created → preparing
     await this.orchestration.transitionEntity({
@@ -143,14 +158,14 @@ export class RunService {
       metadata: { use_case: "UC-03", trigger: "run started for task", run_id: run.id },
     });
 
-    // Enqueue execution (direct call for now, queue later)
+    // Enqueue execution
     await this.enqueueRunExecution(run.id);
 
     return run;
   }
 
   async retryRun(runId: string) {
-    const { originalRun, newRun } = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const originalRun = await tx.runs.findUniqueOrThrow({ where: { id: runId } });
 
       if (!["failed", "timed_out"].includes(originalRun.state)) {
@@ -163,10 +178,36 @@ export class RunService {
         });
       }
 
+      // PART 5 — Idempotent retry: if already superseded, return existing retry run
+      if (originalRun.superseded_by_run_id) {
+        const existingRetry = await tx.runs.findUnique({
+          where: { id: originalRun.superseded_by_run_id },
+        });
+        if (existingRetry) {
+          return { originalRun, newRun: existingRetry, alreadyRetried: true };
+        }
+      }
+
+      // PART 2 — Prevent double run on same task
+      const activeRunCount = await tx.runs.count({
+        where: {
+          task_id: originalRun.task_id,
+          state: { in: [...ACTIVE_RUN_STATES] },
+        },
+      });
+      if (activeRunCount > 0) {
+        throw new GuardError({
+          message: `Run already active for task. Cannot retry while another run is in progress.`,
+          entityType: "run",
+          entityId: runId,
+          fromState: originalRun.state,
+          toState: "superseded",
+        });
+      }
+
       const existingRunCount = await tx.runs.count({ where: { task_id: originalRun.task_id } });
       const now = new Date().toISOString();
 
-      // Find context pack for the task
       const contextPack = await tx.context_packs.findFirst({ where: { task_id: originalRun.task_id } });
 
       const newRun = await tx.runs.create({
@@ -189,10 +230,17 @@ export class RunService {
         data: { superseded_by_run_id: newRun.id, updated_at: now },
       });
 
-      return { originalRun, newRun };
-    });
+      return { originalRun, newRun, alreadyRetried: false };
+    }, { isolationLevel: "Serializable" });
 
-    // Transition original run → superseded (direct from failed/timed_out per doc 05)
+    // If already retried, return existing without re-transitioning
+    if (result.alreadyRetried) {
+      return result.newRun;
+    }
+
+    const { originalRun, newRun } = result;
+
+    // Transition original run → superseded
     await this.orchestration.transitionEntity({
       entityType: "run",
       entityId: runId,
@@ -230,7 +278,6 @@ export class RunService {
   }
 
   private async enqueueRunExecution(runId: string) {
-    // Direct call for now — will be replaced by queue (BullMQ) later
     const { executeRun } = await import("@/workers/runExecutor");
     await executeRun(runId, this.prisma, this.orchestration);
   }

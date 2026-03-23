@@ -3,18 +3,20 @@
 // Direct prisma update of state field is forbidden.
 
 import { validateTransition, type EntityType, type TransitionContext } from "@/guards";
-// PrismaClient type will be available once Prisma is configured in the project.
-// For now we use a minimal interface to avoid build errors in the Lovable preview.
+import { ConcurrencyError } from "@/guards/ConcurrencyError";
+
 interface PrismaTransactionClient {
   [key: string]: {
     findUniqueOrThrow: (args: any) => Promise<any>;
+    findMany: (args: any) => Promise<any>;
     update: (args: any) => Promise<any>;
+    updateMany: (args: any) => Promise<{ count: number }>;
     create: (args: any) => Promise<any>;
   };
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
 }
 
 type ActorType = "founder" | "system" | "agent_role";
@@ -62,12 +64,13 @@ export class OrchestrationService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // 1. Load current entity
+      // 1. Reload entity inside transaction (fail-fast on invalid state)
       const entity = await (tx as any)[tableName].findUniqueOrThrow({
         where: { id: entityId },
       });
 
       const fromState = entity.state as string;
+      const currentVersion = entity.version as number;
 
       // 2. Validate transition via guard layer
       await validateTransition({
@@ -82,17 +85,31 @@ export class OrchestrationService {
         },
       });
 
-      // 3. Update entity state
+      // 3. Optimistic locking: update only if version matches
       const now = new Date().toISOString();
-      const updated = await (tx as any)[tableName].update({
-        where: { id: entityId },
+      const updateResult = await (tx as any)[tableName].updateMany({
+        where: { id: entityId, version: currentVersion },
         data: {
           state: toState,
+          version: currentVersion + 1,
           updated_at: now,
         },
       });
 
-      // 4. Emit activity event
+      if (updateResult.count === 0) {
+        throw new ConcurrencyError({
+          message: `Concurrency conflict: ${entityType} "${entityId}" was modified by another process (expected version ${currentVersion})`,
+          entityType,
+          entityId,
+        });
+      }
+
+      // 4. Re-fetch updated entity
+      const updated = await (tx as any)[tableName].findUniqueOrThrow({
+        where: { id: entityId },
+      });
+
+      // 5. Emit activity event
       await (tx as any).activity_events.create({
         data: {
           entity_type: entityType,
@@ -101,11 +118,11 @@ export class OrchestrationService {
           project_id: projectId,
           actor_type: actorType,
           actor_role_id: actorRoleId,
-          event_payload: metadata,
+          event_payload: { ...metadata, from_version: currentVersion, to_version: currentVersion + 1 },
         },
       });
 
       return updated;
-    });
+    }, { isolationLevel: "Serializable" });
   }
 }

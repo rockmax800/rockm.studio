@@ -1,12 +1,7 @@
 // UC-05 Submit Artifact for Review
-// Requires:
-// - Artifact in classified state
-// - Task in in_progress state
-// - Reviewer role active
-// Transitions:
-// Artifact: classified → submitted → under_review
-// Review: created → in_progress
-// Task: in_progress → waiting_review
+// Hardened with:
+// - PART 3: Prevent multiple active reviews per artifact
+// - Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -23,7 +18,7 @@ interface PrismaTransactionClient {
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -58,9 +53,7 @@ export class ArtifactService {
     reviewerRoleId: string;
     actorType: "system" | "founder" | "agent_role";
   }) {
-    // Validate and create review inside transaction
     const { artifact, task, review } = await this.prisma.$transaction(async (tx) => {
-      // 1. Load artifact + task
       const artifact = await tx.artifacts.findUniqueOrThrow({ where: { id: artifactId } });
 
       if (!artifact.task_id) {
@@ -75,7 +68,6 @@ export class ArtifactService {
 
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: artifact.task_id } });
 
-      // 2. Validate states
       if (artifact.state !== "classified") {
         throw new GuardError({
           message: `Artifact must be in "classified" state to submit. Current: "${artifact.state}"`,
@@ -96,7 +88,23 @@ export class ArtifactService {
         });
       }
 
-      // 3. Validate reviewer role
+      // PART 3 — Prevent multiple active reviews for this artifact
+      const activeReviewCount = await tx.reviews.count({
+        where: {
+          artifact_id: artifactId,
+          state: { not: "closed" },
+        },
+      });
+      if (activeReviewCount > 0) {
+        throw new GuardError({
+          message: `Artifact already has ${activeReviewCount} non-closed review(s). Cannot create another review until existing ones are closed.`,
+          entityType: "review",
+          entityId: artifactId,
+          fromState: "none",
+          toState: "created",
+        });
+      }
+
       const reviewerRole = await tx.agent_roles.findUniqueOrThrow({ where: { id: reviewerRoleId } });
       if (reviewerRole.status !== "active") {
         throw new GuardError({
@@ -108,7 +116,6 @@ export class ArtifactService {
         });
       }
 
-      // 4. Create Review record
       const now = new Date().toISOString();
       const review = await tx.reviews.create({
         data: {
@@ -123,9 +130,9 @@ export class ArtifactService {
       });
 
       return { artifact, task, review };
-    });
+    }, { isolationLevel: "Serializable" });
 
-    // 5. Transition artifact: classified → submitted
+    // Transition artifact: classified → submitted
     await this.orchestration.transitionEntity({
       entityType: "artifact",
       entityId: artifactId,
@@ -135,7 +142,7 @@ export class ArtifactService {
       metadata: { use_case: "UC-05", trigger: "artifact submitted for review", review_id: review.id },
     });
 
-    // 6. Transition artifact: submitted → under_review
+    // Transition artifact: submitted → under_review
     await this.orchestration.transitionEntity({
       entityType: "artifact",
       entityId: artifactId,
@@ -145,7 +152,7 @@ export class ArtifactService {
       metadata: { use_case: "UC-05", trigger: "review started", review_id: review.id },
     });
 
-    // 7. Transition review: created → in_progress
+    // Transition review: created → in_progress
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: review.id,
@@ -156,7 +163,7 @@ export class ArtifactService {
       metadata: { use_case: "UC-05", trigger: "reviewer begins evaluation", artifact_id: artifactId },
     });
 
-    // 8. Transition task: in_progress → waiting_review
+    // Transition task: in_progress → waiting_review
     await this.orchestration.transitionEntity({
       entityType: "task",
       entityId: task.id,

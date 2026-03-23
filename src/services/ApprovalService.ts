@@ -1,8 +1,8 @@
 // UC-09 Request Approval
 // UC-10 Resolve Approval
-// Approval lifecycle:
-// pending → approved | rejected | deferred
-// Closing happens when consumed by workflow (not here).
+// Hardened with:
+// - PART 4: Prevent duplicate pending approvals (already existed, kept)
+// - Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -19,7 +19,7 @@ interface PrismaTransactionClient {
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -71,7 +71,6 @@ export class ApprovalService {
     summary: string;
   }) {
     return this.prisma.$transaction(async (tx) => {
-      // 1. Validate target entity exists
       const tableName = TARGET_TABLE_MAP[targetType];
       if (!tableName) {
         throw new GuardError({
@@ -85,7 +84,7 @@ export class ApprovalService {
 
       await tx[tableName].findUniqueOrThrow({ where: { id: targetId } });
 
-      // 2. Ensure no duplicate pending approval
+      // PART 4 — Prevent duplicate pending approval
       const existing = await tx.approvals.findFirst({
         where: {
           approval_type: approvalType,
@@ -105,7 +104,6 @@ export class ApprovalService {
         });
       }
 
-      // 3. Create Approval record
       const now = new Date().toISOString();
       const approval = await tx.approvals.create({
         data: {
@@ -121,7 +119,6 @@ export class ApprovalService {
         },
       });
 
-      // 4. Emit activity event
       await tx.activity_events.create({
         data: {
           entity_type: "approval",
@@ -142,7 +139,7 @@ export class ApprovalService {
       });
 
       return approval;
-    });
+    }, { isolationLevel: "Serializable" });
   }
 
   async resolveApproval({
@@ -186,8 +183,8 @@ export class ApprovalService {
       });
     }
 
-    // Load and validate
     const approval = await this.prisma.$transaction(async (tx) => {
+      // PART 8 — Reload and validate inside transaction
       const approval = await tx.approvals.findUniqueOrThrow({ where: { id: approvalId } });
 
       if (approval.state !== "pending") {
@@ -200,7 +197,6 @@ export class ApprovalService {
         });
       }
 
-      // Store decision note and decided_at
       const now = new Date().toISOString();
       await tx.approvals.update({
         where: { id: approvalId },
@@ -212,9 +208,8 @@ export class ApprovalService {
       });
 
       return approval;
-    });
+    }, { isolationLevel: "Serializable" });
 
-    // Transition approval → decision state
     const updated = await this.orchestration.transitionEntity({
       entityType: "approval",
       entityId: approvalId,
