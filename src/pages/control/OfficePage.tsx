@@ -43,6 +43,8 @@ interface TaskCard {
   role_team_id?: string | null;
   employee_name?: string | null;
   employee_reputation?: number | null;
+  employee_status?: string | null;
+  is_new_hire?: boolean;
   has_prediction: boolean;
   prediction_type: string | null;
 }
