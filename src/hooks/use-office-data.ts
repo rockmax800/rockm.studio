@@ -72,6 +72,8 @@ export function useOfficeData() {
       const predictions = (predictionsRes.data ?? []) as BottleneckPrediction[];
       const teams = (teamsRes.data ?? []) as TeamInfo[];
       const teamsById = Object.fromEntries(teams.map(t => [t.id, t]));
+      const employees = employeesRes.data ?? [];
+      const employeesByRoleId = Object.fromEntries(employees.map((e: any) => [e.role_id, e]));
       const companySettings = (companyRes.data ?? [])[0] ?? null;
 
       // Index predictions by task_id
