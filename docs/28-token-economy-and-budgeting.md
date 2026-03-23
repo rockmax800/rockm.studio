@@ -1,4 +1,10 @@
-# Token Economy & Budgeting
+---
+layer: cross-cutting
+criticality: critical
+enabled_in_production: yes (budget tracking always active)
+---
+
+# 28 — Token Economy & Budgeting
 
 ## 1 — Purpose
 
@@ -8,20 +14,20 @@ Documents token costs across all system modules and defines budgeting controls.
 
 ## 2 — Cost by Module
 
-| Module | Token Impact | Frequency | Controllable? |
-|--------|-------------|-----------|--------------|
-| Core workflow (runs) | High | Per task | Yes — retry limits |
-| Provider routing | None (DB lookup) | Per run | — |
-| Guard validation | None (pure logic) | Per transition | — |
-| Context assembly | Medium | Per run | Yes — compression |
-| Review execution | High | Per artifact | Yes — skip self-review |
-| Dual verification | High (2× cost) | Per run | Yes — disable in routing policy |
-| Self-review | Medium | Per run | Yes — disable |
-| Autonomy pipeline | Very High (24–72 calls) | Per idea | Yes — disable autonomy |
-| Blog generation | Medium | Per event | Yes — max 3/day cap |
-| Prediction engine | Low | Periodic | Yes — edge function schedule |
-| Prompt experiments | Medium | Per experiment run | Yes — cancel experiment |
-| Context compression | Low–Medium | Per large context | Yes — disable |
+| Module | Token Impact | Frequency | Controllable? | Disabled in Production? |
+|--------|-------------|-----------|--------------|------------------------|
+| Core workflow (runs) | High | Per task | Yes — retry limits | No |
+| Provider routing | None (DB lookup) | Per run | — | No |
+| Guard validation | None (pure logic) | Per transition | — | No |
+| Context assembly | Medium | Per run | Yes — compression | No |
+| Review execution | High | Per artifact | Yes — skip self-review | No |
+| Dual verification | High (2× cost) | Per run | Yes — feature flag | **Yes** |
+| Self-review | Medium | Per run | Yes — feature flag | **Yes** |
+| Autonomy pipeline | Very High (24–72 calls) | Per idea | Yes — feature flag | **Yes** |
+| Blog generation | Medium | Per event | Yes — feature flag | **Yes** |
+| Prediction engine | Low | Periodic | Yes — mode check | **Yes** |
+| Prompt experiments | Medium | Per experiment run | Yes — feature flag | **Yes** |
+| Context compression | Low–Medium | Per large context | Yes — feature flag | **Yes** |
 
 ---
 

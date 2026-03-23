@@ -1,3 +1,9 @@
+---
+layer: core
+criticality: critical
+enabled_in_production: yes
+---
+
 # 03 — State Machine
 
 > Layer 1 — Core Engine
@@ -8,6 +14,7 @@ Defines lifecycle states, transitions, triggers, and guards for the six core ent
 Project, Task, Run, Artifact, Review, Approval.
 
 These entities are distinct and must not be merged conceptually.
+**This is the single authoritative source for all state definitions.** No other layer may redefine states or transitions.
 
 ---
 
@@ -66,6 +73,8 @@ See `01-project-lifecycle.md` for full project state machine.
 | any non-terminal | cancelled | Founder cancels | Cancellation reason; actor=founder |
 
 ### 4.3 Terminal States: `done`, `cancelled`
+
+For guard details, see `05-guard-matrix.md`.
 
 ---
 

@@ -1,3 +1,9 @@
+---
+layer: core
+criticality: critical
+enabled_in_production: yes
+---
+
 # 01 — Project Lifecycle
 
 > Layer 1 — Core Engine
@@ -39,6 +45,8 @@ Defines the project entity lifecycle: creation, scoping, activation, execution, 
 | completed | archived | Founder archives | Founder decision |
 | paused | archived | Founder archives | Founder decision |
 
+For guard details, see `05-guard-matrix.md`.
+
 ---
 
 ## 4 — Terminal States
@@ -51,28 +59,14 @@ Defines the project entity lifecycle: creation, scoping, activation, execution, 
 
 Before `scoped → active`:
 - `00-project-brief.md`
-- `04-domain-boundaries.md` (now `02-domain-boundaries.md`)
-- `05-lifecycle-state-machine.md` (now `03-state-machine.md`)
+- `02-domain-boundaries.md`
+- `03-state-machine.md`
 
 ---
 
 ## 6 — Project Fields
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| id | uuid | yes | Primary key |
-| name | string | yes | Project name |
-| slug | string | yes | Unique project key |
-| purpose | text | yes | Short project intent |
-| project_type | string | no | dashboard, internal tool, app |
-| current_phase | string | no | discovery, docs, frontend, backend, review |
-| state | enum | yes | See states above |
-| team_id | uuid | no | FK to teams (Layer 2) |
-| founder_notes | text | no | Optional notes |
-| version | integer | yes | Optimistic locking |
-| created_at | timestamp | yes | |
-| updated_at | timestamp | yes | |
-| archived_at | timestamp | no | |
+See `04-data-model.md` §3 for complete field definitions.
 
 ---
 

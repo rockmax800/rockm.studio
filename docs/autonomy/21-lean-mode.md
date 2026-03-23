@@ -1,3 +1,9 @@
+---
+layer: autonomy
+criticality: optional
+enabled_in_production: yes (lean mode IS the production recommendation)
+---
+
 # 21 — Lean Mode
 
 > Layer 3 — Autonomy & Evolution
@@ -17,13 +23,15 @@ Minimal operating configuration that reduces token usage while maintaining core 
 - Bottleneck predictions (periodic analysis)
 - Blog auto-drafting
 
+All disabled via feature flags — see `08-feature-flags.md`.
+
 ---
 
 ## 3 — What Lean Mode Keeps
 
-- Core workflow: Task → Run → Artifact → Review → Approval
-- State machine guards
-- Orchestration use cases
+- Core workflow: Task → Run → Artifact → Review → Approval (defined in `core/03-state-machine.md`)
+- State machine guards (defined in `core/05-guard-matrix.md`)
+- Orchestration use cases (defined in `core/06-orchestration-use-cases.md`)
 - Provider routing (primary only, no fallback)
 - Activity events
 - Basic employee performance tracking
@@ -32,17 +40,11 @@ Minimal operating configuration that reduces token usage while maintaining core 
 
 ## 4 — Activation
 
-Set project autonomy settings:
-```
-auto_generate_tasks = false
-auto_execute_implementation = false
-auto_retry_enabled = false
-max_autonomy_depth = 0
-max_parallel_runs = 1
-```
+Set system mode to `production` (see `07-system-mode.md`). All experimental features are automatically disabled.
 
 ---
 
 ## 5 — Expected Token Savings
 
 Estimated 60–80% reduction in token usage compared to full Company + Experimental mode.
+See `28-token-economy-and-budgeting.md` for detailed cost analysis.

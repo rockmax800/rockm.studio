@@ -1,6 +1,14 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 15 — Replacement Engine
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Active only in Company or Experimental modes.
 
 ## 1 — Purpose
 
@@ -14,6 +22,8 @@ Generates employee replacement proposals when performance drops below thresholds
 - Employee `bug_rate > 0.3`
 - Employee `escalation_rate > 0.4`
 - Model deprecated by provider
+
+Performance metrics defined in `core/09-performance-scoring.md` §7.
 
 ---
 

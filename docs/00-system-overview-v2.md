@@ -1,3 +1,9 @@
+---
+layer: cross-cutting
+criticality: critical
+enabled_in_production: yes
+---
+
 # 00 — System Overview V2
 
 ## 1 — System Identity
@@ -31,7 +37,7 @@ The system is organized into three layers with clear dependency rules:
 
 ---
 
-## 3 — Layer 1 — Core Engine (Documents 01–08)
+## 3 — Layer 1 — Core Engine (Documents 01–09)
 
 The deterministic workflow backbone. No HR, no autonomy, no departments.
 
@@ -45,6 +51,7 @@ The deterministic workflow backbone. No HR, no autonomy, no departments.
 | 06 | Orchestration Use Cases | 26 atomic workflow actions (UC-01 through UC-26) |
 | 07 | Backend Architecture | Service map, guard layer, transaction design, worker layer |
 | 08 | Provider Architecture | Multi-provider routing, credentials, health, usage, fallback |
+| **09** | **Performance Scoring** | **Single source of truth for all scoring formulas** |
 
 **Core workflow chain:**
 ```
@@ -63,13 +70,15 @@ Organizational simulation on top of Core Engine.
 |-----|-------|---------|
 | 10 | Department System | Teams, team settings, cross-team policies |
 | 11 | AIEmployee & HR Model | Named employees, hiring, performance tracking |
-| 12 | Load Balancer | Task distribution across employees by capacity and performance |
-| 13 | Hiring Market | Model marketplace, benchmarking, competitive scoring |
-| 14 | Performance & Rating Engine | Quality scoring, rolling averages, run evaluations |
+| 12 | Load Balancer | Task distribution — scoring via `core/09` |
+| 13 | Hiring Market | Model marketplace — scoring via `core/09` |
+| 14 | Performance & Rating Engine | Quality scoring — formula via `core/09` |
 | 15 | Replacement Engine | Employee replacement proposals with founder approval |
 | 16 | Company Blog Module | AI copywriter, event-driven drafts, founder approval |
 | 17 | Real-Time Office | Pixel visualization, zone mapping, office events |
 | 18 | Prediction & Bottleneck Engine | Proactive bottleneck detection, confidence scoring |
+
+**Company layer does NOT define state transitions or override core guards.**
 
 ---
 
@@ -87,9 +96,23 @@ Controlled self-improvement and experimental features.
 | 25 | Spec-to-Release Mode | End-to-end autonomous delivery pipeline |
 | 26 | Safety & Budget Controls | Budget limits, runaway prevention, kill switches |
 
+**Autonomy layer does NOT redefine lifecycle or data model.** References core exclusively.
+
 ---
 
-## 6 — Data Flow
+## 6 — Cross-Cutting Documents
+
+| Doc | Title | Purpose |
+|-----|-------|---------|
+| 07-system-mode | System Mode | Production/Experimental mode control |
+| 08-feature-flags | Feature Flags | Experimental feature flag definitions |
+| 27 | Operating Modes | Four mode configurations |
+| 28 | Token Economy | Cost analysis and budget hierarchy |
+| 29 | Risk & Safety Matrix | Risk categorization and mitigation |
+
+---
+
+## 7 — Data Flow
 
 ```
 Founder Intent
@@ -124,7 +147,7 @@ Task → done → Project milestone
 
 ---
 
-## 7 — Event Flow
+## 8 — Event Flow
 
 All state transitions emit `ActivityEvent` records for audit trail.
 
@@ -136,7 +159,7 @@ Events are append-only. No updates, no deletes.
 
 ---
 
-## 8 — Founder Intervention Points
+## 9 — Founder Intervention Points
 
 | Action | Layer | Automated? |
 |--------|-------|------------|
@@ -154,7 +177,7 @@ Events are append-only. No updates, no deletes.
 
 ---
 
-## 9 — Deterministic vs Experimental
+## 10 — Deterministic vs Experimental
 
 | Category | Deterministic | Experimental |
 |----------|--------------|--------------|
@@ -172,31 +195,19 @@ Events are append-only. No updates, no deletes.
 
 ---
 
-## 10 — Operating Modes
+## 11 — Single Source of Truth Index
 
-See document `27-operating-modes.md` for full details.
-
-| Mode | Layer 1 | Layer 2 | Layer 3 | Description |
-|------|---------|---------|---------|-------------|
-| **Minimal Stable** | ✅ | ❌ | ❌ | Core workflow only. No company features. |
-| **Lean Autonomous** | ✅ | Partial | ❌ | Core + basic team/employee. No experiments. |
-| **Company** | ✅ | ✅ | ❌ | Full company simulation. No autonomy. |
-| **Experimental** | ✅ | ✅ | ✅ | All features enabled. Highest token usage. |
-
----
-
-## 11 — Key Invariants
-
-1. Every task has exactly one current lifecycle state
-2. Every run belongs to exactly one task
-3. Every artifact has a source task or run
-4. Every review ends in a closed state
-5. A task in `done` cannot have unresolved blocking reviews
-6. A project in `completed` cannot have active critical tasks
-7. State changes go through OrchestrationService — never direct DB updates
-8. Founder approval is required for all production-critical decisions
-9. Provider failure never corrupts workflow state
-10. Events are append-only audit records
+| Concept | Authoritative Document |
+|---------|----------------------|
+| State definitions & transitions | `core/03-state-machine.md` |
+| Guard rules | `core/05-guard-matrix.md` |
+| Data model | `core/04-data-model.md` |
+| All scoring formulas | `core/09-performance-scoring.md` |
+| Feature flags | `08-feature-flags.md` |
+| System mode | `07-system-mode.md` |
+| Risk matrix | `29-risk-and-safety-matrix.md` |
+| Token costs | `28-token-economy-and-budgeting.md` |
+| Operating modes | `27-operating-modes.md` |
 
 ---
 

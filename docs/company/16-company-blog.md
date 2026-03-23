@@ -1,6 +1,14 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 16 — Company Blog Module
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Requires `enable_blog` feature flag. See `08-feature-flags.md`.
 
 ## 1 — Purpose
 

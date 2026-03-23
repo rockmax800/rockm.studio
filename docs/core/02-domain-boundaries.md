@@ -1,3 +1,9 @@
+---
+layer: core
+criticality: critical
+enabled_in_production: yes
+---
+
 # 02 — Domain Boundaries
 
 > Layer 1 — Core Engine

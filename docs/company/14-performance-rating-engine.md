@@ -1,10 +1,18 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 14 — Performance & Rating Engine
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Active only in Lean Autonomous, Company, or Experimental modes.
 
 ## 1 — Purpose
 
-Unified scoring system for agent role and employee performance tracking.
+Tracks agent role and employee performance using the unified scoring system.
 
 ---
 
@@ -24,12 +32,7 @@ After each review resolution, `AgentPerformanceService` records:
 
 ## 3 — Quality Score Adjustment
 
-```
-adjusted_quality = base_quality_score
-if validation_risk_level == "high": adjusted_quality -= 0.3
-adjusted_quality -= min(cost_score, 1.0) × 0.1
-adjusted_quality = clamp(0, 1)
-```
+See `core/09-performance-scoring.md` §5 for the authoritative formula.
 
 ---
 
@@ -41,8 +44,16 @@ adjusted_quality = clamp(0, 1)
 
 ---
 
-## 5 — Consolidation Note
+## 5 — Reputation Score
 
-This is the **single scoring system** for the platform.
-`ModelCompetitionService` scoring (hiring market) uses different weights for model comparison only.
-Employee/role performance always uses `AgentPerformanceService`.
+See `core/09-performance-scoring.md` §6 for the authoritative formula.
+
+> **No scoring formula is defined here.** All scoring uses `ScoringService.computePerformanceScore()`.
+
+---
+
+## 6 — Consolidation Note
+
+This is the **single scoring system** for employee/role performance.
+`ModelCompetitionService` scoring (hiring market) uses `computeCompetitionScore()` for model comparison only.
+Both formulas are defined in `core/09-performance-scoring.md`.
