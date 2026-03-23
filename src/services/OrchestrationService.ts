@@ -42,7 +42,7 @@ const ENTITY_TABLE_MAP: Record<EntityType, string> = {
 export class OrchestrationService {
   private prisma: PrismaLike;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: PrismaLike) {
     this.prisma = prisma;
   }
 
