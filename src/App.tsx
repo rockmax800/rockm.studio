@@ -51,6 +51,7 @@ const App = () => (
           <Route path="/control/providers" element={<ControlProviderList />} />
           <Route path="/control/providers/:id" element={<ControlProviderDetail />} />
           <Route path="/control/office" element={<OfficePage />} />
+          <Route path="/control/founder" element={<FounderDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
