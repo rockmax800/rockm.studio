@@ -16,6 +16,8 @@ import ControlProjectDetail from "./pages/control/ControlProjectDetail";
 import ControlTaskDetail from "./pages/control/ControlTaskDetail";
 import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
 import ControlRunDetail from "./pages/control/ControlRunDetail";
+import ControlProviderList from "./pages/control/ControlProviderList";
+import ControlProviderDetail from "./pages/control/ControlProviderDetail";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
           <Route path="/control/tasks/:id" element={<ControlTaskDetail />} />
           <Route path="/control/approvals/:id" element={<ControlApprovalDetail />} />
           <Route path="/control/runs/:id" element={<ControlRunDetail />} />
+          <Route path="/control/providers" element={<ControlProviderList />} />
+          <Route path="/control/providers/:id" element={<ControlProviderDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

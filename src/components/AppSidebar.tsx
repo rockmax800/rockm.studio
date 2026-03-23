@@ -10,6 +10,7 @@ import {
   BookOpen,
   Settings,
   Unplug,
+  Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -42,6 +43,11 @@ const systemNav = [
   { title: "Providers", url: "/providers", icon: Unplug },
   { title: "Docs", url: "/docs", icon: BookOpen },
   { title: "Settings", url: "/settings", icon: Settings },
+];
+
+const controlNav = [
+  { title: "Control Plane", url: "/control", icon: Shield },
+  { title: "Provider Control", url: "/control/providers", icon: Unplug },
 ];
 
 export function AppSidebar() {
@@ -103,6 +109,27 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {systemNav.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="hover:bg-sidebar-accent/50"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-muted">Control</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {controlNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
