@@ -327,6 +327,47 @@ export type Database = {
           },
         ]
       }
+      autonomy_settings: {
+        Row: {
+          auto_execute_implementation: boolean
+          auto_generate_tasks: boolean
+          auto_retry_enabled: boolean
+          created_at: string
+          id: string
+          max_parallel_runs: number
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          auto_execute_implementation?: boolean
+          auto_generate_tasks?: boolean
+          auto_retry_enabled?: boolean
+          created_at?: string
+          id?: string
+          max_parallel_runs?: number
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          auto_execute_implementation?: boolean
+          auto_generate_tasks?: boolean
+          auto_retry_enabled?: boolean
+          created_at?: string
+          id?: string
+          max_parallel_runs?: number
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "autonomy_settings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       context_packs: {
         Row: {
           assumptions: Json | null

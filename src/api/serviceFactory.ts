@@ -18,6 +18,7 @@ import { DualVerificationService } from "@/services/DualVerificationService";
 import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 import { PromptVersionService } from "@/services/PromptVersionService";
 import { PromptImprovementService } from "@/services/PromptImprovementService";
+import { AutonomyPipelineService } from "@/services/AutonomyPipelineService";
 
 interface PrismaLike {
   $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
@@ -60,6 +61,9 @@ export function getServices() {
     dualVerificationService: new DualVerificationService(prisma, officeEmitter),
     promptVersionService: new PromptVersionService(prisma, officeEmitter),
     promptImprovementService: new PromptImprovementService(prisma, officeEmitter),
+    autonomyPipelineService: new AutonomyPipelineService(
+      prisma, orchestration, new TaskService(prisma, orchestration), runService, officeEmitter,
+    ),
   };
 }
 
