@@ -11,6 +11,7 @@ import {
   Settings,
   Unplug,
   Shield,
+  Building2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -47,6 +48,7 @@ const systemNav = [
 
 const controlNav = [
   { title: "Control Plane", url: "/control", icon: Shield },
+  { title: "Office", url: "/control/office", icon: Building2 },
   { title: "Provider Control", url: "/control/providers", icon: Unplug },
 ];
 
