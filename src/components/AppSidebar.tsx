@@ -51,6 +51,7 @@ const controlNav = [
   { title: "Control Plane", url: "/control", icon: Shield },
   { title: "Founder Pro", url: "/control/founder", icon: Crown },
   { title: "Office", url: "/control/office", icon: Building2 },
+  { title: "AI HR", url: "/control/hr", icon: Bot },
   { title: "Provider Control", url: "/control/providers", icon: Unplug },
 ];
 

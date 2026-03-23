@@ -24,6 +24,8 @@ interface PixelAgentProps {
   successRate: number | null;
   hasPrediction?: boolean;
   predictionType?: string | null;
+  employeeName?: string | null;
+  employeeReputation?: number | null;
   onClick: () => void;
 }
 
@@ -37,6 +39,8 @@ export function PixelAgent({
   successRate,
   hasPrediction,
   predictionType,
+  employeeName,
+  employeeReputation,
   onClick,
 }: PixelAgentProps) {
   const isBlocked = state === "blocked";
@@ -47,9 +51,12 @@ export function PixelAgent({
 
   const sprite = (roleCode && ROLE_SPRITES[roleCode]) || "/pixel/agent.png";
 
-  // PART 8 — Performance heatmap tint
+  // PART 6 — Reputation-based tint (overrides role success rate)
   let perfOverlay = "";
-  if (successRate !== null && successRate !== undefined) {
+  if (employeeReputation !== null && employeeReputation !== undefined) {
+    if (employeeReputation < 0.2) perfOverlay = "bg-red-500/15";
+    else if (employeeReputation > 0.5) perfOverlay = "bg-emerald-500/10";
+  } else if (successRate !== null && successRate !== undefined) {
     if (successRate < 0.4) perfOverlay = "bg-red-500/15";
     else if (successRate >= 0.8) perfOverlay = "bg-emerald-500/10";
   }
@@ -111,7 +118,12 @@ export function PixelAgent({
 
       {/* Labels */}
       <div className="mt-0.5 flex flex-col items-center max-w-[68px]">
-        {roleName && (
+        {employeeName && (
+          <span className="text-[8px] font-bold text-foreground truncate max-w-full">
+            {employeeName}
+          </span>
+        )}
+        {!employeeName && roleName && (
           <span className="text-[8px] font-medium text-muted-foreground truncate max-w-full">
             {roleName}
           </span>

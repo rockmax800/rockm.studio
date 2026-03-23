@@ -41,6 +41,8 @@ interface TaskCard {
   role_success_rate: number | null;
   role_performance_score: number | null;
   role_team_id?: string | null;
+  employee_name?: string | null;
+  employee_reputation?: number | null;
   has_prediction: boolean;
   prediction_type: string | null;
 }
@@ -162,6 +164,8 @@ export default function OfficePage() {
                             successRate={task.role_success_rate}
                             hasPrediction={task.has_prediction}
                             predictionType={task.prediction_type}
+                            employeeName={task.employee_name}
+                            employeeReputation={task.employee_reputation}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
@@ -186,6 +190,8 @@ export default function OfficePage() {
                             successRate={task.role_success_rate}
                             hasPrediction={task.has_prediction}
                             predictionType={task.prediction_type}
+                            employeeName={task.employee_name}
+                            employeeReputation={task.employee_reputation}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
@@ -228,6 +234,8 @@ export default function OfficePage() {
                               successRate={task.role_success_rate}
                               hasPrediction={task.has_prediction}
                               predictionType={task.prediction_type}
+                              employeeName={task.employee_name}
+                              employeeReputation={task.employee_reputation}
                               onClick={() => navigate(`/control/tasks/${task.id}`)}
                             />
                           ))}

@@ -46,7 +46,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number, agent_role_id").order("run_number", { ascending: false }),
@@ -60,6 +60,7 @@ export function useOfficeData() {
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
         supabase.from("teams").select("*"),
         supabase.from("company_mode_settings").select("*").limit(1),
+        supabase.from("ai_employees").select("id, name, role_id, reputation_score, status").in("status", ["active", "probation"]),
       ]);
 
       const tasks = tasksRes.data ?? [];
@@ -71,6 +72,8 @@ export function useOfficeData() {
       const predictions = (predictionsRes.data ?? []) as BottleneckPrediction[];
       const teams = (teamsRes.data ?? []) as TeamInfo[];
       const teamsById = Object.fromEntries(teams.map(t => [t.id, t]));
+      const employees = employeesRes.data ?? [];
+      const employeesByRoleId = Object.fromEntries(employees.map((e: any) => [e.role_id, e]));
       const companySettings = (companyRes.data ?? [])[0] ?? null;
 
       // Index predictions by task_id
@@ -89,6 +92,7 @@ export function useOfficeData() {
         const taskRuns = runs.filter((r: any) => r.task_id === t.id);
         const latestRun = taskRuns[0] ?? null;
         const role = t.owner_role_id ? rolesById[t.owner_role_id] : null;
+        const employee = t.owner_role_id ? employeesByRoleId[t.owner_role_id] : null;
         const taskPredictions = predictionsByTask[t.id] ?? [];
         return {
           id: t.id,
@@ -106,6 +110,8 @@ export function useOfficeData() {
           role_success_rate: role?.success_rate ?? null,
           role_performance_score: role?.performance_score ?? null,
           role_team_id: role?.team_id ?? null,
+          employee_name: employee?.name ?? null,
+          employee_reputation: employee?.reputation_score ?? null,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };
