@@ -22,7 +22,7 @@ No interpretation beyond what the lifecycle document defines.
 | P4 | `blocked` | `active` | blocking issue cleared (blocker_reason nullified or resolved) | emit `project.unblocked` event | blocker still active |
 | P5 | `active` | `in_review` | milestone artifacts exist (at least one artifact in `accepted` or `frozen` state linked to project) | emit `project.review_started` event | no milestone artifacts exist |
 | P6 | `in_review` | `active` | founder requests more work (rework decision recorded) | emit `project.rework_requested` event | no founder decision recorded |
-| P7 | `in_review` | `completed` | founder approves milestone or release; **approval record exists with state=approved**; acceptance criteria met | emit `project.completed` event; close approval | approval not approved; active critical tasks exist |
+| P7 | `in_review` | `completed` | founder approves milestone or release; **approval record exists with state=approved**; all tasks in project must be in state `done` or `cancelled` | emit `project.completed` event; close approval | approval not approved; tasks exist in non-terminal state |
 | P8 | `active` | `paused` | founder decision | emit `project.paused` event | none |
 | P9 | `paused` | `active` | founder decision | emit `project.resumed` event | none |
 | P10 | `completed` | `archived` | founder decision | emit `project.archived` event; set archived_at | none |
@@ -71,7 +71,6 @@ function guardProjectTransition(project, to_state):
     ASSERT project.state == "in_review"
     ASSERT approval_exists(project, type="release" OR type="project_activation", state="approved")
     ASSERT count(tasks(project, state NOT IN ["done", "cancelled"])) == 0
-      OR all remaining tasks are non-critical
     RETURN ALLOW
 
   if to_state == "paused":
@@ -122,7 +121,7 @@ function guardProjectTransition(project, to_state):
 |---|---|---|---|---|---|
 | T1 | `draft` | `ready` | acceptance_criteria exist; title exists; purpose exists; owner_role defined; expected_output_type defined | emit `task.ready` event | any required field missing |
 | T2 | `ready` | `assigned` | eligible role exists; owner_role_id set | emit `task.assigned` event | no eligible active role |
-| T3 | `assigned` | `in_progress` | context available (context_pack exists or context explicitly waived); run started or owner begins work | emit `task.started` event | no context and no waiver |
+| T3 | `assigned` | `in_progress` | context available (ContextPack exists for task); run started or owner begins work | emit `task.started` event | no ContextPack exists |
 | T4 | `in_progress` | `waiting_review` | artifact submitted (at least one artifact linked to task in `submitted` or higher state) | emit `task.waiting_review` event | no output artifact exists |
 | T5 | `in_progress` | `blocked` | blocker_reason recorded | emit `task.blocked` event | blocker_reason is null |
 | T6 | `in_progress` | `escalated` | escalation_reason recorded | emit `task.escalated` event | escalation_reason is null |
@@ -168,12 +167,12 @@ function guardTaskTransition(task, to_state):
 
   if to_state == "in_progress":
     ASSERT task.state == "assigned"
-    ASSERT context_pack_exists(task) OR context_waived(task)
+    ASSERT context_pack_exists(task)
     RETURN ALLOW
 
   if to_state == "waiting_review":
     ASSERT task.state == "in_progress"
-    ASSERT count(artifacts(task, state NOT IN ["created"])) > 0
+    ASSERT count(artifacts(task, state IN ["submitted", "under_review", "accepted", "rejected"])) > 0
     RETURN ALLOW
 
   if to_state == "blocked":
@@ -203,6 +202,7 @@ function guardTaskTransition(task, to_state):
   if to_state == "done":
     ASSERT task.state == "approved"
     ASSERT no_unresolved_blocking_reviews(task)
+    ASSERT all_reviews_closed(task)
     ASSERT no_pending_approvals(task)
     RETURN ALLOW
 
@@ -255,7 +255,7 @@ function guardTaskTransition(task, to_state):
 | # | from_state | to_state | required_conditions | side_effects | forbidden_if |
 |---|---|---|---|---|---|
 | R1 | `created` | `preparing` | task exists; agent_role exists and is active | emit `run.preparing` event | task does not exist; agent role inactive |
-| R2 | `preparing` | `running` | context_pack available; setup completed | emit `run.started` event; set started_at | context_pack missing and not waived |
+| R2 | `preparing` | `running` | context_pack available; setup completed | emit `run.started` event; set started_at | context_pack missing |
 | R3 | `preparing` | `failed` | failure_reason recorded | emit `run.failed` event; set ended_at | failure_reason is null |
 | R4 | `running` | `produced_output` | at least one output artifact exists linked to run | emit `run.produced_output` event | no output exists |
 | R5 | `running` | `failed` | failure_reason recorded | emit `run.failed` event; set ended_at | failure_reason is null |
@@ -285,7 +285,7 @@ function guardRunTransition(run, to_state):
 
   if to_state == "running":
     ASSERT run.state == "preparing"
-    ASSERT context_pack_available(run) OR context_waived(run)
+    ASSERT context_pack_available(run)
     RETURN ALLOW
 
   if to_state == "produced_output":
@@ -365,11 +365,11 @@ function guardRunTransition(run, to_state):
 | A1 | `created` | `classified` | metadata attached; source task_id or run_id exists | emit `artifact.classified` event | source task and run both null |
 | A2 | `classified` | `submitted` | target review or consumer exists | emit `artifact.submitted` event | no target exists |
 | A3 | `submitted` | `under_review` | review record exists and linked to artifact | emit `artifact.review_started` event | no review record |
-| A4 | `under_review` | `accepted` | positive verdict exists (review verdict = approved or approved_with_notes) | emit `artifact.accepted` event | no positive verdict |
+| A4 | `under_review` | `accepted` | review state is `approved` or `approved_with_notes` (review must not be in `in_progress` or `needs_clarification`) | emit `artifact.accepted` event | review is non-terminal |
 | A5 | `under_review` | `rejected` | rejection reason exists (review verdict = rejected) | emit `artifact.rejected` event | no rejection reason |
 | A6 | `accepted` | `frozen` | founder or system locks canonical output; freeze_reason recorded | emit `artifact.frozen` event; set canonical_flag = true | no freeze reason |
-| A7 | `accepted` | `superseded` | newer approved artifact version linked; supersedes_artifact_id recorded | emit `artifact.superseded` event | no replacement linked |
-| A8 | `rejected` | `superseded` | corrected artifact replaces rejected output; supersedes_artifact_id recorded | emit `artifact.superseded` event | no replacement linked |
+| A7 | `accepted` | `superseded` | replacement artifact exists with supersedes_artifact_id == this artifact.id | emit `artifact.superseded` event | no replacement artifact with explicit link |
+| A8 | `rejected` | `superseded` | replacement artifact exists with supersedes_artifact_id == this artifact.id | emit `artifact.superseded` event | no replacement artifact with explicit link |
 | A9 | `frozen` | `archived` | project or version closed; archival_reason recorded | emit `artifact.archived` event | no archival reason |
 | A10 | `accepted` | `archived` | non-canonical artifact retired; archival_reason recorded | emit `artifact.archived` event | no archival reason |
 
@@ -400,7 +400,9 @@ function guardArtifactTransition(artifact, to_state):
   if to_state == "accepted":
     ASSERT artifact.state == "under_review"
     review = get_review(artifact)
-    ASSERT review.verdict IN ["approved", "approved_with_notes"]
+    ASSERT review.state IN ["approved", "approved_with_notes"]
+    ASSERT review.state != "in_progress"
+    ASSERT review.state != "needs_clarification"
     RETURN ALLOW
 
   if to_state == "rejected":
@@ -417,8 +419,8 @@ function guardArtifactTransition(artifact, to_state):
 
   if to_state == "superseded":
     ASSERT artifact.state IN ["accepted", "rejected"]
-    ASSERT artifact.supersedes_artifact_id IS NOT NULL
-      OR replacement_artifact_linked(artifact)
+    ASSERT replacement_artifact_exists(artifact)
+    ASSERT replacement_artifact.supersedes_artifact_id == artifact.id
     RETURN ALLOW
 
   if to_state == "archived":
@@ -561,7 +563,7 @@ function guardReviewTransition(review, to_state):
 
 | # | from_state | to_state | required_conditions | side_effects | forbidden_if |
 |---|---|---|---|---|---|
-| G1 | `pending` | `approved` | founder accepts; decision_note recorded; decided_at set | emit `approval.approved` event; set decided_at | actor is not founder; no decision recorded |
+| G1 | `pending` | `approved` | founder accepts; decision_note recorded; decided_at set; target entity exists | emit `approval.approved` event; set decided_at | actor is not founder; no decision recorded; target does not exist |
 | G2 | `pending` | `rejected` | founder denies; reason recorded; decided_at set | emit `approval.rejected` event; set decided_at | actor is not founder; no reason |
 | G3 | `pending` | `deferred` | founder postpones; follow-up note recorded | emit `approval.deferred` event | no follow-up note |
 | G4 | `pending` | `expired` | request becomes obsolete; expiration_reason recorded | emit `approval.expired` event | no expiration reason |
@@ -582,6 +584,7 @@ function guardApprovalTransition(approval, to_state):
     ASSERT approval.state == "pending"
     ASSERT actor == FOUNDER
     ASSERT approval.founder_decision_note IS NOT NULL
+    ASSERT target_exists(approval.target_type, approval.target_id)
     RETURN ALLOW
 
   if to_state == "rejected":
