@@ -45,6 +45,8 @@ interface TaskCard {
   employee_reputation?: number | null;
   employee_status?: string | null;
   is_new_hire?: boolean;
+  is_experiment?: boolean;
+  is_top_performer?: boolean;
   has_prediction: boolean;
   prediction_type: string | null;
 }
