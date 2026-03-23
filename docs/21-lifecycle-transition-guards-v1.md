@@ -419,8 +419,8 @@ function guardArtifactTransition(artifact, to_state):
 
   if to_state == "superseded":
     ASSERT artifact.state IN ["accepted", "rejected"]
-    ASSERT artifact.supersedes_artifact_id IS NOT NULL
-      OR replacement_artifact_linked(artifact)
+    ASSERT replacement_artifact_exists(artifact)
+    ASSERT replacement_artifact.supersedes_artifact_id == artifact.id
     RETURN ALLOW
 
   if to_state == "archived":
