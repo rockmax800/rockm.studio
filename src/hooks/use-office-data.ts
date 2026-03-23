@@ -17,7 +17,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number").order("run_number", { ascending: false }),
@@ -25,6 +25,7 @@ export function useOfficeData() {
         supabase.from("approvals").select("id, target_id, target_type, state").eq("state", "pending"),
         supabase.from("activity_events").select("*").order("created_at", { ascending: false }).limit(100),
         supabase.from("office_events").select("*").order("timestamp", { ascending: false }).limit(200),
+        supabase.from("autonomy_settings").select("*").limit(10),
       ]);
 
       const tasks = tasksRes.data ?? [];
