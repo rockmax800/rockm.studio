@@ -1,20 +1,11 @@
 import {
-  LayoutDashboard,
-  FolderKanban,
-  ListChecks,
-  Play,
-  FileBox,
-  ShieldCheck,
-  Stamp,
-  Bot,
-  BookOpen,
-  Settings,
-  Unplug,
-  Shield,
+  Home,
   Building2,
+  FolderKanban,
+  Monitor,
   Crown,
-  ShoppingBag,
-  Megaphone,
+  Users,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -32,31 +23,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const mainNav = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+const primaryNav = [
+  { title: "Home", url: "/", icon: Home },
+  { title: "Departments", url: "/departments", icon: Building2 },
   { title: "Projects", url: "/projects", icon: FolderKanban },
-  { title: "Tasks", url: "/tasks", icon: ListChecks },
-  { title: "Runs", url: "/runs", icon: Play },
-  { title: "Artifacts", url: "/artifacts", icon: FileBox },
-  { title: "Reviews", url: "/reviews", icon: ShieldCheck },
-  { title: "Approvals", url: "/approvals", icon: Stamp },
+  { title: "Office", url: "/office", icon: Monitor },
 ];
 
-const systemNav = [
-  { title: "Agents", url: "/agents", icon: Bot },
-  { title: "Providers", url: "/providers", icon: Unplug },
-  { title: "Docs", url: "/docs", icon: BookOpen },
-  { title: "Settings", url: "/settings", icon: Settings },
-];
-
-const controlNav = [
-  { title: "Control Plane", url: "/control", icon: Shield },
-  { title: "Founder Pro", url: "/control/founder", icon: Crown },
-  { title: "Office", url: "/control/office", icon: Building2 },
-  { title: "AI HR", url: "/control/hr", icon: Bot },
-  { title: "Hiring Market", url: "/control/hiring-market", icon: ShoppingBag },
-  { title: "Blog & SMM", url: "/control/blog", icon: Megaphone },
-  { title: "Provider Control", url: "/control/providers", icon: Unplug },
+const secondaryNav = [
+  { title: "Founder", url: "/founder", icon: Crown },
+  { title: "Company", url: "/company", icon: Users },
+  { title: "System", url: "/system", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -76,7 +53,7 @@ export function AppSidebar() {
               <span className="text-sidebar-primary-foreground text-xs font-bold">AI</span>
             </div>
             <span className="font-semibold text-sm text-sidebar-accent-foreground tracking-tight">
-              Workshop OS
+              Production Studio
             </span>
           </div>
         )}
@@ -91,10 +68,10 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted">Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-muted">Production</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNav.map((item) => (
+              {primaryNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -114,31 +91,10 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted">System</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-muted">Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {systemNav.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted">Control</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {controlNav.map((item) => (
+              {secondaryNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -160,7 +116,7 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         {!collapsed && (
           <div className="text-xs text-sidebar-muted">
-            V1 · Internal
+            V2.1 · Production Studio
           </div>
         )}
       </SidebarFooter>
