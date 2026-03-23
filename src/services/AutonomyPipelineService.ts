@@ -152,9 +152,20 @@ export class AutonomyPipelineService {
       return null;
     }
 
+    // Token budget check
+    const budgetOk = await this.checkTokenBudget(projectId, settings);
+    if (!budgetOk) return null;
+
+    // Depth check
+    if (LEAN_PIPELINE_DEPTH.spec > settings.max_autonomy_depth) {
+      logInfo("autonomy_spec_skipped", { projectId, reason: "exceeds max_autonomy_depth" });
+      return null;
+    }
+
     const sourceArtifact = await this.getLatestApprovedArtifact(sourceTaskId);
+    // PART 4: Only include snapshot summary + last approved artifact, not full history
     const contextSummary = sourceArtifact
-      ? `Based on approved brief:\n${sourceArtifact.summary ?? sourceArtifact.title}`
+      ? `Based on approved brief:\n${(sourceArtifact.summary ?? sourceArtifact.title).slice(0, 2000)}`
       : "Generate detailed product spec.";
 
     const role = await this.resolveRole(PIPELINE_STEPS.spec.roleCode);
@@ -165,9 +176,8 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
-    if (settings.auto_execute_implementation) {
-      await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
-    }
+    // Lean mode: auto-assign + start for planning tasks (spec/arch/decomp) only
+    await this.assignAndStartTask(task.id, role.id, projectId, contextSummary);
 
     await this.officeEmitter.emitOfficeEvent({
       projectId, entityType: "task", entityId: task.id,
