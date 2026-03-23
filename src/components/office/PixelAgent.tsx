@@ -134,6 +134,16 @@ export function PixelAgent({
             NEW HIRE
           </Badge>
         )}
+        {isExperiment && !isNewHire && (
+          <Badge variant="secondary" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5">
+            EXPERIMENT
+          </Badge>
+        )}
+        {isTopPerformer && !isNewHire && (
+          <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
+            ⭐ TOP
+          </Badge>
+        )}
         {employeeName && (
           <span className="text-[8px] font-bold text-foreground truncate max-w-full">
             {employeeName}
