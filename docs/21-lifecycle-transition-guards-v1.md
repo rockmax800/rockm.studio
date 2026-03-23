@@ -71,7 +71,6 @@ function guardProjectTransition(project, to_state):
     ASSERT project.state == "in_review"
     ASSERT approval_exists(project, type="release" OR type="project_activation", state="approved")
     ASSERT count(tasks(project, state NOT IN ["done", "cancelled"])) == 0
-      OR all remaining tasks are non-critical
     RETURN ALLOW
 
   if to_state == "paused":
