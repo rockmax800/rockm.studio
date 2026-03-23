@@ -250,6 +250,8 @@ export default function OfficePage() {
                               employeeReputation={task.employee_reputation}
                               employeeStatus={task.employee_status}
                               isNewHire={task.is_new_hire}
+                              isExperiment={task.is_experiment}
+                              isTopPerformer={task.is_top_performer}
                               onClick={() => navigate(`/control/tasks/${task.id}`)}
                             />
                           ))}
