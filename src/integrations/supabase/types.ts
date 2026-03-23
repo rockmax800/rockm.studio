@@ -1760,6 +1760,57 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          experimental_features: Json
+          id: string
+          mode: string
+          updated_at: string
+        }
+        Insert: {
+          experimental_features?: Json
+          id?: string
+          mode?: string
+          updated_at?: string
+        }
+        Update: {
+          experimental_features?: Json
+          id?: string
+          mode?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      system_suggestions: {
+        Row: {
+          created_at: string
+          entity_id: string
+          id: string
+          message: string
+          resolved: boolean
+          severity: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          id?: string
+          message: string
+          resolved?: boolean
+          severity?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          id?: string
+          message?: string
+          resolved?: boolean
+          severity?: string
+          type?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           acceptance_criteria: Json
