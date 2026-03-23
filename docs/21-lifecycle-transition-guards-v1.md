@@ -256,7 +256,7 @@ function guardTaskTransition(task, to_state):
 | # | from_state | to_state | required_conditions | side_effects | forbidden_if |
 |---|---|---|---|---|---|
 | R1 | `created` | `preparing` | task exists; agent_role exists and is active | emit `run.preparing` event | task does not exist; agent role inactive |
-| R2 | `preparing` | `running` | context_pack available; setup completed | emit `run.started` event; set started_at | context_pack missing and not waived |
+| R2 | `preparing` | `running` | context_pack available; setup completed | emit `run.started` event; set started_at | context_pack missing |
 | R3 | `preparing` | `failed` | failure_reason recorded | emit `run.failed` event; set ended_at | failure_reason is null |
 | R4 | `running` | `produced_output` | at least one output artifact exists linked to run | emit `run.produced_output` event | no output exists |
 | R5 | `running` | `failed` | failure_reason recorded | emit `run.failed` event; set ended_at | failure_reason is null |
