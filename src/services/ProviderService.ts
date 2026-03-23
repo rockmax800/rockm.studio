@@ -4,6 +4,8 @@
 
 import { env } from "@/config/env";
 import { logInfo, logError } from "@/lib/logger";
+import { PromptVersionService } from "@/services/PromptVersionService";
+import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 import { callOpenAI, healthCheckOpenAI } from "@/services/providers/openaiAdapter";
 import { callAnthropic, healthCheckAnthropic } from "@/services/providers/anthropicAdapter";
 import { DualVerificationService, type DualVerificationResult } from "@/services/DualVerificationService";
