@@ -12,6 +12,7 @@ import { PlaceholderPage } from "./pages/PlaceholderPage";
 import ProvidersPage from "./pages/Providers";
 import NotFound from "./pages/NotFound";
 import ControlOverview from "./pages/control/ControlOverview";
+import FounderDashboard from "./pages/control/FounderDashboard";
 import ControlProjectDetail from "./pages/control/ControlProjectDetail";
 import ControlTaskDetail from "./pages/control/ControlTaskDetail";
 import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/control/providers" element={<ControlProviderList />} />
           <Route path="/control/providers/:id" element={<ControlProviderDetail />} />
           <Route path="/control/office" element={<OfficePage />} />
+          <Route path="/control/founder" element={<FounderDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
