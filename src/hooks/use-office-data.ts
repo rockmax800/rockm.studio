@@ -55,11 +55,16 @@ export function useOfficeData() {
         tasks: taskCards.filter((t: any) => t.project_id === p.id),
       }));
 
+      // Detect lean mode: any project with auto_execute_implementation=false
+      const autonomySettings = autonomyRes.data ?? [];
+      const isLeanMode = autonomySettings.length === 0 || autonomySettings.some((s: any) => s.auto_execute_implementation === false);
+
       return {
         projects,
         allTasks: taskCards,
         recentEvents: eventsRes.data ?? [],
         officeEvents: (officeEventsRes.data ?? []) as OfficeEvent[],
+        leanMode: isLeanMode,
       };
     },
   });
