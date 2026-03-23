@@ -263,7 +263,7 @@ export class AutonomyPipelineService {
     return { taskId: task.id, step: "decomposition" };
   }
 
-  // ─── PART 5: Auto Implementation Loop ───
+  // ─── PART 5: Implementation Loop (DISABLED in lean mode) ───
 
   async executeImplementationTasks({
     projectId,
@@ -273,9 +273,11 @@ export class AutonomyPipelineService {
     taskIds: string[];
   }) {
     const settings = await this.getSettings(projectId);
+
+    // Lean mode: always disabled
     if (!settings.auto_execute_implementation) {
-      logInfo("autonomy_impl_skipped", { projectId, reason: "auto_execute_implementation disabled" });
-      return { started: 0, skipped: taskIds.length };
+      logInfo("autonomy_impl_disabled", { projectId, reason: "lean mode — auto_execute_implementation=false" });
+      return { started: 0, skipped: taskIds.length, reason: "Implementation disabled in lean mode. Tasks remain in ready state for founder." };
     }
 
     // Respect max_parallel_runs
@@ -314,11 +316,17 @@ export class AutonomyPipelineService {
     return { started, skipped: taskIds.length - started };
   }
 
-  // ─── PART 6: QA Task ───
+  // ─── PART 6: QA Task (DISABLED in lean mode) ───
 
   async triggerQA({ projectId }: { projectId: string }) {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
+
+    // Lean mode: QA is depth 4, beyond default max_autonomy_depth=3
+    if (LEAN_PIPELINE_DEPTH.qa > settings.max_autonomy_depth) {
+      logInfo("autonomy_qa_skipped", { projectId, reason: "exceeds max_autonomy_depth (lean mode)" });
+      return { skipped: true, reason: "QA auto-generation disabled in lean mode" };
+    }
 
     const role = await this.resolveRole(PIPELINE_STEPS.qa.roleCode);
     const task = await this.createPipelineTask({
@@ -328,6 +336,7 @@ export class AutonomyPipelineService {
       roleId: role.id,
     });
 
+    // Never auto-execute in lean mode
     if (settings.auto_execute_implementation) {
       await this.assignAndStartTask(task.id, role.id, projectId, "QA test plan generation");
     }
@@ -340,11 +349,17 @@ export class AutonomyPipelineService {
     return { taskId: task.id, step: "qa" };
   }
 
-  // ─── PART 7: Release Candidate ───
+  // ─── PART 7: Release Candidate (DISABLED in lean mode) ───
 
   async triggerRelease({ projectId }: { projectId: string }) {
     const settings = await this.getSettings(projectId);
     if (!settings.auto_generate_tasks) return null;
+
+    // Lean mode: Release is depth 5, beyond default max_autonomy_depth=3
+    if (LEAN_PIPELINE_DEPTH.release > settings.max_autonomy_depth) {
+      logInfo("autonomy_release_skipped", { projectId, reason: "exceeds max_autonomy_depth (lean mode)" });
+      return { skipped: true, reason: "Release auto-generation disabled in lean mode" };
+    }
 
     const role = await this.resolveRole(PIPELINE_STEPS.release.roleCode);
     const task = await this.createPipelineTask({
