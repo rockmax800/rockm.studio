@@ -4,10 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useHRDashboard, useGenerateCandidates, useApproveProposal, useExecuteProposal } from "@/hooks/use-hr-data";
+import { useHRDashboard } from "@/hooks/use-hr-data";
 import { useHiringMarket } from "@/hooks/use-hiring-market";
 import { useBlogPosts, useApproveBlogPost } from "@/hooks/use-blog-data";
-import { Users, Trophy, Lightbulb, Megaphone, Star, UserPlus, RefreshCw, CheckCircle } from "lucide-react";
+import { Users, Trophy, Lightbulb, Megaphone, Star, CheckCircle } from "lucide-react";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -19,7 +19,6 @@ export default function CompanyPage() {
   const { data: hrData, isLoading: hrLoading } = useHRDashboard();
   const { data: marketData } = useHiringMarket();
   const { data: posts = [] } = useBlogPosts();
-  const generateCandidates = useGenerateCandidates();
   const approveBlog = useApproveBlogPost();
 
   return (
@@ -77,7 +76,7 @@ export default function CompanyPage() {
                           <TableCell className="text-xs">{(emp.success_rate * 100).toFixed(0)}%</TableCell>
                           <TableCell className="text-xs">
                             <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 text-amber-500" />
+                              <Star className="h-3 w-3 text-primary" />
                               {emp.reputation_score.toFixed(1)}
                             </div>
                           </TableCell>
@@ -97,7 +96,7 @@ export default function CompanyPage() {
 
           {/* RANKINGS */}
           <TabsContent value="rankings">
-            {!marketData?.models?.length ? (
+            {!marketData?.rankedModels?.length ? (
               <Card className="border-none shadow-sm">
                 <CardContent className="p-8 text-center">
                   <Trophy className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
@@ -113,19 +112,19 @@ export default function CompanyPage() {
                         <TableHead className="text-xs">#</TableHead>
                         <TableHead className="text-xs">Model</TableHead>
                         <TableHead className="text-xs">Provider</TableHead>
-                        <TableHead className="text-xs">Quality</TableHead>
+                        <TableHead className="text-xs">Score</TableHead>
                         <TableHead className="text-xs">Cost/1k</TableHead>
                         <TableHead className="text-xs">Reliability</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {marketData.models.map((m: any, i: number) => (
+                      {marketData.rankedModels.map((m: any, i: number) => (
                         <TableRow key={m.id}>
                           <TableCell className="text-xs font-medium">{i + 1}</TableCell>
                           <TableCell className="text-xs font-mono">{m.model_name}</TableCell>
                           <TableCell className="text-xs">{m.provider}</TableCell>
-                          <TableCell className="text-xs">{(m.avg_quality_score * 100).toFixed(0)}%</TableCell>
-                          <TableCell className="text-xs">${m.estimated_cost_per_1k_tokens.toFixed(4)}</TableCell>
+                          <TableCell className="text-xs">{(m.competition_score * 100).toFixed(0)}%</TableCell>
+                          <TableCell className="text-xs">${m.estimated_cost_per_1k_tokens?.toFixed(4) ?? "—"}</TableCell>
                           <TableCell className="text-xs">{(m.reliability_score * 100).toFixed(0)}%</TableCell>
                         </TableRow>
                       ))}

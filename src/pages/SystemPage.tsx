@@ -1,16 +1,16 @@
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useProviders, useProviderModels } from "@/hooks/use-provider-data";
+import { useProviderList } from "@/hooks/use-provider-data";
 import { useSystemMode } from "@/hooks/use-system-mode";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Unplug, Settings, Activity, FileText, Shield, BookOpen } from "lucide-react";
+import { Unplug, Settings, Activity, Shield, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function SystemPage() {
-  const { data: providers = [] } = useProviders();
+  const { data: providers = [] } = useProviderList();
   const { data: modeData } = useSystemMode();
 
   return (
@@ -55,9 +55,8 @@ export default function SystemPage() {
                         <TableHead className="text-xs">Provider</TableHead>
                         <TableHead className="text-xs">Code</TableHead>
                         <TableHead className="text-xs">Status</TableHead>
-                        <TableHead className="text-xs">Text</TableHead>
-                        <TableHead className="text-xs">Streaming</TableHead>
-                        <TableHead className="text-xs">Tools</TableHead>
+                        <TableHead className="text-xs">Models</TableHead>
+                        <TableHead className="text-xs">24h Calls</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -70,9 +69,8 @@ export default function SystemPage() {
                               {p.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs">{p.supports_text ? "✓" : "—"}</TableCell>
-                          <TableCell className="text-xs">{p.supports_streaming ? "✓" : "—"}</TableCell>
-                          <TableCell className="text-xs">{p.supports_tools ? "✓" : "—"}</TableCell>
+                          <TableCell className="text-xs">{p.modelCount ?? 0}</TableCell>
+                          <TableCell className="text-xs">{p.recentUsageCount ?? 0}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -87,19 +85,11 @@ export default function SystemPage() {
             <Card className="border-none shadow-sm">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4">System Mode</h3>
-                <div className="flex items-center gap-4 mb-4">
-                  <Badge
-                    className={`text-xs px-3 py-1 font-mono ${
-                      modeData?.mode === "production"
-                        ? "bg-emerald-600/90 text-white"
-                        : "bg-amber-500/90 text-black"
-                    }`}
-                  >
-                    {modeData?.mode === "production" ? "🛡 PRODUCTION MODE" : "🧪 EXPERIMENTAL MODE"}
-                  </Badge>
-                </div>
+                <Badge className="text-xs px-3 py-1 font-mono">
+                  {modeData?.mode === "production" ? "🛡 PRODUCTION MODE" : "🧪 EXPERIMENTAL MODE"}
+                </Badge>
                 {modeData?.experimental_features && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 mt-4">
                     <p className="text-xs font-medium text-muted-foreground">Feature Flags:</p>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(modeData.experimental_features).map(([key, enabled]) => (
@@ -122,8 +112,8 @@ export default function SystemPage() {
           <TabsContent value="health">
             <Card className="border-none shadow-sm">
               <CardContent className="p-8 text-center">
-                <Activity className="h-8 w-8 text-emerald-500/40 mx-auto mb-2" />
-                <p className="text-sm font-medium text-emerald-700">System Healthy</p>
+                <Activity className="h-8 w-8 text-primary/30 mx-auto mb-2" />
+                <p className="text-sm font-medium">System Healthy</p>
                 <p className="text-xs text-muted-foreground">
                   Use /api/system/status and /api/system/consistency-check for detailed health reports.
                 </p>
