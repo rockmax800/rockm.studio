@@ -18,6 +18,7 @@ import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
 import ControlRunDetail from "./pages/control/ControlRunDetail";
 import ControlProviderList from "./pages/control/ControlProviderList";
 import ControlProviderDetail from "./pages/control/ControlProviderDetail";
+import OfficePage from "./pages/control/OfficePage";
 
 const queryClient = new QueryClient();
 
