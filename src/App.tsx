@@ -21,6 +21,7 @@ import ControlProviderList from "./pages/control/ControlProviderList";
 import ControlProviderDetail from "./pages/control/ControlProviderDetail";
 import OfficePage from "./pages/control/OfficePage";
 import HRDashboard from "./pages/control/HRDashboard";
+import HiringMarketDashboard from "./pages/control/HiringMarketDashboard";
 
 const queryClient = new QueryClient();
 
