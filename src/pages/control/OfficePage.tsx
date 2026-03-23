@@ -242,6 +242,8 @@ export default function OfficePage() {
                               predictionType={task.prediction_type}
                               employeeName={task.employee_name}
                               employeeReputation={task.employee_reputation}
+                              employeeStatus={task.employee_status}
+                              isNewHire={task.is_new_hire}
                               onClick={() => navigate(`/control/tasks/${task.id}`)}
                             />
                           ))}
