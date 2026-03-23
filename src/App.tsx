@@ -11,6 +11,11 @@ import DocsWorkspace from "./pages/DocsWorkspace";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import ProvidersPage from "./pages/Providers";
 import NotFound from "./pages/NotFound";
+import ControlOverview from "./pages/control/ControlOverview";
+import ControlProjectDetail from "./pages/control/ControlProjectDetail";
+import ControlTaskDetail from "./pages/control/ControlTaskDetail";
+import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
+import ControlRunDetail from "./pages/control/ControlRunDetail";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +38,12 @@ const App = () => (
           <Route path="/agents" element={<PlaceholderPage title="Agents" description="Agent registry will show roles, capabilities, and current workload." />} />
           <Route path="/providers" element={<ProvidersPage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" description="System settings and configuration." />} />
+          {/* Control Plane */}
+          <Route path="/control" element={<ControlOverview />} />
+          <Route path="/control/projects/:id" element={<ControlProjectDetail />} />
+          <Route path="/control/tasks/:id" element={<ControlTaskDetail />} />
+          <Route path="/control/approvals/:id" element={<ControlApprovalDetail />} />
+          <Route path="/control/runs/:id" element={<ControlRunDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
