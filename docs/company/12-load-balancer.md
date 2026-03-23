@@ -1,6 +1,14 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 12 — Load Balancer
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Active only in Lean Autonomous, Company, or Experimental modes.
 
 ## 1 — Purpose
 
@@ -8,16 +16,11 @@ Distributes tasks across AI employees based on capacity, performance, and curren
 
 ---
 
-## 2 — Scoring Formula
+## 2 — Scoring
 
-```
-load_score = (capacity_score * 0.3) + (performance_score * 0.4) + (availability * 0.3)
-```
+Uses `load_score` as defined in `core/09-performance-scoring.md` §4.
 
-Where:
-- `capacity_score` = max_parallel_tasks − current_active_tasks
-- `performance_score` = agent role's rolling performance score
-- `availability` = 1 if employee status is active, 0 otherwise
+> **No scoring formula is defined here.** See `core/09-performance-scoring.md` for the authoritative formula.
 
 ---
 
@@ -26,7 +29,7 @@ Where:
 1. Filter employees by role_code matching task requirement
 2. Filter by status = active
 3. Filter by team_id if cross-team not allowed
-4. Score remaining candidates
+4. Score remaining candidates using `load_score`
 5. Select highest scoring employee
 6. Assign task to employee's agent role
 

@@ -1,6 +1,14 @@
+---
+layer: autonomy
+criticality: experimental
+enabled_in_production: no
+---
+
 # 22 — Prompt Versioning
 
 > Layer 3 — Autonomy & Evolution
+>
+> **Disabled in Production Mode.** Requires `enable_prompt_experiments` feature flag. See `08-feature-flags.md`.
 
 ## 1 — Purpose
 

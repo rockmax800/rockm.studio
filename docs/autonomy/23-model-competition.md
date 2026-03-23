@@ -1,6 +1,14 @@
+---
+layer: autonomy
+criticality: experimental
+enabled_in_production: no
+---
+
 # 23 — Model Competition
 
 > Layer 3 — Autonomy & Evolution
+>
+> **Disabled in Production Mode.** Requires `enable_model_competition` feature flag. See `08-feature-flags.md`.
 
 ## 1 — Purpose
 
@@ -10,7 +18,7 @@ Internal model competition for new hire decisions — rotate between top models 
 
 ## 2 — When Active
 
-Only when company mode settings have `enable_model_competition = true`.
+Only when `enable_model_competition` feature flag is `true` (experimental mode only).
 
 ---
 
@@ -27,11 +35,14 @@ Only when company mode settings have `enable_model_competition = true`.
 
 ## 4 — Metrics Tracked
 
-- Success rate per model
-- Average cost per model
-- Average latency per model
-- Bug rate per model
-- Quality score per model
+All metrics use unified terminology from `core/09-performance-scoring.md` §7:
+- `success_rate` per model
+- `avg_cost` per model
+- `avg_latency` per model
+- `bug_rate` per model
+- `quality_score` per model
+
+Ranking uses `competition_score` formula from `core/09-performance-scoring.md` §3.
 
 ---
 

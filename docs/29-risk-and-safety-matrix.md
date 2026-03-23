@@ -1,4 +1,12 @@
-# Risk & Safety Matrix
+---
+layer: cross-cutting
+criticality: critical
+enabled_in_production: yes
+---
+
+# 29 — Risk & Safety Matrix
+
+> **Single source of truth for all risk definitions.** No other document may define risk matrices.
 
 ## 1 — Purpose
 
@@ -15,8 +23,9 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Risk | Autonomy pipeline creates unbounded LLM call chains |
 | Likelihood | Medium |
 | Impact | High (cost explosion, noise generation) |
-| Mitigation | Token budget ceiling, max_autonomy_depth limit, kill switch |
+| Mitigation | Token budget ceiling, max_autonomy_depth limit, kill switch (`enable_autonomy` flag) |
 | Detection | Monitor daily token usage, alert at 80% budget |
+| **Disabled in Production** | **Yes** — autonomy pipeline blocked |
 
 ### 2.2 Model Degradation
 
@@ -25,8 +34,8 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Risk | Provider model quality drops after update |
 | Likelihood | Low |
 | Impact | Medium (quality regression in outputs) |
-| Mitigation | Rolling performance monitoring, replacement proposals |
-| Detection | success_rate drop below 0.5 threshold |
+| Mitigation | Rolling performance monitoring via `core/09-performance-scoring.md`, replacement proposals |
+| Detection | `success_rate` drop below 0.5 threshold |
 
 ### 2.3 HR Misfire
 
@@ -37,6 +46,7 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Impact | Low (suggestions only — founder approves) |
 | Mitigation | All proposals require founder approval |
 | Detection | Review suggestion accuracy periodically |
+| **Disabled in Production** | **Yes** — HR features blocked |
 
 ### 2.4 Budget Exhaustion
 
@@ -57,6 +67,7 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Impact | Low (UI slowdown) |
 | Mitigation | Query consolidation, pagination, caching |
 | Detection | Monitor query count and latency |
+| **Disabled in Production** | **Yes** — office disabled |
 
 ### 2.6 Prompt Regression
 
@@ -67,6 +78,7 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Impact | Medium (quality degradation) |
 | Mitigation | A/B experiments before deployment, rollback capability |
 | Detection | Performance delta in experiment results |
+| **Disabled in Production** | **Yes** — experiments blocked |
 
 ### 2.7 Concurrency Conflicts
 

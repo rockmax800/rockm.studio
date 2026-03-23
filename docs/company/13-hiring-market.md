@@ -1,6 +1,14 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 13 — Hiring Market
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Active only in Company or Experimental modes.
 
 ## 1 — Purpose
 
@@ -42,21 +50,16 @@ Updated periodically from AIEmployee run data via `update-benchmarks` edge funct
 
 ## 4 — Competitive Scoring
 
-```
-competition_score =
-  (avg_success_rate × 0.4) +
-  (1 / (1 + avg_cost) × 0.2) +
-  (1 / (1 + avg_latency) × 0.1) +
-  (reliability_score × 0.2) +
-  (avg_quality_score × 0.1)
-```
+Uses `competition_score` as defined in `core/09-performance-scoring.md` §3.
+
+> **No scoring formula is defined here.** See `core/09-performance-scoring.md` for the authoritative formula.
 
 ---
 
 ## 5 — Upgrade Suggestions
 
 If top-ranked model ≠ current best employee model AND performance delta > 10%:
-- Create HR suggestion: `suggestion_type = "upgrade_model"`
+- Create suggestion via `system_suggestions` table (type = "model")
 - Include projected improvements
 - Do NOT auto-execute — founder approval required
 

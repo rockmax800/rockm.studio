@@ -1,3 +1,9 @@
+---
+layer: core
+criticality: critical
+enabled_in_production: yes
+---
+
 # 05 — Guard Matrix
 
 > Layer 1 — Core Engine
@@ -6,6 +12,8 @@
 
 Defines the strict transition guard rules for all lifecycle entities.
 Guards are pure validation functions that check preconditions and return allow/deny.
+
+**This is the single authoritative source for guard definitions.** No other layer may define new state transition guards.
 
 ---
 

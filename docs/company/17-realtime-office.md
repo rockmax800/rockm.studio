@@ -1,6 +1,14 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 17 — Real-Time Office
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Active only in Company or Experimental modes.
 
 ## 1 — Purpose
 
@@ -9,6 +17,8 @@ Pixel-art visualization of the AI company with agents moving between zones based
 ---
 
 ## 2 — Zone Mapping
+
+Maps task states (defined in `core/03-state-machine.md` §4) to visual zones:
 
 | Task State | Zone |
 |------------|------|
@@ -20,6 +30,8 @@ Pixel-art visualization of the AI company with agents moving between zones based
 | blocked | Blocked |
 | escalated | Escalation |
 | approved, done | Completed |
+
+**Does NOT define task states.** Uses existing states from core state machine.
 
 ---
 
@@ -44,6 +56,7 @@ Pixel-art visualization of the AI company with agents moving between zones based
 - Badges: "EXPERIMENT" (active prompt experiment), "⭐ TOP" (top performer)
 - Copywriter sprite when blog drafts pending
 - "📣" badge when posts approved
+- System mode indicator (see `07-system-mode.md`)
 
 ---
 

@@ -1,6 +1,14 @@
+---
+layer: company
+criticality: optional
+enabled_in_production: no
+---
+
 # 18 — Prediction & Bottleneck Engine
 
 > Layer 2 — Company Layer
+>
+> **Disabled in Production Mode.** Skipped via `isProduction()` check in `BottleneckPredictionService`.
 
 ## 1 — Purpose
 
@@ -46,3 +54,4 @@ Proactive detection of workflow bottlenecks before they cause delays.
 - Prediction engine runs periodically via edge function
 - Uses `run-predictions` edge function
 - Low token cost — primarily DB aggregation queries
+- See `28-token-economy-and-budgeting.md` for cost analysis
