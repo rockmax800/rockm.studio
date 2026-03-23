@@ -84,8 +84,8 @@ export function useOfficeData() {
       const experimentRoleIds = new Set(experiments.map((e: any) => e.role_id));
 
       // Top performer lookup: best model per team from benchmarks
-      const benchmarksData = benchmarksRes.data ?? [];
-      const marketModelsData = marketModelsRes.data ?? [];
+      const benchmarksData = (benchmarksRes.data ?? []) as any[];
+      const marketModelsData = (marketModelsRes.data ?? []) as any[];
       const marketModelsById = Object.fromEntries(marketModelsData.map((m: any) => [m.id, m]));
       const topModelPerTeam: Record<string, string> = {};
       for (const team of teams) {
