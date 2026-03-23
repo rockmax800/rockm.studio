@@ -365,7 +365,7 @@ function guardRunTransition(run, to_state):
 | A1 | `created` | `classified` | metadata attached; source task_id or run_id exists | emit `artifact.classified` event | source task and run both null |
 | A2 | `classified` | `submitted` | target review or consumer exists | emit `artifact.submitted` event | no target exists |
 | A3 | `submitted` | `under_review` | review record exists and linked to artifact | emit `artifact.review_started` event | no review record |
-| A4 | `under_review` | `accepted` | positive verdict exists (review verdict = approved or approved_with_notes) | emit `artifact.accepted` event | no positive verdict |
+| A4 | `under_review` | `accepted` | review state is `approved` or `approved_with_notes` (review must not be in `in_progress` or `needs_clarification`) | emit `artifact.accepted` event | review is non-terminal |
 | A5 | `under_review` | `rejected` | rejection reason exists (review verdict = rejected) | emit `artifact.rejected` event | no rejection reason |
 | A6 | `accepted` | `frozen` | founder or system locks canonical output; freeze_reason recorded | emit `artifact.frozen` event; set canonical_flag = true | no freeze reason |
 | A7 | `accepted` | `superseded` | newer approved artifact version linked; supersedes_artifact_id recorded | emit `artifact.superseded` event | no replacement linked |
