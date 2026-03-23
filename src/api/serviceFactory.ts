@@ -11,6 +11,11 @@ import { ReviewService } from "@/services/ReviewService";
 import { ApprovalService } from "@/services/ApprovalService";
 import { ProviderService } from "@/services/ProviderService";
 import { AgentPerformanceService } from "@/services/AgentPerformanceService";
+import { RetryPolicyService } from "@/services/RetryPolicyService";
+import { SelfReviewService } from "@/services/SelfReviewService";
+import { ContextCompressionService } from "@/services/ContextCompressionService";
+import { DualVerificationService } from "@/services/DualVerificationService";
+import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 
 interface PrismaLike {
   $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
@@ -31,18 +36,26 @@ export function getServices() {
   const prisma = createSafePrisma(_rawPrisma);
   const orchestration = new OrchestrationService(prisma);
   const performanceService = new AgentPerformanceService(prisma);
+  const providerService = new ProviderService(prisma);
+  const officeEmitter = new OfficeEventEmitter(prisma);
+  const runService = new RunService(prisma, orchestration);
 
   return {
     prisma,
     orchestration,
     performanceService,
+    providerService,
+    officeEmitter,
     projectService: new ProjectService(prisma, orchestration),
     taskService: new TaskService(prisma, orchestration),
-    runService: new RunService(prisma, orchestration),
+    runService,
     artifactService: new ArtifactService(prisma, orchestration),
     reviewService: new ReviewService(prisma, orchestration, performanceService),
     approvalService: new ApprovalService(prisma, orchestration),
-    providerService: new ProviderService(prisma),
+    retryPolicyService: new RetryPolicyService(prisma, runService, officeEmitter),
+    selfReviewService: new SelfReviewService(prisma),
+    contextCompressionService: new ContextCompressionService(prisma),
+    dualVerificationService: new DualVerificationService(prisma, officeEmitter),
   };
 }
 
