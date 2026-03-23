@@ -22,7 +22,7 @@ No interpretation beyond what the lifecycle document defines.
 | P4 | `blocked` | `active` | blocking issue cleared (blocker_reason nullified or resolved) | emit `project.unblocked` event | blocker still active |
 | P5 | `active` | `in_review` | milestone artifacts exist (at least one artifact in `accepted` or `frozen` state linked to project) | emit `project.review_started` event | no milestone artifacts exist |
 | P6 | `in_review` | `active` | founder requests more work (rework decision recorded) | emit `project.rework_requested` event | no founder decision recorded |
-| P7 | `in_review` | `completed` | founder approves milestone or release; **approval record exists with state=approved**; acceptance criteria met | emit `project.completed` event; close approval | approval not approved; active critical tasks exist |
+| P7 | `in_review` | `completed` | founder approves milestone or release; **approval record exists with state=approved**; all tasks in project must be in state `done` or `cancelled` | emit `project.completed` event; close approval | approval not approved; tasks exist in non-terminal state |
 | P8 | `active` | `paused` | founder decision | emit `project.paused` event | none |
 | P9 | `paused` | `active` | founder decision | emit `project.resumed` event | none |
 | P10 | `completed` | `archived` | founder decision | emit `project.archived` event; set archived_at | none |
