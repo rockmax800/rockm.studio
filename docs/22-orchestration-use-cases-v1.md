@@ -699,18 +699,17 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 3. Retry policy allows it (not exceeded max retries)
 
 **State transitions triggered:**
-1. Original Run: `failed`/`timed_out` → `finalized` (guards R9, R10) then → `superseded` (guard R14)
+1. Original Run: `failed`/`timed_out` → `superseded` (guard R14)
 2. Original Run: superseded_by_run_id set
 3. New Run: created with state = `created`, retry_of_run_id = original run, run_number = next
 4. New Run proceeds via UC-03 (start run) flow
 
 **Entities affected:**
-- Original Run (finalized, superseded)
+- Original Run (superseded — no intermediate finalized step)
 - New Run (created)
 - Task (unchanged — remains in_progress)
 
 **Activity events emitted:**
-- `run.finalized` — entity_type: run (original)
 - `run.superseded` — entity_type: run (original)
 - `run.created` — entity_type: run (new)
 
