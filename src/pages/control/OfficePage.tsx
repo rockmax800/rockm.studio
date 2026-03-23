@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useOfficeData, useRefreshOffice } from "@/hooks/use-office-data";
+import { useOfficeData, useRefreshOffice, type OfficeEvent } from "@/hooks/use-office-data";
 import { formatDistanceToNow } from "date-fns";
-import { RefreshCw, Eye, GitBranch, ShieldCheck, Stamp } from "lucide-react";
+import { RefreshCw, GitBranch, ShieldCheck, Stamp, ArrowRight } from "lucide-react";
 
 const ZONES = [
   { key: "ready", label: "Ready", states: ["ready"] },
@@ -97,17 +97,41 @@ function OfficeTaskCard({ task, onClick }: { task: TaskCard; onClick: () => void
   );
 }
 
+function OfficeEventItem({ event }: { event: OfficeEvent }) {
+  return (
+    <div className="rounded-md border bg-card p-2.5">
+      <p className="text-xs font-medium truncate">{event.event_type}</p>
+      {event.from_zone && event.to_zone && (
+        <div className="flex items-center gap-1 mt-1">
+          <Badge variant="outline" className="text-[10px] px-1 py-0">{event.from_zone}</Badge>
+          <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
+          <Badge variant="outline" className="text-[10px] px-1 py-0">{event.to_zone}</Badge>
+        </div>
+      )}
+      <span className="text-[10px] text-muted-foreground mt-1 block">
+        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+      </span>
+    </div>
+  );
+}
+
+type FeedMode = "office" | "activity";
+
 export default function OfficePage() {
   const { data, isLoading, error } = useOfficeData();
   const refresh = useRefreshOffice();
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [feedMode, setFeedMode] = useState<FeedMode>("office");
 
   const filteredTasks: TaskCard[] = data
     ? selectedProjectId
       ? data.allTasks.filter((t: TaskCard) => t.project_id === selectedProjectId)
       : data.allTasks
     : [];
+
+  const officeEvents = data?.officeEvents ?? [];
+  const activityEvents = data?.recentEvents ?? [];
 
   return (
     <AppLayout title="Office">
@@ -190,24 +214,52 @@ export default function OfficePage() {
             </div>
           </div>
 
-          {/* RIGHT — Activity Feed */}
+          {/* RIGHT — Event Feed (toggleable) */}
           <div className="w-64 shrink-0 flex flex-col">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Recent Activity</h3>
+            <div className="flex items-center gap-1 mb-2">
+              <Button
+                size="sm"
+                variant={feedMode === "office" ? "default" : "ghost"}
+                className="h-6 text-[10px] px-2"
+                onClick={() => setFeedMode("office")}
+              >
+                Zone Movements
+              </Button>
+              <Button
+                size="sm"
+                variant={feedMode === "activity" ? "default" : "ghost"}
+                className="h-6 text-[10px] px-2"
+                onClick={() => setFeedMode("activity")}
+              >
+                Activity
+              </Button>
+            </div>
             <ScrollArea className="flex-1">
               <div className="space-y-1 pr-2">
-                {data.recentEvents.map((e: any) => (
-                  <div key={e.id} className="rounded-md border bg-card p-2.5">
-                    <p className="text-xs font-medium">{e.event_type}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[10px] text-muted-foreground">{e.entity_type} · {e.actor_type}</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                {data.recentEvents.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-4">No activity</p>
+                {feedMode === "office" ? (
+                  officeEvents.length > 0 ? (
+                    officeEvents.map((e: OfficeEvent) => (
+                      <OfficeEventItem key={e.id} event={e} />
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">No zone movements yet</p>
+                  )
+                ) : (
+                  activityEvents.length > 0 ? (
+                    activityEvents.map((e: any) => (
+                      <div key={e.id} className="rounded-md border bg-card p-2.5">
+                        <p className="text-xs font-medium">{e.event_type}</p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[10px] text-muted-foreground">{e.entity_type} · {e.actor_type}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">No activity</p>
+                  )
                 )}
               </div>
             </ScrollArea>
