@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect } from "react";
 
 export interface OfficeEvent {
   id: string;
@@ -20,6 +20,15 @@ export interface AgentRoleInfo {
   code: string;
   success_rate: number;
   performance_score: number;
+  team_id: string | null;
+  max_parallel_tasks: number;
+  capacity_score: number;
+}
+
+export interface TeamInfo {
+  id: string;
+  name: string;
+  focus_domain: string;
 }
 
 export interface BottleneckPrediction {
@@ -37,7 +46,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number, agent_role_id").order("run_number", { ascending: false }),
@@ -46,9 +55,11 @@ export function useOfficeData() {
         supabase.from("activity_events").select("*").order("created_at", { ascending: false }).limit(100),
         supabase.from("office_events").select("*").order("timestamp", { ascending: false }).limit(200),
         supabase.from("autonomy_settings").select("*").limit(10),
-        supabase.from("agent_roles").select("id, name, code, success_rate, performance_score, status").eq("status", "active"),
+        supabase.from("agent_roles").select("id, name, code, success_rate, performance_score, status, team_id, max_parallel_tasks, capacity_score").eq("status", "active"),
         supabase.from("approvals").select("id").eq("state", "pending"),
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
+        supabase.from("teams").select("*"),
+        supabase.from("company_mode_settings").select("*").limit(1),
       ]);
 
       const tasks = tasksRes.data ?? [];
@@ -58,6 +69,9 @@ export function useOfficeData() {
       const roles = (rolesRes.data ?? []) as AgentRoleInfo[];
       const rolesById = Object.fromEntries(roles.map(r => [r.id, r]));
       const predictions = (predictionsRes.data ?? []) as BottleneckPrediction[];
+      const teams = (teamsRes.data ?? []) as TeamInfo[];
+      const teamsById = Object.fromEntries(teams.map(t => [t.id, t]));
+      const companySettings = (companyRes.data ?? [])[0] ?? null;
 
       // Index predictions by task_id
       const predictionsByTask: Record<string, BottleneckPrediction[]> = {};
@@ -91,6 +105,7 @@ export function useOfficeData() {
           role_name: role?.name ?? null,
           role_success_rate: role?.success_rate ?? null,
           role_performance_score: role?.performance_score ?? null,
+          role_team_id: role?.team_id ?? null,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };
@@ -104,6 +119,29 @@ export function useOfficeData() {
       const autonomySettings = autonomyRes.data ?? [];
       const isLeanMode = autonomySettings.length === 0 || autonomySettings.some((s: any) => s.auto_execute_implementation === false);
 
+      // Compute team load indicators
+      const teamLoadMap: Record<string, { active: number; max: number }> = {};
+      for (const role of roles) {
+        if (!role.team_id) continue;
+        if (!teamLoadMap[role.team_id]) teamLoadMap[role.team_id] = { active: 0, max: 0 };
+        const activeTasks = taskCards.filter(t => t.owner_role_id === role.id && !["done", "cancelled"].includes(t.state)).length;
+        teamLoadMap[role.team_id].active += activeTasks;
+        teamLoadMap[role.team_id].max += role.max_parallel_tasks;
+      }
+
+      const teamsWithLoad = teams.map(t => {
+        const load = teamLoadMap[t.id] ?? { active: 0, max: 1 };
+        const ratio = load.max > 0 ? load.active / load.max : 0;
+        return {
+          ...t,
+          active_tasks: load.active,
+          max_capacity: load.max,
+          load_ratio: ratio,
+          load_status: ratio >= 0.8 ? "overloaded" as const : ratio >= 0.5 ? "high" as const : "balanced" as const,
+          roles: roles.filter(r => r.team_id === t.id),
+        };
+      });
+
       return {
         projects,
         allTasks: taskCards,
@@ -111,43 +149,38 @@ export function useOfficeData() {
         officeEvents: (officeEventsRes.data ?? []) as OfficeEvent[],
         leanMode: isLeanMode,
         roles,
+        teams: teamsWithLoad,
+        teamsById,
         pendingInboxCount: (inboxApprovalsRes.data ?? []).length,
         projectsInReview: projects.filter((p: any) => p.state === "in_review"),
         predictions,
         roleOverloads,
+        companySettings,
       };
     },
   });
 }
 
-// PART 3 — Real-time subscription hook: replaces polling
+// Real-time subscription hook
 export function useOfficeRealtime() {
   const qc = useQueryClient();
 
   useEffect(() => {
-    // Subscribe to office_events inserts via Supabase Realtime
     const channel = supabase
       .channel("office-realtime")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "office_events" },
-        () => {
-          // Invalidate office data to re-fetch with new event
-          qc.invalidateQueries({ queryKey: ["office"] });
-        }
+        () => { qc.invalidateQueries({ queryKey: ["office"] }); }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "bottleneck_predictions" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["office"] });
-        }
+        () => { qc.invalidateQueries({ queryKey: ["office"] }); }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [qc]);
 }
 
