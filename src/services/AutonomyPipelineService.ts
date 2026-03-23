@@ -482,9 +482,63 @@ export class AutonomyPipelineService {
   }
 
   private async getLatestApprovedArtifact(taskId: string) {
+    // PART 4: Only return summary + title, not full content — limit context size
     return this.prisma.artifacts.findFirst({
       where: { task_id: taskId, state: { in: ["accepted", "frozen"] } },
       orderBy: { created_at: "desc" },
+      select: { id: true, title: true, summary: true, state: true },
     }).catch(() => null);
+  }
+
+  // ─── PART 5: Token Budget Enforcement ───
+
+  private async checkTokenBudget(projectId: string, settings: AutonomySettings): Promise<boolean> {
+    try {
+      const usageLogs = await this.prisma.provider_usage_logs.findMany({
+        where: { project_id: projectId },
+        select: { total_tokens: true },
+      });
+
+      const totalTokens = usageLogs.reduce((sum: number, log: any) => sum + (log.total_tokens ?? 0), 0);
+
+      if (totalTokens >= settings.autonomy_token_budget) {
+        logInfo("autonomy_budget_exceeded", { projectId, totalTokens, budget: settings.autonomy_token_budget });
+
+        // Create escalation task for founder
+        try {
+          const role = await this.resolveRole("product_strategist");
+          await this.prisma.tasks.create({
+            data: {
+              project_id: projectId,
+              title: "Autonomy budget exceeded — manual review required",
+              purpose: `Autonomy token budget of ${settings.autonomy_token_budget} tokens exceeded (used: ${totalTokens}). Pipeline halted. Founder must review and decide next steps.`,
+              domain: "founder_control",
+              expected_output_type: "document",
+              owner_role_id: role.id,
+              state: "draft",
+              priority: "high",
+              urgency: "blocker",
+              acceptance_criteria: [],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          });
+
+          await this.officeEmitter.emitOfficeEvent({
+            projectId,
+            entityType: "project",
+            entityId: projectId,
+            eventType: "autonomy_budget_exceeded",
+          });
+        } catch { /* best-effort escalation */ }
+
+        return false;
+      }
+
+      return true;
+    } catch {
+      // If we can't check budget, allow execution
+      return true;
+    }
   }
 }
