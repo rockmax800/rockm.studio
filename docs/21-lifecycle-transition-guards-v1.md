@@ -203,6 +203,7 @@ function guardTaskTransition(task, to_state):
   if to_state == "done":
     ASSERT task.state == "approved"
     ASSERT no_unresolved_blocking_reviews(task)
+    ASSERT all_reviews_closed(task)
     ASSERT no_pending_approvals(task)
     RETURN ALLOW
 
