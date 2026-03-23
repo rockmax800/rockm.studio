@@ -127,17 +127,20 @@ export async function executeRun(
       });
     });
 
-    // PART 2 — Self-Review before human review
+    // PART 2 — Self-Review before human review (SKIPPED in production mode)
     if (artifactId) {
       try {
-        const selfReviewService = new SelfReviewService(prisma);
-        // Use the same provider for self-review (best-effort)
-        await selfReviewService.selfReview({
-          artifactId,
-          providerService,
-          providerCode: "openai",
-          modelCode: "gpt-4",
-        });
+        const { isFeatureEnabled } = await import("@/services/SystemModeService");
+        const selfReviewEnabled = await isFeatureEnabled("enable_self_review");
+        if (selfReviewEnabled) {
+          const selfReviewService = new SelfReviewService(prisma);
+          await selfReviewService.selfReview({
+            artifactId,
+            providerService,
+            providerCode: "openai",
+            modelCode: "gpt-4",
+          });
+        }
       } catch { /* best-effort */ }
     }
 
