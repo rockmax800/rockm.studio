@@ -532,8 +532,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Preconditions:**
 1. Project.state == `in_review`
 2. Approval exists with type = `release` and state = `approved`
-3. Acceptance criteria met (all critical tasks in `done` or `cancelled`)
-4. No active critical tasks remain (per invariant §14.6 from doc 05)
+3. All tasks in project must be in state `done` or `cancelled`
 
 **State transitions triggered:**
 1. Project: `in_review` → `completed` (guard P7)
@@ -542,7 +541,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Entities affected:**
 - Project (state update)
 - Approval (closed)
-- Tasks (validated — all critical must be terminal)
+- Tasks (validated — all must be in terminal state: `done` or `cancelled`)
 
 **Activity events emitted:**
 - `project.completed` — entity_type: project, actor_type: founder
@@ -553,7 +552,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 |---|---|
 | Project not in_review | REJECT "project must be in review" |
 | No approved release approval | REJECT "release approval required" |
-| Active critical tasks exist | REJECT "critical tasks must be resolved" |
+| Tasks exist in non-terminal state | REJECT "all tasks must be done or cancelled" |
 
 **Sync/Async:** Synchronous
 
