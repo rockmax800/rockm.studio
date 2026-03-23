@@ -49,6 +49,7 @@ const App = () => (
           <Route path="/control/runs/:id" element={<ControlRunDetail />} />
           <Route path="/control/providers" element={<ControlProviderList />} />
           <Route path="/control/providers/:id" element={<ControlProviderDetail />} />
+          <Route path="/control/office" element={<OfficePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
