@@ -1,53 +1,27 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PixelZone } from "@/components/office/PixelZone";
+import { PixelAgent } from "@/components/office/PixelAgent";
+import { OfficeFeed } from "@/components/office/OfficeFeed";
+import { OfficeTopBar } from "@/components/office/OfficeTopBar";
 import { useOfficeData, useRefreshOffice, type OfficeEvent } from "@/hooks/use-office-data";
-import { formatDistanceToNow } from "date-fns";
-import { RefreshCw, GitBranch, ShieldCheck, Stamp, ArrowRight } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
+// Zone grid definition — coordinates for the pixel office layout
 const ZONES = [
-  { key: "ready", label: "Ready", states: ["ready"] },
-  { key: "in_progress", label: "In Progress", states: ["assigned", "in_progress"] },
-  { key: "waiting_review", label: "Waiting Review", states: ["waiting_review"] },
-  { key: "rework", label: "Rework", states: ["rework_required"] },
-  { key: "escalated", label: "Escalated", states: ["escalated"] },
-  { key: "approved", label: "Approved", states: ["approved"] },
-  { key: "done", label: "Done", states: ["done"] },
-  { key: "blocked", label: "Blocked", states: ["blocked"] },
+  { key: "ready", label: "Ready", states: ["ready", "assigned"], icon: "/pixel/desk.png", col: 1, row: 1 },
+  { key: "in_progress", label: "In Progress", states: ["in_progress"], icon: "/pixel/server.png", col: 2, row: 1 },
+  { key: "waiting_review", label: "Review", states: ["waiting_review"], icon: "/pixel/review.png", col: 3, row: 1 },
+  { key: "rework", label: "Rework", states: ["rework_required"], icon: "/pixel/desk.png", col: 1, row: 2 },
+  { key: "escalated", label: "Escalated", states: ["escalated"], icon: "/pixel/qa.png", col: 2, row: 2 },
+  { key: "blocked", label: "Blocked", states: ["blocked"], icon: "/pixel/server.png", col: 3, row: 2 },
+  { key: "approved", label: "Approved", states: ["approved"], icon: "/pixel/review.png", col: 1, row: 3 },
+  { key: "done", label: "Done", states: ["done"], icon: "/pixel/release.png", col: 2, row: 3 },
 ] as const;
-
-function zoneBg(key: string) {
-  switch (key) {
-    case "ready": return "bg-blue-500/5 border-blue-500/20";
-    case "in_progress": return "bg-yellow-500/5 border-yellow-500/20";
-    case "waiting_review": return "bg-purple-500/5 border-purple-500/20";
-    case "rework": return "bg-orange-500/5 border-orange-500/20";
-    case "escalated": return "bg-red-500/5 border-red-500/20";
-    case "approved": return "bg-green-500/5 border-green-500/20";
-    case "done": return "bg-emerald-500/5 border-emerald-500/20";
-    case "blocked": return "bg-red-500/5 border-red-500/20";
-    default: return "bg-muted/30 border-border";
-  }
-}
-
-function zoneHeaderColor(key: string) {
-  switch (key) {
-    case "ready": return "text-blue-600 dark:text-blue-400";
-    case "in_progress": return "text-yellow-600 dark:text-yellow-400";
-    case "waiting_review": return "text-purple-600 dark:text-purple-400";
-    case "rework": return "text-orange-600 dark:text-orange-400";
-    case "escalated": return "text-red-600 dark:text-red-400";
-    case "approved": return "text-green-600 dark:text-green-400";
-    case "done": return "text-emerald-600 dark:text-emerald-400";
-    case "blocked": return "text-red-600 dark:text-red-400";
-    default: return "text-muted-foreground";
-  }
-}
 
 interface TaskCard {
   id: string;
@@ -60,59 +34,6 @@ interface TaskCard {
   latest_run_state: string | null;
   has_pending_review: boolean;
   has_pending_approval: boolean;
-}
-
-function OfficeTaskCard({ task, onClick }: { task: TaskCard; onClick: () => void }) {
-  return (
-    <div
-      className="rounded-md border bg-card p-3 cursor-pointer hover:shadow-sm hover:border-primary/30 transition-shadow"
-      onClick={onClick}
-    >
-      <p className="text-sm font-medium leading-tight truncate">{task.title}</p>
-      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-        <StatusBadge state={task.state} />
-        <Badge variant="neutral" className="text-[10px]">{task.domain}</Badge>
-      </div>
-      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-        {task.latest_run_state && (
-          <span className="flex items-center gap-0.5">
-            <GitBranch className="h-3 w-3" />
-            {task.latest_run_state}
-          </span>
-        )}
-        {task.has_pending_review && (
-          <span className="flex items-center gap-0.5 text-purple-500">
-            <ShieldCheck className="h-3 w-3" />
-            review
-          </span>
-        )}
-        {task.has_pending_approval && (
-          <span className="flex items-center gap-0.5 text-amber-500">
-            <Stamp className="h-3 w-3" />
-            approval
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function OfficeEventItem({ event }: { event: OfficeEvent }) {
-  return (
-    <div className="rounded-md border bg-card p-2.5">
-      <p className="text-xs font-medium truncate">{event.event_type}</p>
-      {event.from_zone && event.to_zone && (
-        <div className="flex items-center gap-1 mt-1">
-          <Badge variant="outline" className="text-[10px] px-1 py-0">{event.from_zone}</Badge>
-          <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
-          <Badge variant="outline" className="text-[10px] px-1 py-0">{event.to_zone}</Badge>
-        </div>
-      )}
-      <span className="text-[10px] text-muted-foreground mt-1 block">
-        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
-      </span>
-    </div>
-  );
 }
 
 type FeedMode = "office" | "activity";
@@ -130,142 +51,149 @@ export default function OfficePage() {
       : data.allTasks
     : [];
 
-  const officeEvents = data?.officeEvents ?? [];
-  const activityEvents = data?.recentEvents ?? [];
+  // Derived stats for top bar
+  const stats = useMemo(() => {
+    if (!data) return { activeTasks: 0, runningAgents: 0, pendingApprovals: 0, providerCount: 0 };
+    const active = filteredTasks.filter(t => !["done", "cancelled"].includes(t.state)).length;
+    const running = filteredTasks.filter(t => t.latest_run_state === "running" || t.latest_run_state === "preparing").length;
+    const approvals = filteredTasks.filter(t => t.has_pending_approval).length;
+    return { activeTasks: active, runningAgents: running, pendingApprovals: approvals, providerCount: data.projects.length };
+  }, [data, filteredTasks]);
 
   return (
     <AppLayout title="Office">
       {isLoading && <p className="text-muted-foreground">Loading…</p>}
       {error && <p className="text-destructive">Error: {(error as Error).message}</p>}
       {data && (
-        <div className="flex gap-4 h-[calc(100vh-8rem)]">
-          {/* LEFT — Projects */}
-          <div className="w-56 shrink-0 flex flex-col gap-2">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Projects</h3>
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={refresh}>
-                <RefreshCw className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-            <ScrollArea className="flex-1">
-              <div className="space-y-1.5 pr-2">
-                <div
-                  className={`rounded-md border p-2.5 cursor-pointer text-sm transition-colors ${
-                    !selectedProjectId ? "bg-primary/10 border-primary/30 font-medium" : "hover:bg-muted/50"
-                  }`}
-                  onClick={() => setSelectedProjectId(null)}
-                >
-                  All Projects
-                  <span className="ml-1 text-xs text-muted-foreground">({data.allTasks.length})</span>
-                </div>
-                {data.projects.map((p: any) => (
-                  <div
-                    key={p.id}
-                    className={`rounded-md border p-2.5 cursor-pointer text-sm transition-colors ${
-                      selectedProjectId === p.id ? "bg-primary/10 border-primary/30 font-medium" : "hover:bg-muted/50"
-                    }`}
-                    onClick={() => setSelectedProjectId(p.id)}
-                    onDoubleClick={() => navigate(`/control/projects/${p.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="truncate">{p.name}</span>
-                      <StatusBadge state={p.state} className="text-[10px] scale-90" />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{p.tasks.length} tasks</p>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
+        <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
+          {/* PART 8 — Performance Top Bar */}
+          <OfficeTopBar {...stats} />
 
-          {/* CENTER — Workflow Zones */}
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex gap-3 h-full min-w-max">
-              {ZONES.map((zone) => {
-                const zoneTasks = filteredTasks.filter((t) => (zone.states as readonly string[]).includes(t.state));
-                return (
-                  <div
-                    key={zone.key}
-                    className={`w-52 shrink-0 rounded-lg border p-3 flex flex-col ${zoneBg(zone.key)}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className={`text-xs font-semibold uppercase tracking-wider ${zoneHeaderColor(zone.key)}`}>
-                        {zone.label}
-                      </h4>
-                      <span className="text-xs text-muted-foreground font-mono">{zoneTasks.length}</span>
-                    </div>
-                    <ScrollArea className="flex-1">
-                      <div className="space-y-2 pr-1">
+          <div className="flex gap-3 flex-1 min-h-0">
+            {/* LEFT — Project selector */}
+            <div className="w-48 shrink-0 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Projects</span>
+                <Button size="icon" variant="ghost" className="h-5 w-5" onClick={refresh}>
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="space-y-1 pr-1">
+                  <ProjectItem
+                    name="All Projects"
+                    count={data.allTasks.length}
+                    active={!selectedProjectId}
+                    onClick={() => setSelectedProjectId(null)}
+                  />
+                  {data.projects.map((p: any) => (
+                    <ProjectItem
+                      key={p.id}
+                      name={p.name}
+                      state={p.state}
+                      count={p.tasks.length}
+                      active={selectedProjectId === p.id}
+                      onClick={() => setSelectedProjectId(p.id)}
+                      onDoubleClick={() => navigate(`/control/projects/${p.id}`)}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* CENTER — Pixel Office Grid */}
+            <div className="flex-1 overflow-auto">
+              <div
+                className="grid gap-3 h-full"
+                style={{
+                  gridTemplateColumns: "repeat(3, minmax(180px, 1fr))",
+                  gridTemplateRows: "repeat(3, minmax(140px, 1fr))",
+                }}
+              >
+                {ZONES.map((zone) => {
+                  const zoneTasks = filteredTasks.filter((t) =>
+                    (zone.states as readonly string[]).includes(t.state)
+                  );
+                  return (
+                    <div
+                      key={zone.key}
+                      style={{ gridColumn: zone.col, gridRow: zone.row }}
+                    >
+                      <PixelZone
+                        label={zone.label}
+                        zoneKey={zone.key}
+                        icon={zone.icon}
+                        count={zoneTasks.length}
+                      >
                         {zoneTasks.map((task) => (
-                          <OfficeTaskCard
+                          <PixelAgent
                             key={task.id}
-                            task={task}
+                            taskTitle={task.title}
+                            roleName={task.owner_role_id ? task.domain : null}
+                            state={task.state}
+                            latestRunState={task.latest_run_state}
+                            hasPendingReview={task.has_pending_review}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
-                        {zoneTasks.length === 0 && (
-                          <p className="text-xs text-muted-foreground text-center py-4">Empty</p>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* RIGHT — Event Feed (toggleable) */}
-          <div className="w-64 shrink-0 flex flex-col">
-            <div className="flex items-center gap-1 mb-2">
-              <Button
-                size="sm"
-                variant={feedMode === "office" ? "default" : "ghost"}
-                className="h-6 text-[10px] px-2"
-                onClick={() => setFeedMode("office")}
-              >
-                Zone Movements
-              </Button>
-              <Button
-                size="sm"
-                variant={feedMode === "activity" ? "default" : "ghost"}
-                className="h-6 text-[10px] px-2"
-                onClick={() => setFeedMode("activity")}
-              >
-                Activity
-              </Button>
-            </div>
-            <ScrollArea className="flex-1">
-              <div className="space-y-1 pr-2">
-                {feedMode === "office" ? (
-                  officeEvents.length > 0 ? (
-                    officeEvents.map((e: OfficeEvent) => (
-                      <OfficeEventItem key={e.id} event={e} />
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-4">No zone movements yet</p>
-                  )
-                ) : (
-                  activityEvents.length > 0 ? (
-                    activityEvents.map((e: any) => (
-                      <div key={e.id} className="rounded-md border bg-card p-2.5">
-                        <p className="text-xs font-medium">{e.event_type}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">{e.entity_type} · {e.actor_type}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-4">No activity</p>
-                  )
-                )}
+                      </PixelZone>
+                    </div>
+                  );
+                })}
+                {/* Empty cell at col 3 row 3 — decorative */}
+                <div
+                  style={{ gridColumn: 3, gridRow: 3 }}
+                  className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center"
+                >
+                  <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                </div>
               </div>
-            </ScrollArea>
+            </div>
+
+            {/* RIGHT — Live Feed */}
+            <div className="w-52 shrink-0">
+              <OfficeFeed
+                officeEvents={data.officeEvents ?? []}
+                activityEvents={data.recentEvents ?? []}
+                feedMode={feedMode}
+                onFeedModeChange={setFeedMode}
+              />
+            </div>
           </div>
         </div>
       )}
     </AppLayout>
+  );
+}
+
+function ProjectItem({
+  name,
+  state,
+  count,
+  active,
+  onClick,
+  onDoubleClick,
+}: {
+  name: string;
+  state?: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+  onDoubleClick?: () => void;
+}) {
+  return (
+    <div
+      className={`rounded border p-2 cursor-pointer text-[11px] transition-colors ${
+        active ? "bg-primary/10 border-primary/30 font-medium" : "hover:bg-muted/50"
+      }`}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+    >
+      <div className="flex items-center justify-between">
+        <span className="truncate">{name}</span>
+        {state && <StatusBadge state={state} className="text-[8px] scale-75" />}
+      </div>
+      <p className="text-[9px] text-muted-foreground">{count} tasks</p>
+    </div>
   );
 }
