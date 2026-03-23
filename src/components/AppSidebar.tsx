@@ -45,6 +45,11 @@ const systemNav = [
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
+const controlNav = [
+  { title: "Control Plane", url: "/control", icon: Shield },
+  { title: "Provider Control", url: "/control/providers", icon: Unplug },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
