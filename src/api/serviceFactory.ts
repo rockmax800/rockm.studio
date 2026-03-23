@@ -18,6 +18,7 @@ import { DualVerificationService } from "@/services/DualVerificationService";
 import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 import { PromptVersionService } from "@/services/PromptVersionService";
 import { PromptImprovementService } from "@/services/PromptImprovementService";
+import { AutonomyPipelineService } from "@/services/AutonomyPipelineService";
 
 interface PrismaLike {
   $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
