@@ -120,6 +120,12 @@ export class AutonomyPipelineService {
   // ─── PART 1: Idea Intake ───
 
   async ingestIdea({ projectId, ideaText }: { projectId: string; ideaText: string }) {
+    // DUAL MODE: Block in production
+    const { isFeatureEnabled } = await import("@/services/SystemModeService");
+    if (!(await isFeatureEnabled("enable_autonomy"))) {
+      logInfo("autonomy_blocked_production", { projectId, reason: "autonomy disabled in current mode" });
+      return null;
+    }
     logInfo("autonomy_idea_intake", { projectId });
 
     const role = await this.resolveRole(PIPELINE_STEPS.idea.roleCode);

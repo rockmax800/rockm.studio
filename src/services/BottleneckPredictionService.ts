@@ -29,6 +29,12 @@ export class BottleneckPredictionService {
    * Designed to be called every 5 minutes from a scheduled function.
    */
   async runPredictionCycle(): Promise<{ predictions: Prediction[]; duration_ms: number }> {
+    // DUAL MODE: Skip in production
+    const { isProduction } = await import("@/services/SystemModeService");
+    if (await isProduction()) {
+      return { predictions: [], duration_ms: 0 };
+    }
+
     const start = Date.now();
     const predictions: Prediction[] = [];
 
