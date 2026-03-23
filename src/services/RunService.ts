@@ -1,11 +1,13 @@
 // UC-03 Start Run
+// UC-16 Retry Run
 // Requires:
-// - Task in assigned
+// - Task in assigned (for start)
 // - Project active
 // - ContextPack exists
+// - Run in failed/timed_out (for retry)
 // Transitions:
-// Run: created → preparing
-// Task: assigned → in_progress
+// Start: Run created → preparing, Task assigned → in_progress
+// Retry: Original Run → superseded, New Run created → preparing
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -56,20 +58,12 @@ export class RunService {
     actorType: "system" | "agent_role";
   }) {
     const { run, task } = await this.prisma.$transaction(async (tx) => {
-      // 1. Load task
-      const task = await tx.tasks.findUniqueOrThrow({
-        where: { id: taskId },
-      });
+      const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
+      const project = await tx.projects.findUniqueOrThrow({ where: { id: task.project_id } });
 
-      // 2. Load project
-      const project = await tx.projects.findUniqueOrThrow({
-        where: { id: task.project_id },
-      });
-
-      // 3. Validate task state
       if (task.state !== "assigned") {
         throw new GuardError({
-          message: `Task must be in "assigned" state to start a run. Current state: "${task.state}"`,
+          message: `Task must be in "assigned" state to start a run. Current: "${task.state}"`,
           entityType: "task",
           entityId: taskId,
           fromState: task.state,
@@ -77,10 +71,9 @@ export class RunService {
         });
       }
 
-      // 4. Validate project state
       if (project.state !== "active") {
         throw new GuardError({
-          message: `Project must be in "active" state. Current state: "${project.state}"`,
+          message: `Project must be "active". Current: "${project.state}"`,
           entityType: "project",
           entityId: project.id,
           fromState: project.state,
@@ -88,7 +81,6 @@ export class RunService {
         });
       }
 
-      // 5. Validate owner role exists
       if (!task.owner_role_id) {
         throw new GuardError({
           message: "Task must have an owner_role_id before starting a run",
@@ -99,14 +91,10 @@ export class RunService {
         });
       }
 
-      // 6. Validate ContextPack exists
-      const contextPack = await tx.context_packs.findFirst({
-        where: { task_id: taskId },
-      });
-
+      const contextPack = await tx.context_packs.findFirst({ where: { task_id: taskId } });
       if (!contextPack) {
         throw new GuardError({
-          message: "ContextPack must exist for the task before starting a run. No waiver allowed.",
+          message: "ContextPack must exist for the task. No waiver allowed.",
           entityType: "run",
           entityId: taskId,
           fromState: "none",
@@ -114,14 +102,9 @@ export class RunService {
         });
       }
 
-      // 7. Determine next run_number
-      const existingRunCount = await tx.runs.count({
-        where: { task_id: taskId },
-      });
-      const runNumber = existingRunCount + 1;
-
-      // 8. Create Run record in initial state
+      const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
       const now = new Date().toISOString();
+
       const run = await tx.runs.create({
         data: {
           project_id: task.project_id,
@@ -129,7 +112,7 @@ export class RunService {
           agent_role_id: task.owner_role_id,
           context_pack_id: contextPack.id,
           state: "created",
-          run_number: runNumber,
+          run_number: existingRunCount + 1,
           created_at: now,
           updated_at: now,
         },
@@ -138,7 +121,7 @@ export class RunService {
       return { run, task };
     });
 
-    // 9. Transition Run: created → preparing
+    // Transition Run: created → preparing
     await this.orchestration.transitionEntity({
       entityType: "run",
       entityId: run.id,
@@ -146,15 +129,10 @@ export class RunService {
       actorType,
       actorRoleId: task.owner_role_id,
       projectId: task.project_id,
-      metadata: {
-        use_case: "UC-03",
-        trigger: "run started",
-        run_number: run.run_number,
-        task_id: taskId,
-      },
+      metadata: { use_case: "UC-03", trigger: "run started", run_number: run.run_number },
     });
 
-    // 10. Transition Task: assigned → in_progress
+    // Transition Task: assigned → in_progress
     await this.orchestration.transitionEntity({
       entityType: "task",
       entityId: taskId,
@@ -162,14 +140,98 @@ export class RunService {
       actorType,
       actorRoleId: task.owner_role_id,
       projectId: task.project_id,
+      metadata: { use_case: "UC-03", trigger: "run started for task", run_id: run.id },
+    });
+
+    // Enqueue execution (direct call for now, queue later)
+    await this.enqueueRunExecution(run.id);
+
+    return run;
+  }
+
+  async retryRun(runId: string) {
+    const { originalRun, newRun } = await this.prisma.$transaction(async (tx) => {
+      const originalRun = await tx.runs.findUniqueOrThrow({ where: { id: runId } });
+
+      if (!["failed", "timed_out"].includes(originalRun.state)) {
+        throw new GuardError({
+          message: `Run must be in "failed" or "timed_out" to retry. Current: "${originalRun.state}"`,
+          entityType: "run",
+          entityId: runId,
+          fromState: originalRun.state,
+          toState: "superseded",
+        });
+      }
+
+      const existingRunCount = await tx.runs.count({ where: { task_id: originalRun.task_id } });
+      const now = new Date().toISOString();
+
+      // Find context pack for the task
+      const contextPack = await tx.context_packs.findFirst({ where: { task_id: originalRun.task_id } });
+
+      const newRun = await tx.runs.create({
+        data: {
+          project_id: originalRun.project_id,
+          task_id: originalRun.task_id,
+          agent_role_id: originalRun.agent_role_id,
+          context_pack_id: contextPack?.id ?? null,
+          state: "created",
+          run_number: existingRunCount + 1,
+          retry_of_run_id: originalRun.id,
+          created_at: now,
+          updated_at: now,
+        },
+      });
+
+      // Link original to new
+      await tx.runs.update({
+        where: { id: runId },
+        data: { superseded_by_run_id: newRun.id, updated_at: now },
+      });
+
+      return { originalRun, newRun };
+    });
+
+    // Transition original run → superseded (direct from failed/timed_out per doc 05)
+    await this.orchestration.transitionEntity({
+      entityType: "run",
+      entityId: runId,
+      toState: "superseded",
+      actorType: "system",
+      actorRoleId: originalRun.agent_role_id,
+      projectId: originalRun.project_id,
       metadata: {
-        use_case: "UC-03",
-        trigger: "run started for task",
-        run_id: run.id,
-        run_number: run.run_number,
+        use_case: "UC-16",
+        trigger: "retry launched",
+        replacement_run_id: newRun.id,
       },
     });
 
-    return run;
+    // Transition new run: created → preparing
+    await this.orchestration.transitionEntity({
+      entityType: "run",
+      entityId: newRun.id,
+      toState: "preparing",
+      actorType: "system",
+      actorRoleId: newRun.agent_role_id,
+      projectId: newRun.project_id,
+      metadata: {
+        use_case: "UC-16",
+        trigger: "retry run created",
+        retry_of_run_id: runId,
+        run_number: newRun.run_number,
+      },
+    });
+
+    // Enqueue execution
+    await this.enqueueRunExecution(newRun.id);
+
+    return newRun;
+  }
+
+  private async enqueueRunExecution(runId: string) {
+    // Direct call for now — will be replaced by queue (BullMQ) later
+    const { executeRun } = await import("@/workers/runExecutor");
+    await executeRun(runId, this.prisma, this.orchestration);
   }
 }
