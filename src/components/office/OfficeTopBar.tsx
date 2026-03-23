@@ -1,4 +1,4 @@
-import { Activity, Bot, Stamp, Cpu, Leaf } from "lucide-react";
+import { Activity, Bot, Stamp, Cpu, Leaf, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface OfficeTopBarProps {
@@ -7,11 +7,29 @@ interface OfficeTopBarProps {
   pendingApprovals: number;
   providerCount: number;
   leanMode?: boolean;
+  pendingInboxCount?: number;
 }
 
-export function OfficeTopBar({ activeTasks, runningAgents, pendingApprovals, providerCount, leanMode }: OfficeTopBarProps) {
+export function OfficeTopBar({ activeTasks, runningAgents, pendingApprovals, providerCount, leanMode, pendingInboxCount = 0 }: OfficeTopBarProps) {
   return (
     <div className="flex items-center gap-4 px-3 py-2 rounded-lg border bg-card">
+      {/* PART 10 — Founder presence */}
+      <div className="relative flex items-center gap-1.5">
+        <img
+          src="/pixel/founder.png"
+          alt="Founder"
+          className="w-7 h-7 rounded"
+          style={{ imageRendering: "pixelated" }}
+        />
+        {pendingInboxCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center animate-pulse">
+            {pendingInboxCount > 9 ? "9+" : pendingInboxCount}
+          </span>
+        )}
+        <span className="text-[9px] font-medium text-muted-foreground">Founder</span>
+      </div>
+      <div className="w-px h-6 bg-border" />
+
       {leanMode && (
         <>
           <div className="flex items-center gap-1.5">

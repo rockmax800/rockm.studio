@@ -17,6 +17,8 @@ const ZONE_STYLES: Record<string, { border: string; bg: string; glow: string }> 
   blocked: { border: "border-red-600/50", bg: "bg-red-500/5", glow: "" },
   approved: { border: "border-green-500/40", bg: "bg-green-500/5", glow: "" },
   done: { border: "border-emerald-500/40", bg: "bg-emerald-500/5", glow: "" },
+  qa: { border: "border-cyan-500/40", bg: "bg-cyan-500/5", glow: "" },
+  release: { border: "border-indigo-500/40", bg: "bg-indigo-500/5", glow: "shadow-[0_0_10px_hsl(230,60%,50%,0.12)]" },
 };
 
 export function PixelZone({ label, zoneKey, icon, count, children }: PixelZoneProps) {
@@ -24,12 +26,12 @@ export function PixelZone({ label, zoneKey, icon, count, children }: PixelZonePr
 
   return (
     <div
-      className={`relative rounded-lg border-2 ${style.border} ${style.bg} ${style.glow} p-2 min-h-[140px] flex flex-col`}
+      className={`relative rounded-lg border-2 ${style.border} ${style.bg} ${style.glow} p-2 min-h-[130px] flex flex-col transition-all duration-300`}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Zone header */}
       <div className="flex items-center gap-1.5 mb-2">
-        <img src={icon} alt="" className="w-5 h-5" style={{ imageRendering: "pixelated" }} />
+        <img src={icon} alt="" className="w-5 h-5" style={{ imageRendering: "pixelated" }} loading="lazy" />
         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </span>
