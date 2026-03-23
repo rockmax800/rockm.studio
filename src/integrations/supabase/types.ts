@@ -332,8 +332,10 @@ export type Database = {
           auto_execute_implementation: boolean
           auto_generate_tasks: boolean
           auto_retry_enabled: boolean
+          autonomy_token_budget: number
           created_at: string
           id: string
+          max_autonomy_depth: number
           max_parallel_runs: number
           project_id: string
           updated_at: string
@@ -342,8 +344,10 @@ export type Database = {
           auto_execute_implementation?: boolean
           auto_generate_tasks?: boolean
           auto_retry_enabled?: boolean
+          autonomy_token_budget?: number
           created_at?: string
           id?: string
+          max_autonomy_depth?: number
           max_parallel_runs?: number
           project_id: string
           updated_at?: string
@@ -352,8 +356,10 @@ export type Database = {
           auto_execute_implementation?: boolean
           auto_generate_tasks?: boolean
           auto_retry_enabled?: boolean
+          autonomy_token_budget?: number
           created_at?: string
           id?: string
+          max_autonomy_depth?: number
           max_parallel_runs?: number
           project_id?: string
           updated_at?: string
