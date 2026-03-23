@@ -1,11 +1,13 @@
 // ProviderService — Provider execution with real OpenAI/Anthropic integration
 // UC-13 Execute Agent Run (Provider Call)
-// Supports: openai, anthropic, mock fallback (dev only)
+// Extended with: Dual Verification (PART 1), Adaptive Routing (PART 3)
 
 import { env } from "@/config/env";
 import { logInfo, logError } from "@/lib/logger";
 import { callOpenAI, healthCheckOpenAI } from "@/services/providers/openaiAdapter";
 import { callAnthropic, healthCheckAnthropic } from "@/services/providers/anthropicAdapter";
+import { DualVerificationService, type DualVerificationResult } from "@/services/DualVerificationService";
+import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -35,6 +37,8 @@ interface ProviderResult {
   outputText: string;
   providerId: string;
   modelId: string;
+  dualVerification?: DualVerificationResult;
+  adaptiveRoutingUsed?: boolean;
 }
 
 type ProviderHealthStatus = "healthy" | "degraded" | "unavailable";
@@ -64,13 +68,25 @@ export class ProviderService {
     this.prisma = prisma;
   }
 
+  /**
+   * Public method for other services (DualVerification, SelfReview, ContextCompression)
+   * to call a provider directly without the full routing/logging overhead.
+   */
+  async callProviderDirect(
+    providerCode: string,
+    modelCode: string,
+    systemPrompt: string,
+    userPrompt: string,
+  ) {
+    return this.callProvider(providerCode, modelCode, systemPrompt, userPrompt);
+  }
+
   async execute({ run, task, contextPack }: ProviderExecuteParams): Promise<ProviderResult> {
     return this.prisma.$transaction(async (tx) => {
       // 1. Resolve routing policy
       const routingPolicy = await tx.routing_policies.findFirst({
         where: {
           task_domain: task.domain,
-          role_code: task.owner_role_id ? undefined : undefined,
           status: "active",
         },
       }).catch(() => null);
@@ -83,8 +99,14 @@ export class ProviderService {
       let fallbackProviderId: string | null = null;
       let fallbackModelId: string | null = null;
       let allowFallback = false;
+      let enableDualVerification = false;
+      let minSuccessRateThreshold: number | null = null;
+      let adaptiveRoutingUsed = false;
 
       if (routingPolicy) {
+        enableDualVerification = routingPolicy.enable_dual_verification ?? false;
+        minSuccessRateThreshold = routingPolicy.min_success_rate_threshold ?? null;
+
         const providerModel = await tx.provider_models.findUniqueOrThrow({
           where: { id: routingPolicy.preferred_model_id },
         });
@@ -111,6 +133,43 @@ export class ProviderService {
         fallbackProviderId = routingPolicy.fallback_provider_id;
         fallbackModelId = routingPolicy.fallback_model_id;
         allowFallback = routingPolicy.allow_fallback;
+
+        // PART 3 — Adaptive Routing: check agent success_rate
+        if (minSuccessRateThreshold && task.owner_role_id && allowFallback && fallbackProviderId && fallbackModelId) {
+          try {
+            const agentRole = await tx.agent_roles.findUniqueOrThrow({ where: { id: task.owner_role_id } });
+            if (agentRole.total_runs > 5 && agentRole.success_rate < minSuccessRateThreshold) {
+              logInfo("adaptive_routing_triggered", {
+                roleId: task.owner_role_id,
+                success_rate: agentRole.success_rate,
+                threshold: minSuccessRateThreshold,
+                from: providerCode,
+              });
+
+              const fbModel = await tx.provider_models.findUniqueOrThrow({ where: { id: fallbackModelId } });
+              const fbProvider = await tx.providers.findUniqueOrThrow({ where: { id: fallbackProviderId } });
+
+              providerId = fbProvider.id;
+              modelId = fbModel.id;
+              providerCode = fbProvider.code;
+              modelCode = fbModel.model_code;
+              providerName = fbProvider.name;
+              adaptiveRoutingUsed = true;
+
+              // Emit office event
+              const officeEmitter = new OfficeEventEmitter(this.prisma);
+              try {
+                await officeEmitter.emitOfficeEvent({
+                  projectId: run.project_id,
+                  entityType: "run",
+                  entityId: run.id,
+                  eventType: "adaptive_route",
+                  actorRoleId: task.owner_role_id,
+                });
+              } catch { /* best-effort */ }
+            }
+          } catch { /* best-effort adaptive routing */ }
+        }
       }
 
       const systemPrompt = contextPack?.summary ?? "";
@@ -122,14 +181,10 @@ export class ProviderService {
       try {
         result = await this.callProvider(providerCode, modelCode, systemPrompt, userPrompt);
       } catch (error) {
-        // Rate limit handling with fallback
         if (isRateLimitError(error) && allowFallback && fallbackProviderId && fallbackModelId) {
           logError("provider_rate_limited", { provider: providerCode, model: modelCode });
-
-          // Mark primary provider as degraded
           await this.updateProviderStatus(tx, providerId, "degraded");
 
-          // Try fallback
           const fallbackModel = await tx.provider_models.findUniqueOrThrow({ where: { id: fallbackModelId } });
           const fallbackProvider = await tx.providers.findUniqueOrThrow({ where: { id: fallbackProviderId } });
 
@@ -142,7 +197,6 @@ export class ProviderService {
           providerName = fallbackProvider.name;
           modelCode = fallbackModel.model_code;
         } else if (isRateLimitError(error)) {
-          // No fallback — mark degraded and rethrow
           if (providerId) await this.updateProviderStatus(tx, providerId, "degraded");
           throw error;
         } else {
@@ -171,11 +225,35 @@ export class ProviderService {
         // Usage logging is best-effort
       }
 
+      // 4. PART 1 — Dual Model Verification
+      let dualVerification: DualVerificationResult | undefined;
+      if (enableDualVerification && fallbackProviderId && fallbackModelId) {
+        try {
+          const fbModel = await tx.provider_models.findUniqueOrThrow({ where: { id: fallbackModelId } });
+          const fbProvider = await tx.providers.findUniqueOrThrow({ where: { id: fallbackProviderId } });
+
+          const dualService = new DualVerificationService(this.prisma, new OfficeEventEmitter(this.prisma));
+          dualVerification = await dualService.verify({
+            runId: run.id,
+            projectId: run.project_id,
+            generatedText: result.outputText,
+            providerService: this,
+            fallbackProviderCode: fbProvider.code,
+            fallbackModelCode: fbModel.model_code,
+            agentRoleId: run.agent_role_id,
+          });
+        } catch {
+          // Dual verification is best-effort
+        }
+      }
+
       return {
         success: true as const,
         outputText: result.outputText,
         providerId: providerId ?? "mock",
         modelId: modelId ?? "mock",
+        dualVerification,
+        adaptiveRoutingUsed,
       };
     }, { isolationLevel: "Serializable" });
   }

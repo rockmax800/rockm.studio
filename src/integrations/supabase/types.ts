@@ -384,6 +384,45 @@ export type Database = {
           },
         ]
       }
+      context_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          summary: string
+          task_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          summary?: string
+          task_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          summary?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "context_snapshots_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "context_snapshots_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           content_markdown: string
@@ -843,9 +882,13 @@ export type Database = {
           allow_cross_provider_retry: boolean
           allow_fallback: boolean
           created_at: string
+          enable_dual_verification: boolean
           fallback_model_id: string | null
           fallback_provider_id: string | null
           id: string
+          max_cost_threshold: number | null
+          max_latency_threshold: number | null
+          min_success_rate_threshold: number | null
           notes: string | null
           policy_name: string
           preferred_model_id: string
@@ -860,9 +903,13 @@ export type Database = {
           allow_cross_provider_retry?: boolean
           allow_fallback?: boolean
           created_at?: string
+          enable_dual_verification?: boolean
           fallback_model_id?: string | null
           fallback_provider_id?: string | null
           id?: string
+          max_cost_threshold?: number | null
+          max_latency_threshold?: number | null
+          min_success_rate_threshold?: number | null
           notes?: string | null
           policy_name: string
           preferred_model_id: string
@@ -877,9 +924,13 @@ export type Database = {
           allow_cross_provider_retry?: boolean
           allow_fallback?: boolean
           created_at?: string
+          enable_dual_verification?: boolean
           fallback_model_id?: string | null
           fallback_provider_id?: string | null
           id?: string
+          max_cost_threshold?: number | null
+          max_latency_threshold?: number | null
+          min_success_rate_threshold?: number | null
           notes?: string | null
           policy_name?: string
           preferred_model_id?: string
@@ -931,6 +982,8 @@ export type Database = {
           review_outcome: string | null
           role_id: string | null
           run_id: string
+          validation_passed: boolean | null
+          validation_risk_level: string | null
         }
         Insert: {
           cost_score?: number
@@ -941,6 +994,8 @@ export type Database = {
           review_outcome?: string | null
           role_id?: string | null
           run_id: string
+          validation_passed?: boolean | null
+          validation_risk_level?: string | null
         }
         Update: {
           cost_score?: number
@@ -951,6 +1006,8 @@ export type Database = {
           review_outcome?: string | null
           role_id?: string | null
           run_id?: string
+          validation_passed?: boolean | null
+          validation_risk_level?: string | null
         }
         Relationships: [
           {
