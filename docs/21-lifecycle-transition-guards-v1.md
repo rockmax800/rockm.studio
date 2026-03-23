@@ -173,7 +173,7 @@ function guardTaskTransition(task, to_state):
 
   if to_state == "waiting_review":
     ASSERT task.state == "in_progress"
-    ASSERT count(artifacts(task, state NOT IN ["created"])) > 0
+    ASSERT count(artifacts(task, state IN ["submitted", "under_review", "accepted", "rejected"])) > 0
     RETURN ALLOW
 
   if to_state == "blocked":
