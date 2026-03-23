@@ -286,7 +286,7 @@ function guardRunTransition(run, to_state):
 
   if to_state == "running":
     ASSERT run.state == "preparing"
-    ASSERT context_pack_available(run) OR context_waived(run)
+    ASSERT context_pack_available(run)
     RETURN ALLOW
 
   if to_state == "produced_output":
