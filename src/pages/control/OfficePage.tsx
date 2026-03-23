@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { PixelZone } from "@/components/office/PixelZone";
 import { PixelAgent } from "@/components/office/PixelAgent";
 import { OfficeFeed } from "@/components/office/OfficeFeed";
