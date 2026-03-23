@@ -1,0 +1,638 @@
+// ============================================================
+// AI Workshop OS — Prisma Schema V1
+// Based on: docs 05, 12, 14, 15, 18
+// Database: PostgreSQL
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ────────────────────────────────────────────────────────────
+// Enums — Lifecycle States
+// ────────────────────────────────────────────────────────────
+
+enum ProjectState {
+  draft
+  scoped
+  active
+  blocked
+  in_review
+  paused
+  completed
+  archived
+}
+
+enum TaskState {
+  draft
+  ready
+  assigned
+  in_progress
+  waiting_review
+  rework_required
+  blocked
+  escalated
+  approved
+  done
+  cancelled
+}
+
+enum RunState {
+  created
+  preparing
+  running
+  produced_output
+  failed
+  timed_out
+  cancelled
+  superseded
+  finalized
+}
+
+enum ArtifactState {
+  created
+  classified
+  submitted
+  under_review
+  accepted
+  rejected
+  superseded
+  frozen
+  archived
+}
+
+enum ReviewState {
+  created
+  in_progress
+  needs_clarification
+  approved
+  approved_with_notes
+  rejected
+  escalated
+  closed
+}
+
+enum ReviewVerdict {
+  approved
+  approved_with_notes
+  rejected
+  escalated
+}
+
+enum ApprovalState {
+  pending
+  approved
+  rejected
+  deferred
+  expired
+  closed
+}
+
+// ────────────────────────────────────────────────────────────
+// Enums — Domain / Classification
+// ────────────────────────────────────────────────────────────
+
+enum AgentRoleStatus {
+  active
+  inactive
+}
+
+enum TaskDomain {
+  founder_control
+  docs
+  orchestration
+  frontend
+  backend
+  review
+  qa
+  release
+}
+
+enum TaskOutputType {
+  document
+  frontend
+  backend
+  schema
+  review
+  approval_packet
+  test
+  release
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum TaskUrgency {
+  normal
+  high
+  blocker
+}
+
+enum ArtifactType {
+  document
+  architecture
+  frontend
+  backend
+  schema
+  test
+  review
+  release
+}
+
+enum StorageKind {
+  db_text
+  file_path
+  github_ref
+  external
+}
+
+enum ApprovalType {
+  project_activation
+  architecture
+  schema
+  scope_change
+  release
+  cancellation
+}
+
+enum ApprovalTargetType {
+  project
+  task
+  artifact
+  review
+  document
+}
+
+enum DocType {
+  brief
+  domain
+  lifecycle
+  collaboration
+  agent_instructions
+  ui_spec
+  data_model
+  other
+}
+
+enum DocStatus {
+  draft
+  active
+  canonical
+  superseded
+  archived
+}
+
+enum EntityType {
+  project
+  document
+  task
+  context_pack
+  run
+  artifact
+  review
+  approval
+}
+
+enum ActorType {
+  founder
+  system
+  agent_role
+}
+
+// ────────────────────────────────────────────────────────────
+// Enums — Provider Layer (doc 18)
+// ────────────────────────────────────────────────────────────
+
+enum ProviderStatus {
+  active
+  inactive
+  deprecated
+}
+
+enum ProviderModelStatus {
+  active
+  inactive
+  deprecated
+}
+
+enum CredentialStatus {
+  active
+  invalid
+  expired
+  revoked
+}
+
+enum RoutingPolicyStatus {
+  active
+  inactive
+}
+
+enum ProviderHealthStatus {
+  healthy
+  degraded
+  unavailable
+  misconfigured
+}
+
+// ────────────────────────────────────────────────────────────
+// Core Entities
+// ────────────────────────────────────────────────────────────
+
+model Project {
+  id            String       @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String       @unique
+  purpose       String
+  projectType   String?      @map("project_type")
+  currentPhase  String?      @map("current_phase")
+  state         ProjectState @default(draft)
+  founderNotes  String?      @map("founder_notes")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  archivedAt    DateTime?    @map("archived_at")
+
+  documents      Document[]
+  tasks          Task[]
+  contextPacks   ContextPack[]
+  runs           Run[]
+  artifacts      Artifact[]
+  reviews        Review[]
+  approvals      Approval[]
+  activityEvents ActivityEvent[]
+
+  @@index([state])
+  @@map("projects")
+}
+
+model Document {
+  id                String    @id @default(uuid()) @db.Uuid
+  projectId         String    @map("project_id") @db.Uuid
+  title             String
+  filePath          String    @map("file_path")
+  docType           DocType   @default(other) @map("doc_type")
+  status            DocStatus @default(draft)
+  versionLabel      String?   @map("version_label")
+  contentMarkdown   String    @default("") @map("content_markdown")
+  sourceTaskId      String?   @map("source_task_id") @db.Uuid
+  sourceArtifactId  String?   @map("source_artifact_id") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceTask      Task?     @relation("DocumentSourceTask", fields: [sourceTaskId], references: [id], onDelete: SetNull)
+  sourceArtifact  Artifact? @relation("DocumentSourceArtifact", fields: [sourceArtifactId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([filePath])
+  @@map("documents")
+}
+
+model AgentRole {
+  id               String          @id @default(uuid()) @db.Uuid
+  name             String
+  code             String          @unique
+  description      String
+  status           AgentRoleStatus @default(active)
+  allowedDomains   Json?           @map("allowed_domains")
+  allowedActions   Json?           @map("allowed_actions")
+  forbiddenActions Json?           @map("forbidden_actions")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  tasks           Task[]
+  runs            Run[]
+  reviews         Review[]
+  approvals       Approval[]      @relation("ApprovalRequester")
+  activityEvents  ActivityEvent[] @relation("ActivityActor")
+  routingPolicies RoutingPolicy[]
+
+  @@map("agent_roles")
+}
+
+model Task {
+  id                 String         @id @default(uuid()) @db.Uuid
+  projectId          String         @map("project_id") @db.Uuid
+  parentTaskId       String?        @map("parent_task_id") @db.Uuid
+  title              String
+  purpose            String
+  domain             TaskDomain
+  ownerRoleId        String?        @map("owner_role_id") @db.Uuid
+  expectedOutputType TaskOutputType @map("expected_output_type")
+  state              TaskState      @default(draft)
+  priority           TaskPriority   @default(medium)
+  urgency            TaskUrgency?
+  acceptanceCriteria Json           @default("[]") @map("acceptance_criteria")
+  constraints        Json?
+  blockerReason      String?        @map("blocker_reason")
+  escalationReason   String?        @map("escalation_reason")
+  requestedOutcome   String?        @map("requested_outcome")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  closedAt           DateTime?      @map("closed_at")
+
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parentTask   Task?        @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  childTasks   Task[]       @relation("TaskSubtasks")
+  ownerRole    AgentRole?   @relation(fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  contextPacks ContextPack[]
+  runs         Run[]
+  artifacts    Artifact[]
+  reviews      Review[]
+  documents    Document[]   @relation("DocumentSourceTask")
+
+  @@index([projectId])
+  @@index([state])
+  @@index([ownerRoleId])
+  @@map("tasks")
+}
+
+model ContextPack {
+  id                   String   @id @default(uuid()) @db.Uuid
+  projectId            String   @map("project_id") @db.Uuid
+  taskId               String   @map("task_id") @db.Uuid
+  summary              String?
+  includedDocumentIds  Json?    @map("included_document_ids")
+  includedArtifactIds  Json?    @map("included_artifact_ids")
+  includedFilePaths    Json?    @map("included_file_paths")
+  assumptions          Json?
+  missingContextNotes  String?  @map("missing_context_notes")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  runs    Run[]
+
+  @@index([taskId])
+  @@map("context_packs")
+}
+
+model Run {
+  id                  String   @id @default(uuid()) @db.Uuid
+  projectId           String   @map("project_id") @db.Uuid
+  taskId              String   @map("task_id") @db.Uuid
+  agentRoleId         String   @map("agent_role_id") @db.Uuid
+  contextPackId       String?  @map("context_pack_id") @db.Uuid
+  state               RunState @default(created)
+  runNumber           Int      @map("run_number")
+  startedAt           DateTime? @map("started_at")
+  endedAt             DateTime? @map("ended_at")
+  durationMs          Int?     @map("duration_ms")
+  statusSummary       String?  @map("status_summary")
+  failureReason       String?  @map("failure_reason")
+  outputSummary       String?  @map("output_summary")
+  retryOfRunId        String?  @map("retry_of_run_id") @db.Uuid
+  supersededByRunId   String?  @map("superseded_by_run_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  project          Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task             Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  agentRole        AgentRole    @relation(fields: [agentRoleId], references: [id], onDelete: Restrict)
+  contextPack      ContextPack? @relation(fields: [contextPackId], references: [id], onDelete: SetNull)
+  retryOfRun       Run?         @relation("RunRetry", fields: [retryOfRunId], references: [id], onDelete: SetNull)
+  retriedByRuns    Run[]        @relation("RunRetry")
+  supersededByRun  Run?         @relation("RunSupersede", fields: [supersededByRunId], references: [id], onDelete: SetNull)
+  supersedesRuns   Run[]        @relation("RunSupersede")
+  artifacts        Artifact[]
+  usageLogs        ProviderUsageLog[]
+
+  @@unique([taskId, runNumber])
+  @@index([taskId])
+  @@index([state])
+  @@map("runs")
+}
+
+model Artifact {
+  id                    String        @id @default(uuid()) @db.Uuid
+  projectId             String        @map("project_id") @db.Uuid
+  taskId                String?       @map("task_id") @db.Uuid
+  runId                 String?       @map("run_id") @db.Uuid
+  artifactType          ArtifactType  @map("artifact_type")
+  title                 String
+  state                 ArtifactState @default(created)
+  storageKind           StorageKind   @map("storage_kind")
+  contentText           String?       @map("content_text")
+  filePath              String?       @map("file_path")
+  externalRef           String?       @map("external_ref")
+  summary               String?
+  canonicalFlag         Boolean       @default(false) @map("canonical_flag")
+  supersedesArtifactId  String?       @map("supersedes_artifact_id") @db.Uuid
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  project             Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task                Task?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  run                 Run?       @relation(fields: [runId], references: [id], onDelete: SetNull)
+  supersedesArtifact  Artifact?  @relation("ArtifactSupersede", fields: [supersedesArtifactId], references: [id], onDelete: SetNull)
+  supersededByArtifacts Artifact[] @relation("ArtifactSupersede")
+  reviews             Review[]
+  documents           Document[] @relation("DocumentSourceArtifact")
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([runId])
+  @@index([state])
+  @@map("artifacts")
+}
+
+model Review {
+  id                String       @id @default(uuid()) @db.Uuid
+  projectId         String       @map("project_id") @db.Uuid
+  taskId            String?      @map("task_id") @db.Uuid
+  artifactId        String       @map("artifact_id") @db.Uuid
+  reviewerRoleId    String       @map("reviewer_role_id") @db.Uuid
+  state             ReviewState  @default(created)
+  verdict           ReviewVerdict?
+  reason            String?
+  blockingIssues    Json?        @map("blocking_issues")
+  nonBlockingNotes  Json?        @map("non_blocking_notes")
+  suggestedNextStep String?      @map("suggested_next_step")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  closedAt          DateTime?    @map("closed_at")
+
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task         Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  artifact     Artifact  @relation(fields: [artifactId], references: [id], onDelete: Restrict)
+  reviewerRole AgentRole @relation(fields: [reviewerRoleId], references: [id], onDelete: Restrict)
+
+  @@index([artifactId])
+  @@index([state])
+  @@map("reviews")
+}
+
+model Approval {
+  id                      String             @id @default(uuid()) @db.Uuid
+  projectId               String             @map("project_id") @db.Uuid
+  approvalType            ApprovalType       @map("approval_type")
+  targetType              ApprovalTargetType @map("target_type")
+  targetId                String             @map("target_id") @db.Uuid
+  requestedByRoleId       String?            @map("requested_by_role_id") @db.Uuid
+  state                   ApprovalState      @default(pending)
+  summary                 String
+  recommendation          String?
+  consequenceIfApproved   String?            @map("consequence_if_approved")
+  consequenceIfRejected   String?            @map("consequence_if_rejected")
+  founderDecisionNote     String?            @map("founder_decision_note")
+  createdAt               DateTime           @default(now()) @map("created_at")
+  updatedAt               DateTime           @updatedAt @map("updated_at")
+  decidedAt               DateTime?          @map("decided_at")
+  closedAt                DateTime?          @map("closed_at")
+
+  project          Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requestedByRole  AgentRole? @relation("ApprovalRequester", fields: [requestedByRoleId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([state])
+  @@map("approvals")
+}
+
+model ActivityEvent {
+  id           String     @id @default(uuid()) @db.Uuid
+  projectId    String     @map("project_id") @db.Uuid
+  entityType   EntityType @map("entity_type")
+  entityId     String     @map("entity_id") @db.Uuid
+  eventType    String     @map("event_type")
+  actorType    ActorType  @default(system) @map("actor_type")
+  actorRoleId  String?    @map("actor_role_id") @db.Uuid
+  eventPayload Json?      @map("event_payload")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorRole AgentRole? @relation("ActivityActor", fields: [actorRoleId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([entityType, entityId])
+  @@map("activity_events")
+}
+
+// ────────────────────────────────────────────────────────────
+// Provider Layer (doc 18)
+// ────────────────────────────────────────────────────────────
+
+model Provider {
+  id                String         @id @default(uuid()) @db.Uuid
+  name              String
+  code              String         @unique
+  status            ProviderStatus @default(active)
+  baseUrl           String?        @map("base_url")
+  supportsText      Boolean        @default(true) @map("supports_text")
+  supportsVision    Boolean        @default(false) @map("supports_vision")
+  supportsAudio     Boolean        @default(false) @map("supports_audio")
+  supportsStreaming  Boolean        @default(false) @map("supports_streaming")
+  supportsTools     Boolean        @default(false) @map("supports_tools")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  models           ProviderModel[]
+  credentials      ProviderCredential[]
+  routingPolicies  RoutingPolicy[]      @relation("RoutingPreferred")
+  fallbackPolicies RoutingPolicy[]      @relation("RoutingFallback")
+  usageLogs        ProviderUsageLog[]
+
+  @@map("providers")
+}
+
+model ProviderModel {
+  id                  String              @id @default(uuid()) @db.Uuid
+  providerId          String              @map("provider_id") @db.Uuid
+  modelCode           String              @map("model_code")
+  displayName         String              @map("display_name")
+  status              ProviderModelStatus @default(active)
+  intendedUse         String?             @map("intended_use")
+  maxContextKnown     Int?                @map("max_context_known")
+  supportsJson        Boolean             @default(false) @map("supports_json")
+  supportsStreaming   Boolean             @default(false) @map("supports_streaming")
+  supportsToolUse    Boolean             @default(false) @map("supports_tool_use")
+  costProfileHint     String?             @map("cost_profile_hint")
+  latencyProfileHint  String?             @map("latency_profile_hint")
+  qualityProfileHint  String?             @map("quality_profile_hint")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  provider                Provider        @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  preferredRoutingPolicies RoutingPolicy[] @relation("RoutingPreferredModel")
+  fallbackRoutingPolicies  RoutingPolicy[] @relation("RoutingFallbackModel")
+  usageLogs               ProviderUsageLog[]
+
+  @@unique([providerId, modelCode])
+  @@map("provider_models")
+}
+
+model ProviderCredential {
+  id              String           @id @default(uuid()) @db.Uuid
+  providerId      String           @map("provider_id") @db.Uuid
+  credentialLabel String           @map("credential_label")
+  secretRef       String           @map("secret_ref")
+  status          CredentialStatus @default(active)
+  lastValidatedAt DateTime?        @map("last_validated_at")
+  lastError       String?          @map("last_error")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@map("provider_credentials")
+}
+
+model RoutingPolicy {
+  id                       String              @id @default(uuid()) @db.Uuid
+  policyName               String              @map("policy_name")
+  taskDomain               TaskDomain?         @map("task_domain")
+  roleCode                 String?             @map("role_code")
+  requestedOutcome         String?             @map("requested_outcome")
+  preferredProviderId      String              @map("preferred_provider_id") @db.Uuid
+  preferredModelId         String?             @map("preferred_model_id") @db.Uuid
+  fallbackProviderId       String?             @map("fallback_provider_id") @db.Uuid
+  fallbackModelId          String?             @map("fallback_model_id") @db.Uuid
+  allowFallback            Boolean             @default(false) @map("allow_fallback")
+  allowCrossProviderRetry  Boolean             @default(false) @map("allow_cross_provider_retry")
+  notes                    String?
+  status                   RoutingPolicyStatus @default(active)
+  createdAt                DateTime            @default(now()) @map("created_at")
+  updatedAt                DateTime            @updatedAt @map("updated_at")
+
+  preferredProvider Provider       @relation("RoutingPreferred", fields: [preferredProviderId], references: [id], onDelete: Restrict)
+  preferredModel    ProviderModel? @relation("RoutingPreferredModel", fields: [preferredModelId], references: [id], onDelete: SetNull)
+  fallbackProvider  Provider?      @relation("RoutingFallback", fields: [fallbackProviderId], references: [id], onDelete: SetNull)
+  fallbackModel     ProviderModel? @relation("RoutingFallbackModel", fields: [fallbackModelId], references: [id], onDelete: SetNull)
+  agentRole         AgentRole?     @relation(fields: [roleCode], references: [code], onDelete: SetNull)
+
+  @@map("routing_policies")
+}
+
+model ProviderUsageLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  providerId      String   @map("provider_id") @db.Uuid
+  modelId         String?  @map("model_id") @db.Uuid
+  runId           String?  @map("run_id") @db.Uuid
+  taskId          String?  @map("task_id") @db.Uuid
+  projectId       String?  @map("project_id") @db.Uuid
+  inputTokens     Int?     @map("input_tokens")
+  outputTokens    Int?     @map("output_tokens")
+  estimatedCostUsd Float?  @map("estimated_cost_usd")
+  latencyMs       Int?     @map("latency_ms")
+  success         Boolean  @default(true)
+  errorMessage    String?  @map("error_message")
+  healthStatus    ProviderHealthStatus? @map("health_status")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  provider Provider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  model    ProviderModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  run      Run?           @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  @@index([providerId])
+  @@index([runId])
+  @@index([createdAt])
+  @@map("provider_usage_logs")
+}
