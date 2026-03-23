@@ -400,7 +400,9 @@ function guardArtifactTransition(artifact, to_state):
   if to_state == "accepted":
     ASSERT artifact.state == "under_review"
     review = get_review(artifact)
-    ASSERT review.verdict IN ["approved", "approved_with_notes"]
+    ASSERT review.state IN ["approved", "approved_with_notes"]
+    ASSERT review.state != "in_progress"
+    ASSERT review.state != "needs_clarification"
     RETURN ALLOW
 
   if to_state == "rejected":
