@@ -79,6 +79,24 @@ export function useOfficeData() {
       const employeesByRoleId = Object.fromEntries(employees.map((e: any) => [e.role_id, e]));
       const companySettings = (companyRes.data ?? [])[0] ?? null;
 
+      // Experiment lookup by role_id
+      const experiments = experimentsRes.data ?? [];
+      const experimentRoleIds = new Set(experiments.map((e: any) => e.role_id));
+
+      // Top performer lookup: best model per team from benchmarks
+      const benchmarksData = benchmarksRes.data ?? [];
+      const marketModelsData = marketModelsRes.data ?? [];
+      const marketModelsById = Object.fromEntries(marketModelsData.map((m: any) => [m.id, m]));
+      const topModelPerTeam: Record<string, string> = {};
+      for (const team of teams) {
+        const teamBenchmarks = benchmarksData.filter((b: any) => b.team_id === team.id);
+        if (teamBenchmarks.length > 0) {
+          const best = teamBenchmarks.reduce((a: any, b: any) => a.avg_success_rate > b.avg_success_rate ? a : b);
+          const mm = marketModelsById[best.model_market_id];
+          if (mm) topModelPerTeam[team.id] = mm.model_name;
+        }
+      }
+
       // Index predictions by task_id
       const predictionsByTask: Record<string, BottleneckPrediction[]> = {};
       const roleOverloads: BottleneckPrediction[] = [];
