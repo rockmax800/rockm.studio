@@ -584,6 +584,7 @@ function guardApprovalTransition(approval, to_state):
     ASSERT approval.state == "pending"
     ASSERT actor == FOUNDER
     ASSERT approval.founder_decision_note IS NOT NULL
+    ASSERT target_exists(approval.target_type, approval.target_id)
     RETURN ALLOW
 
   if to_state == "rejected":
