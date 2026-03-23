@@ -143,7 +143,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 
 **Preconditions:**
 1. Task.state == `assigned`
-2. Context available: ContextPack exists for task OR context explicitly waived
+2. ContextPack exists for the task (no waiver allowed — run cannot start without ContextPack)
 3. AgentRole (task.owner_role_id) is active
 4. Task belongs to an active Project (project.state == `active`)
 
@@ -155,7 +155,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Entities affected:**
 - Run (created, state transitions)
 - Task (state update)
-- ContextPack (read or created)
+- ContextPack (read, must exist)
 - AgentRole (validated)
 - Project (validated)
 
@@ -167,7 +167,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Failure paths:**
 | Failure | Handling |
 |---|---|
-| No context pack and no waiver | REJECT "context required" |
+| No ContextPack exists for task | REJECT "ContextPack required — run cannot start without context" |
 | Agent role inactive | REJECT "assigned role is not active" |
 | Task not in `assigned` state | REJECT "task must be assigned first" |
 | Project not active | REJECT "project is not active" |
@@ -281,20 +281,20 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 
 **State transitions triggered:**
 1. Review: `in_progress` → `approved` or `approved_with_notes` (guards V4, V5)
-2. Artifact: `under_review` → `accepted` (guard A4)
-3. Task: `waiting_review` → `approved` (guard T7)
-4. Review: `approved`/`approved_with_notes` → `closed` (guards V8, V9)
+2. Review: `approved`/`approved_with_notes` → `closed` (guards V8, V9) — Review must reach terminal state before cascading
+3. Artifact: `under_review` → `accepted` (guard A4)
+4. Task: `waiting_review` → `approved` (guard T7)
 
 **Entities affected:**
-- Review (verdict set, state transitions, closed_at set)
-- Artifact (state update)
-- Task (state update)
+- Review (verdict set, state transitions, closed_at set — completed first)
+- Artifact (state update — only after review is closed)
+- Task (state update — only after review is closed)
 
 **Activity events emitted:**
 - `review.approved` or `review.approved_with_notes` — entity_type: review
+- `review.closed` — entity_type: review
 - `artifact.accepted` — entity_type: artifact
 - `task.approved` — entity_type: task
-- `review.closed` — entity_type: review
 
 **Failure paths:**
 | Failure | Handling |
@@ -497,16 +497,15 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **State transitions triggered:**
 1. Task: `approved` → `done` (guard T12)
 2. Task: closed_at set
-3. Run(s): any `produced_output` runs → `finalized` (guard R8) if not already finalized
+3. Approval(s) linked to task: `approved`/`rejected` → `closed` (guards G5, G6)
 
 **Entities affected:**
 - Task (state update, closed_at)
-- Run(s) (finalized if pending)
-- Approval(s) linked to task: `approved`/`rejected` → `closed` (guards G5, G6)
+- Approval(s) linked to task (closed)
+- Run lifecycle is independent — Complete Task does NOT modify Run state
 
 **Activity events emitted:**
 - `task.done` — entity_type: task
-- `run.finalized` — entity_type: run (per run finalized)
 - `approval.closed` — entity_type: approval (per approval closed)
 
 **Failure paths:**
@@ -533,8 +532,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Preconditions:**
 1. Project.state == `in_review`
 2. Approval exists with type = `release` and state = `approved`
-3. Acceptance criteria met (all critical tasks in `done` or `cancelled`)
-4. No active critical tasks remain (per invariant §14.6 from doc 05)
+3. All tasks in project must be in state `done` or `cancelled`
 
 **State transitions triggered:**
 1. Project: `in_review` → `completed` (guard P7)
@@ -543,7 +541,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Entities affected:**
 - Project (state update)
 - Approval (closed)
-- Tasks (validated — all critical must be terminal)
+- Tasks (validated — all must be in terminal state: `done` or `cancelled`)
 
 **Activity events emitted:**
 - `project.completed` — entity_type: project, actor_type: founder
@@ -554,7 +552,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 |---|---|
 | Project not in_review | REJECT "project must be in review" |
 | No approved release approval | REJECT "release approval required" |
-| Active critical tasks exist | REJECT "critical tasks must be resolved" |
+| Tasks exist in non-terminal state | REJECT "all tasks must be done or cancelled" |
 
 **Sync/Async:** Synchronous
 
@@ -701,18 +699,17 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 3. Retry policy allows it (not exceeded max retries)
 
 **State transitions triggered:**
-1. Original Run: `failed`/`timed_out` → `finalized` (guards R9, R10) then → `superseded` (guard R14)
+1. Original Run: `failed`/`timed_out` → `superseded` (guard R14)
 2. Original Run: superseded_by_run_id set
 3. New Run: created with state = `created`, retry_of_run_id = original run, run_number = next
 4. New Run proceeds via UC-03 (start run) flow
 
 **Entities affected:**
-- Original Run (finalized, superseded)
+- Original Run (superseded — no intermediate finalized step)
 - New Run (created)
 - Task (unchanged — remains in_progress)
 
 **Activity events emitted:**
-- `run.finalized` — entity_type: run (original)
 - `run.superseded` — entity_type: run (original)
 - `run.created` — entity_type: run (new)
 
@@ -883,15 +880,21 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 1. Task: current_state → `cancelled` (guard T14)
 2. Task: closed_at set
 3. Any active Runs for this task: → `cancelled` → `finalized` (guards R7, R11)
+4. Open Reviews (state `in_progress` or `needs_clarification`):
+   - Set review.verdict = `rejected`
+   - Set review.reason = "Task cancelled by founder"
+   - Transition review: current_state → `rejected` (guard V6) → `closed` (guard V10)
+   - Review must end with explicit verdict — silent closure is forbidden
 
 **Entities affected:**
 - Task (state update, closed_at)
 - Run(s) (cancelled and finalized)
-- Review(s) (open reviews → closed with note "task cancelled")
+- Review(s) (verdict set to rejected, reason set, transitioned to closed via guard V10)
 
 **Activity events emitted:**
 - `task.cancelled` — entity_type: task, actor_type: founder
 - `run.cancelled` — entity_type: run (per active run)
+- `review.rejected` — entity_type: review (per open review, with reason "Task cancelled by founder")
 - `review.closed` — entity_type: review (per open review)
 
 **Failure paths:**
@@ -1161,12 +1164,12 @@ UC-09 (Request Approval — project_activation)
 | UC-08 | Escalate Review | Review | 1 | sync | no | no |
 | UC-09 | Request Approval | Approval | 1 | sync | no | no |
 | UC-10 | Resolve Approval | Approval | 1 | sync | yes | no |
-| UC-11 | Complete Task | Task, Run(s), Approval(s) | 2-4 | sync | no | no |
+| UC-11 | Complete Task | Task, Approval(s) | 1-2 | sync | no | no |
 | UC-12 | Complete Milestone | Project, Approval | 2 | sync | yes | no |
 | UC-13 | Execute Agent Run | Run, ProviderUsageLog | 2-3 | async | no | **yes** |
 | UC-14 | Handle Run Failure | Run | 1 | async | no | no |
 | UC-15 | Handle Run Timeout | Run | 1 | async | no | no |
-| UC-16 | Supersede Run | Run (old+new) | 3 | sync | no | no |
+| UC-16 | Supersede Run | Run (old+new) | 2 | sync | no | no |
 | UC-17 | Block Task | Task | 1 | sync | no | no |
 | UC-18 | Unblock Task | Task | 1 | sync | no | no |
 | UC-19 | Escalate Task | Task | 1 | sync | no | no |
