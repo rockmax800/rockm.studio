@@ -3,7 +3,19 @@
 // Direct prisma update of state field is forbidden.
 
 import { validateTransition, type EntityType, type TransitionContext } from "@/guards";
-import type { PrismaClient } from "@prisma/client";
+// PrismaClient type will be available once Prisma is configured in the project.
+// For now we use a minimal interface to avoid build errors in the Lovable preview.
+interface PrismaTransactionClient {
+  [key: string]: {
+    findUniqueOrThrow: (args: any) => Promise<any>;
+    update: (args: any) => Promise<any>;
+    create: (args: any) => Promise<any>;
+  };
+}
+
+interface PrismaLike {
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+}
 
 type ActorType = "founder" | "system" | "agent_role";
 
