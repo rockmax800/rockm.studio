@@ -135,6 +135,10 @@ export function useOfficeData() {
           employee_reputation: employee?.reputation_score ?? null,
           employee_status: employee?.status ?? null,
           is_new_hire: employee ? (new Date(employee.hired_at).getTime() > Date.now() - 3600000) : false,
+          is_experiment: role ? experimentRoleIds.has(role.id) : false,
+          is_top_performer: (employee && employee.team_id && employee.model_name)
+            ? topModelPerTeam[employee.team_id] === employee.model_name
+            : false,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };
