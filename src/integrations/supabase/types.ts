@@ -586,6 +586,169 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_experiments: {
+        Row: {
+          base_version_id: string
+          created_at: string
+          end_date: string | null
+          experimental_version_id: string
+          id: string
+          performance_delta: Json | null
+          role_id: string
+          start_date: string
+          status: string
+          traffic_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          base_version_id: string
+          created_at?: string
+          end_date?: string | null
+          experimental_version_id: string
+          id?: string
+          performance_delta?: Json | null
+          role_id: string
+          start_date?: string
+          status?: string
+          traffic_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          base_version_id?: string
+          created_at?: string
+          end_date?: string | null
+          experimental_version_id?: string
+          id?: string
+          performance_delta?: Json | null
+          role_id?: string
+          start_date?: string
+          status?: string
+          traffic_percentage?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_experiments_base_version_id_fkey"
+            columns: ["base_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_experiments_experimental_version_id_fkey"
+            columns: ["experimental_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_experiments_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_improvement_suggestions: {
+        Row: {
+          approved: boolean
+          approved_at: string | null
+          created_at: string
+          current_version_id: string | null
+          id: string
+          reason: string
+          resulting_version_id: string | null
+          role_id: string
+          suggested_prompt: string
+        }
+        Insert: {
+          approved?: boolean
+          approved_at?: string | null
+          created_at?: string
+          current_version_id?: string | null
+          id?: string
+          reason?: string
+          resulting_version_id?: string | null
+          role_id: string
+          suggested_prompt?: string
+        }
+        Update: {
+          approved?: boolean
+          approved_at?: string | null
+          created_at?: string
+          current_version_id?: string | null
+          id?: string
+          reason?: string
+          resulting_version_id?: string | null
+          role_id?: string
+          suggested_prompt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_improvement_suggestions_current_version_id_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_improvement_suggestions_resulting_version_id_fkey"
+            columns: ["resulting_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_improvement_suggestions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_versions: {
+        Row: {
+          created_at: string
+          created_by: string
+          full_prompt: string
+          id: string
+          is_active: boolean
+          performance_snapshot: Json | null
+          role_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          full_prompt?: string
+          id?: string
+          is_active?: boolean
+          performance_snapshot?: Json | null
+          role_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          full_prompt?: string
+          id?: string
+          is_active?: boolean
+          performance_snapshot?: Json | null
+          role_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_versions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provider_credentials: {
         Row: {
           created_at: string
