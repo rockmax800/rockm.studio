@@ -58,6 +58,8 @@ export function getServices() {
     selfReviewService: new SelfReviewService(prisma),
     contextCompressionService: new ContextCompressionService(prisma),
     dualVerificationService: new DualVerificationService(prisma, officeEmitter),
+    promptVersionService: new PromptVersionService(prisma, officeEmitter),
+    promptImprovementService: new PromptImprovementService(prisma, officeEmitter),
   };
 }
 

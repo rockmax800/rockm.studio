@@ -174,7 +174,24 @@ export class ProviderService {
         }
       }
 
-      const systemPrompt = contextPack?.summary ?? "";
+      // PART 2 — Resolve prompt from active PromptVersion instead of raw context
+      let systemPrompt = contextPack?.summary ?? "";
+      let promptVersionId: string | null = null;
+      let promptExperimentUsed = false;
+
+      if (run.agent_role_id) {
+        try {
+          const officeEmitter = new OfficeEventEmitter(this.prisma);
+          const pvs = new PromptVersionService(this.prisma, officeEmitter);
+          const resolved = await pvs.resolvePromptForRole(run.agent_role_id, run.id);
+          if (resolved.prompt) {
+            systemPrompt = resolved.prompt + (contextPack?.summary ? `\n\n--- CONTEXT ---\n${contextPack.summary}` : "");
+            promptVersionId = resolved.versionId;
+            promptExperimentUsed = resolved.experimentUsed;
+          }
+        } catch { /* fallback to contextPack.summary */ }
+      }
+
       const userPrompt = task.purpose;
 
       // 2. Execute provider call with rate-limit fallback
