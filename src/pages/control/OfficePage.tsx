@@ -8,10 +8,9 @@ import { PixelZone } from "@/components/office/PixelZone";
 import { PixelAgent } from "@/components/office/PixelAgent";
 import { OfficeFeed } from "@/components/office/OfficeFeed";
 import { OfficeTopBar } from "@/components/office/OfficeTopBar";
-import { useOfficeData, useRefreshOffice, type OfficeEvent } from "@/hooks/use-office-data";
+import { useOfficeData, useRefreshOffice, useOfficeRealtime } from "@/hooks/use-office-data";
 import { RefreshCw } from "lucide-react";
 
-// Zone grid — expanded with QA (PART 6) and Release (PART 7) rooms
 const ZONES = [
   { key: "ready", label: "Ready", states: ["ready", "assigned"], icon: "/pixel/desk.png", col: 1, row: 1 },
   { key: "in_progress", label: "In Progress", states: ["in_progress"], icon: "/pixel/monitor.png", col: 2, row: 1 },
@@ -40,12 +39,16 @@ interface TaskCard {
   role_name: string | null;
   role_success_rate: number | null;
   role_performance_score: number | null;
+  has_prediction: boolean;
+  prediction_type: string | null;
 }
 
 type FeedMode = "office" | "activity";
 
 export default function OfficePage() {
   const { data, isLoading, error } = useOfficeData();
+  // PART 3 — Real-time subscription replaces polling
+  useOfficeRealtime();
   const refresh = useRefreshOffice();
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -57,9 +60,7 @@ export default function OfficePage() {
       : data.allTasks
     : [];
 
-  // PART 6 — QA zone: tasks with domain=qa
   const qaTasks = filteredTasks.filter(t => t.domain === "qa" && !["done", "cancelled"].includes(t.state));
-  // PART 7 — Release room: tasks with domain=release OR project in_review
   const releaseTasks = filteredTasks.filter(t => t.domain === "release" && !["done", "cancelled"].includes(t.state));
 
   const stats = useMemo(() => {
@@ -76,8 +77,12 @@ export default function OfficePage() {
       {error && <p className="text-destructive">Error: {(error as Error).message}</p>}
       {data && (
         <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
-          {/* PART 8+10 — Performance Top Bar with founder */}
-          <OfficeTopBar {...stats} leanMode={data.leanMode} pendingInboxCount={data.pendingInboxCount} />
+          <OfficeTopBar
+            {...stats}
+            leanMode={data.leanMode}
+            pendingInboxCount={data.pendingInboxCount}
+            roleOverloads={data.roleOverloads}
+          />
 
           <div className="flex gap-3 flex-1 min-h-0">
             {/* LEFT — Project selector */}
@@ -121,7 +126,6 @@ export default function OfficePage() {
                 }}
               >
                 {ZONES.map((zone) => {
-                  // Normal state-based zones
                   let zoneTasks: TaskCard[];
                   if (zone.key === "qa") {
                     zoneTasks = qaTasks;
@@ -134,16 +138,8 @@ export default function OfficePage() {
                   }
 
                   return (
-                    <div
-                      key={zone.key}
-                      style={{ gridColumn: zone.col, gridRow: zone.row }}
-                    >
-                      <PixelZone
-                        label={zone.label}
-                        zoneKey={zone.key}
-                        icon={zone.icon}
-                        count={zoneTasks.length}
-                      >
+                    <div key={zone.key} style={{ gridColumn: zone.col, gridRow: zone.row }}>
+                      <PixelZone label={zone.label} zoneKey={zone.key} icon={zone.icon} count={zoneTasks.length}>
                         {zoneTasks.map((task) => (
                           <PixelAgent
                             key={task.id}
@@ -154,6 +150,8 @@ export default function OfficePage() {
                             latestRunState={task.latest_run_state}
                             hasPendingReview={task.has_pending_review}
                             successRate={task.role_success_rate}
+                            hasPrediction={task.has_prediction}
+                            predictionType={task.prediction_type}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
@@ -162,7 +160,6 @@ export default function OfficePage() {
                   );
                 })}
 
-                {/* Remaining grid cells for row 4 — decorative */}
                 <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
                   <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
                 </div>
@@ -189,19 +186,9 @@ export default function OfficePage() {
 }
 
 function ProjectItem({
-  name,
-  state,
-  count,
-  active,
-  onClick,
-  onDoubleClick,
+  name, state, count, active, onClick, onDoubleClick,
 }: {
-  name: string;
-  state?: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-  onDoubleClick?: () => void;
+  name: string; state?: string; count: number; active: boolean; onClick: () => void; onDoubleClick?: () => void;
 }) {
   return (
     <div

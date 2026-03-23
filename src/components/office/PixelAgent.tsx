@@ -22,6 +22,8 @@ interface PixelAgentProps {
   latestRunState: string | null;
   hasPendingReview: boolean;
   successRate: number | null;
+  hasPrediction?: boolean;
+  predictionType?: string | null;
   onClick: () => void;
 }
 
@@ -33,6 +35,8 @@ export function PixelAgent({
   latestRunState,
   hasPendingReview,
   successRate,
+  hasPrediction,
+  predictionType,
   onClick,
 }: PixelAgentProps) {
   const isBlocked = state === "blocked";
@@ -41,7 +45,6 @@ export function PixelAgent({
   const isInProgress = state === "in_progress";
   const isWaitingReview = state === "waiting_review";
 
-  // PART 1 — Role-specific sprite
   const sprite = (roleCode && ROLE_SPRITES[roleCode]) || "/pixel/agent.png";
 
   // PART 8 — Performance heatmap tint
@@ -51,6 +54,11 @@ export function PixelAgent({
     else if (successRate >= 0.8) perfOverlay = "bg-emerald-500/10";
   }
 
+  // PART 8 — Prediction border
+  const predictionBorder = hasPrediction
+    ? "ring-2 ring-amber-400/60 animate-[prediction-pulse_2s_ease-in-out_infinite]"
+    : "";
+
   return (
     <div
       onClick={onClick}
@@ -59,7 +67,6 @@ export function PixelAgent({
     >
       {/* Visual indicators above sprite */}
       <div className="h-4 flex items-center justify-center gap-0.5">
-        {/* PART 2 — Running dots animation */}
         {isRunning && (
           <div className="flex gap-[2px]">
             <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -67,9 +74,12 @@ export function PixelAgent({
             <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
           </div>
         )}
-        {/* PART 4 — Escalation flashing warning */}
         {isEscalated && <AlertTriangle className="h-3 w-3 text-amber-500 animate-ping" />}
         {isBlocked && <OctagonX className="h-3 w-3 text-destructive" />}
+        {/* Prediction warning icon */}
+        {hasPrediction && !isEscalated && !isBlocked && (
+          <span className="text-[10px] animate-pulse" title={predictionType ?? "predicted delay"}>⚠️</span>
+        )}
       </div>
 
       {/* Agent sprite with overlays */}
@@ -78,6 +88,7 @@ export function PixelAgent({
           relative w-10 h-10 rounded overflow-hidden
           ${isBlocked ? "ring-2 ring-destructive/60 grayscale" : ""}
           ${isWaitingReview ? "ring-2 ring-purple-400/50 shadow-[0_0_8px_hsl(270,60%,50%,0.3)]" : ""}
+          ${predictionBorder}
         `}
       >
         <img
@@ -87,15 +98,8 @@ export function PixelAgent({
           style={{ imageRendering: "pixelated" }}
           loading="lazy"
         />
-        {/* PART 5 — Blocked gray overlay + red border */}
-        {isBlocked && (
-          <div className="absolute inset-0 bg-muted/40 rounded" />
-        )}
-        {/* PART 8 — Performance heatmap overlay */}
-        {perfOverlay && (
-          <div className={`absolute inset-0 ${perfOverlay} rounded pointer-events-none`} />
-        )}
-        {/* PART 2 — Typing animation for in_progress */}
+        {isBlocked && <div className="absolute inset-0 bg-muted/40 rounded" />}
+        {perfOverlay && <div className={`absolute inset-0 ${perfOverlay} rounded pointer-events-none`} />}
         {isInProgress && !isRunning && (
           <div className="absolute bottom-0 right-0 flex gap-[1px] p-[2px]">
             <span className="w-[3px] h-[3px] rounded-full bg-foreground/60 animate-pulse" style={{ animationDelay: "0ms" }} />
