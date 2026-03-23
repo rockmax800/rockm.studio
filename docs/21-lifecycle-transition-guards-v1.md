@@ -122,7 +122,7 @@ function guardProjectTransition(project, to_state):
 |---|---|---|---|---|---|
 | T1 | `draft` | `ready` | acceptance_criteria exist; title exists; purpose exists; owner_role defined; expected_output_type defined | emit `task.ready` event | any required field missing |
 | T2 | `ready` | `assigned` | eligible role exists; owner_role_id set | emit `task.assigned` event | no eligible active role |
-| T3 | `assigned` | `in_progress` | context available (context_pack exists or context explicitly waived); run started or owner begins work | emit `task.started` event | no context and no waiver |
+| T3 | `assigned` | `in_progress` | context available (ContextPack exists for task); run started or owner begins work | emit `task.started` event | no ContextPack exists |
 | T4 | `in_progress` | `waiting_review` | artifact submitted (at least one artifact linked to task in `submitted` or higher state) | emit `task.waiting_review` event | no output artifact exists |
 | T5 | `in_progress` | `blocked` | blocker_reason recorded | emit `task.blocked` event | blocker_reason is null |
 | T6 | `in_progress` | `escalated` | escalation_reason recorded | emit `task.escalated` event | escalation_reason is null |
