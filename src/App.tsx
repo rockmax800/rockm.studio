@@ -16,6 +16,8 @@ import ControlProjectDetail from "./pages/control/ControlProjectDetail";
 import ControlTaskDetail from "./pages/control/ControlTaskDetail";
 import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
 import ControlRunDetail from "./pages/control/ControlRunDetail";
+import ControlProviderList from "./pages/control/ControlProviderList";
+import ControlProviderDetail from "./pages/control/ControlProviderDetail";
 
 const queryClient = new QueryClient();
 
