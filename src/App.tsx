@@ -46,6 +46,8 @@ const App = () => (
           <Route path="/control/tasks/:id" element={<ControlTaskDetail />} />
           <Route path="/control/approvals/:id" element={<ControlApprovalDetail />} />
           <Route path="/control/runs/:id" element={<ControlRunDetail />} />
+          <Route path="/control/providers" element={<ControlProviderList />} />
+          <Route path="/control/providers/:id" element={<ControlProviderDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
