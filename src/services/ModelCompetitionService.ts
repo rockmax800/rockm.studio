@@ -63,7 +63,20 @@ interface EmployeeInfo {
 /**
  * Compute competition score for a model using unified ScoringService.
  */
-export { computeCompetitionScore } from "@/services/ScoringService";
+import { computeCompetitionScore as _computeCompetitionScore } from "@/services/ScoringService";
+
+export function computeCompetitionScore(
+  benchmark: { avg_success_rate: number; avg_cost: number; avg_latency: number },
+  market: { reliability_score: number; avg_quality_score: number }
+): number {
+  return _computeCompetitionScore({
+    avg_success_rate: benchmark.avg_success_rate,
+    avg_cost: benchmark.avg_cost,
+    avg_latency: benchmark.avg_latency,
+    reliability_score: market.reliability_score,
+    avg_quality_score: market.avg_quality_score,
+  });
+}
 
 /**
  * Rank all models for a given team (or globally if teamId is null).
