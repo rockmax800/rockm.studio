@@ -24,6 +24,8 @@ interface PixelAgentProps {
   successRate: number | null;
   hasPrediction?: boolean;
   predictionType?: string | null;
+  employeeName?: string | null;
+  employeeReputation?: number | null;
   onClick: () => void;
 }
 
@@ -37,6 +39,8 @@ export function PixelAgent({
   successRate,
   hasPrediction,
   predictionType,
+  employeeName,
+  employeeReputation,
   onClick,
 }: PixelAgentProps) {
   const isBlocked = state === "blocked";
