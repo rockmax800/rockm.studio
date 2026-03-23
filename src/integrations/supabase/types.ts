@@ -527,6 +527,66 @@ export type Database = {
           },
         ]
       }
+      candidate_proposals: {
+        Row: {
+          approved: boolean
+          created_at: string
+          employee_id: string
+          executed: boolean
+          id: string
+          projected_cost: number
+          projected_latency: number
+          projected_success_rate: number
+          reason: string
+          suggested_model: string | null
+          suggested_prompt_version_id: string | null
+          suggested_provider: string | null
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          employee_id: string
+          executed?: boolean
+          id?: string
+          projected_cost?: number
+          projected_latency?: number
+          projected_success_rate?: number
+          reason: string
+          suggested_model?: string | null
+          suggested_prompt_version_id?: string | null
+          suggested_provider?: string | null
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          employee_id?: string
+          executed?: boolean
+          id?: string
+          projected_cost?: number
+          projected_latency?: number
+          projected_success_rate?: number
+          reason?: string
+          suggested_model?: string | null
+          suggested_prompt_version_id?: string | null
+          suggested_provider?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_proposals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_proposals_suggested_prompt_version_id_fkey"
+            columns: ["suggested_prompt_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_mode_settings: {
         Row: {
           created_at: string
