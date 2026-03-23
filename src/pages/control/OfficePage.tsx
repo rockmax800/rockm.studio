@@ -89,6 +89,25 @@ export default function OfficePage() {
       {error && <p className="text-destructive">Error: {(error as Error).message}</p>}
       {data && (
         <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
+          {/* PART 9 — System Mode Badge */}
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={data.systemMode === "production" ? "default" : "destructive"}
+              className={`text-[10px] px-3 py-1 font-mono tracking-wider ${
+                data.systemMode === "production"
+                  ? "bg-emerald-600/90 text-white hover:bg-emerald-600"
+                  : "bg-amber-500/90 text-black hover:bg-amber-500"
+              }`}
+            >
+              {data.systemMode === "production" ? "🛡 PRODUCTION MODE" : "🧪 EXPERIMENTAL MODE"}
+            </Badge>
+            {data.systemMode === "experimental" && (
+              <span className="text-[9px] text-muted-foreground font-mono">
+                Features: {Object.entries(data.experimentalFeatures ?? {}).filter(([, v]) => v).map(([k]) => k.replace("enable_", "")).join(", ") || "none"}
+              </span>
+            )}
+          </div>
+
           <OfficeTopBar
             {...stats}
             leanMode={data.leanMode}

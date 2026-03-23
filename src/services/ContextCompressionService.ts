@@ -43,6 +43,11 @@ export class ContextCompressionService {
     providerCode: string;
     modelCode: string;
   }): Promise<{ snapshotId: string | null }> {
+    // DUAL MODE: Skip in production
+    const { isFeatureEnabled } = await import("@/services/SystemModeService");
+    if (!(await isFeatureEnabled("enable_context_compression"))) {
+      return { snapshotId: null };
+    }
     try {
       const task = await this.prisma.tasks.findUniqueOrThrow({ where: { id: taskId } });
 

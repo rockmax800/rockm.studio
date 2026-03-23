@@ -51,6 +51,11 @@ export class PromptImprovementService {
     projectId?: string;
     successThreshold?: number;
   }): Promise<{ suggestionId: string | null; reason: string }> {
+    // DUAL MODE: Skip in production
+    const { isFeatureEnabled } = await import("@/services/SystemModeService");
+    if (!(await isFeatureEnabled("enable_prompt_experiments"))) {
+      return { suggestionId: null, reason: "Prompt improvement disabled in current mode" };
+    }
     try {
       const role = await this.prisma.agent_roles.findUniqueOrThrow({ where: { id: roleId } });
 

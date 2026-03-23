@@ -38,6 +38,11 @@ export class SelfReviewService {
     providerCode: string;
     modelCode: string;
   }): Promise<{ notes: string; performed: boolean }> {
+    // DUAL MODE: Skip in production
+    const { isFeatureEnabled } = await import("@/services/SystemModeService");
+    if (!(await isFeatureEnabled("enable_self_review"))) {
+      return { notes: "Self-review skipped (production mode)", performed: false };
+    }
     try {
       const artifact = await this.prisma.artifacts.findUniqueOrThrow({ where: { id: artifactId } });
       if (!artifact.task_id) return { notes: "", performed: false };

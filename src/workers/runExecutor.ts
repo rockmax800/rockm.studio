@@ -127,17 +127,20 @@ export async function executeRun(
       });
     });
 
-    // PART 2 — Self-Review before human review
+    // PART 2 — Self-Review before human review (SKIPPED in production mode)
     if (artifactId) {
       try {
-        const selfReviewService = new SelfReviewService(prisma);
-        // Use the same provider for self-review (best-effort)
-        await selfReviewService.selfReview({
-          artifactId,
-          providerService,
-          providerCode: "openai",
-          modelCode: "gpt-4",
-        });
+        const { isFeatureEnabled } = await import("@/services/SystemModeService");
+        const selfReviewEnabled = await isFeatureEnabled("enable_self_review");
+        if (selfReviewEnabled) {
+          const selfReviewService = new SelfReviewService(prisma);
+          await selfReviewService.selfReview({
+            artifactId,
+            providerService,
+            providerCode: "openai",
+            modelCode: "gpt-4",
+          });
+        }
       } catch { /* best-effort */ }
     }
 
@@ -206,16 +209,18 @@ export async function executeRun(
           },
         });
 
-        // PART 6 — Auto-retry evaluation (after failure transition)
+        // PART 6 — Auto-retry evaluation (after failure transition, skipped in production)
         try {
-          // Lazy-import RunService to avoid circular dependency
-          const { RunService } = await import("@/services/RunService");
-          const runService = new RunService(prisma, orchestration);
-          const officeEmitter = new OfficeEventEmitter(prisma);
-          const retryPolicy = new RetryPolicyService(prisma, runService, officeEmitter);
-          const retryResult = await retryPolicy.evaluateAndRetry(runId);
-          if (retryResult.retried) {
-            logInfo("auto_retry_succeeded", { originalRunId: runId, newRunId: retryResult.newRunId });
+          const { isProduction: isProd } = await import("@/services/SystemModeService");
+          if (!(await isProd())) {
+            const { RunService } = await import("@/services/RunService");
+            const runService = new RunService(prisma, orchestration);
+            const officeEmitter = new OfficeEventEmitter(prisma);
+            const retryPolicy = new RetryPolicyService(prisma, runService, officeEmitter);
+            const retryResult = await retryPolicy.evaluateAndRetry(runId);
+            if (retryResult.retried) {
+              logInfo("auto_retry_succeeded", { originalRunId: runId, newRunId: retryResult.newRunId });
+            }
           }
         } catch {
           // Auto-retry is best-effort — do not mask original error

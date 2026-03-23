@@ -28,6 +28,11 @@ const SIGNIFICANT_EVENT_TYPES = [
 export async function detectSignificantEvents(
   sinceHours = 24
 ): Promise<SignificantEvent[]> {
+  // DUAL MODE: Skip in production
+  const { isFeatureEnabled } = await import("@/services/SystemModeService");
+  if (!(await isFeatureEnabled("enable_blog"))) {
+    return [];
+  }
   const since = new Date(Date.now() - sinceHours * 3600_000).toISOString();
 
   const [activityRes, officeRes] = await Promise.all([

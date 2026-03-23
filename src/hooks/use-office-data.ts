@@ -46,7 +46,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, blogRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, blogRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes, systemModeRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number, agent_role_id").order("run_number", { ascending: false }),
@@ -65,6 +65,7 @@ export function useOfficeData() {
         supabase.from("prompt_experiments").select("role_id, status").eq("status", "active"),
         supabase.from("model_benchmarks" as any).select("model_market_id, team_id, avg_success_rate"),
         supabase.from("model_market" as any).select("id, model_name"),
+        supabase.from("system_settings" as any).select("mode, experimental_features").limit(1).single(),
       ]);
 
       const tasks = tasksRes.data ?? [];
@@ -179,6 +180,9 @@ export function useOfficeData() {
         };
       });
 
+      const systemMode = (systemModeRes.data as any)?.mode ?? "production";
+      const experimentalFeatures = (systemModeRes.data as any)?.experimental_features ?? {};
+
       return {
         projects,
         allTasks: taskCards,
@@ -195,6 +199,8 @@ export function useOfficeData() {
         companySettings,
         hasDraftBlog,
         hasApprovedBlog,
+        systemMode: systemMode as "production" | "experimental",
+        experimentalFeatures,
       };
     },
   });
