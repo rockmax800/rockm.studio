@@ -8,8 +8,9 @@ import { PixelZone } from "@/components/office/PixelZone";
 import { PixelAgent } from "@/components/office/PixelAgent";
 import { OfficeFeed } from "@/components/office/OfficeFeed";
 import { OfficeTopBar } from "@/components/office/OfficeTopBar";
+import { TeamZone } from "@/components/office/TeamZone";
 import { useOfficeData, useRefreshOffice, useOfficeRealtime } from "@/hooks/use-office-data";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Building2 } from "lucide-react";
 
 const ZONES = [
   { key: "ready", label: "Ready", states: ["ready", "assigned"], icon: "/pixel/desk.png", col: 1, row: 1 },
@@ -39,20 +40,22 @@ interface TaskCard {
   role_name: string | null;
   role_success_rate: number | null;
   role_performance_score: number | null;
+  role_team_id?: string | null;
   has_prediction: boolean;
   prediction_type: string | null;
 }
 
 type FeedMode = "office" | "activity";
+type ViewMode = "zones" | "teams";
 
 export default function OfficePage() {
   const { data, isLoading, error } = useOfficeData();
-  // PART 3 — Real-time subscription replaces polling
   useOfficeRealtime();
   const refresh = useRefreshOffice();
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [feedMode, setFeedMode] = useState<FeedMode>("office");
+  const [viewMode, setViewMode] = useState<ViewMode>("zones");
 
   const filteredTasks: TaskCard[] = data
     ? selectedProjectId
@@ -70,6 +73,8 @@ export default function OfficePage() {
     const approvals = filteredTasks.filter(t => t.has_pending_approval).length;
     return { activeTasks: active, runningAgents: running, pendingApprovals: approvals, providerCount: data.projects.length };
   }, [data, filteredTasks]);
+
+  const hasTeams = (data?.teams ?? []).length > 0;
 
   return (
     <AppLayout title="Office">
@@ -89,9 +94,22 @@ export default function OfficePage() {
             <div className="w-48 shrink-0 flex flex-col gap-1.5">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Projects</span>
-                <Button size="icon" variant="ghost" className="h-5 w-5" onClick={refresh}>
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
+                <div className="flex items-center gap-0.5">
+                  {hasTeams && (
+                    <Button
+                      size="icon"
+                      variant={viewMode === "teams" ? "default" : "ghost"}
+                      className="h-5 w-5"
+                      onClick={() => setViewMode(viewMode === "teams" ? "zones" : "teams")}
+                      title="Toggle team view"
+                    >
+                      <Building2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                  <Button size="icon" variant="ghost" className="h-5 w-5" onClick={refresh}>
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
               <ScrollArea className="flex-1">
                 <div className="space-y-1 pr-1">
@@ -116,31 +134,23 @@ export default function OfficePage() {
               </ScrollArea>
             </div>
 
-            {/* CENTER — Pixel Office Grid */}
+            {/* CENTER */}
             <div className="flex-1 overflow-auto">
-              <div
-                className="grid gap-3 h-full"
-                style={{
-                  gridTemplateColumns: "repeat(3, minmax(170px, 1fr))",
-                  gridTemplateRows: "repeat(4, minmax(120px, 1fr))",
-                }}
-              >
-                {ZONES.map((zone) => {
-                  let zoneTasks: TaskCard[];
-                  if (zone.key === "qa") {
-                    zoneTasks = qaTasks;
-                  } else if (zone.key === "release") {
-                    zoneTasks = releaseTasks;
-                  } else {
-                    zoneTasks = filteredTasks.filter((t) =>
-                      (zone.states as readonly string[]).includes(t.state)
-                    );
-                  }
-
-                  return (
-                    <div key={zone.key} style={{ gridColumn: zone.col, gridRow: zone.row }}>
-                      <PixelZone label={zone.label} zoneKey={zone.key} icon={zone.icon} count={zoneTasks.length}>
-                        {zoneTasks.map((task) => (
+              {viewMode === "teams" && hasTeams ? (
+                /* PART 7 — Team-based visualization */
+                <div className="space-y-4">
+                  {data.teams.map((team: any) => {
+                    const teamTasks = filteredTasks.filter(t => t.role_team_id === team.id);
+                    return (
+                      <TeamZone
+                        key={team.id}
+                        teamName={team.name}
+                        focusDomain={team.focus_domain}
+                        loadStatus={team.load_status}
+                        activeTasks={team.active_tasks}
+                        maxCapacity={team.max_capacity}
+                      >
+                        {teamTasks.map((task) => (
                           <PixelAgent
                             key={task.id}
                             taskTitle={task.title}
@@ -155,18 +165,84 @@ export default function OfficePage() {
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
-                      </PixelZone>
-                    </div>
-                  );
-                })}
-
-                <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
-                  <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                      </TeamZone>
+                    );
+                  })}
+                  {/* Unassigned team tasks */}
+                  {(() => {
+                    const unassigned = filteredTasks.filter(t => !t.role_team_id && !["done", "cancelled"].includes(t.state));
+                    if (unassigned.length === 0) return null;
+                    return (
+                      <TeamZone teamName="Unassigned" focusDomain="mixed" loadStatus="balanced" activeTasks={unassigned.length} maxCapacity={0}>
+                        {unassigned.map((task) => (
+                          <PixelAgent
+                            key={task.id}
+                            taskTitle={task.title}
+                            roleName={task.role_name}
+                            roleCode={task.role_code}
+                            state={task.state}
+                            latestRunState={task.latest_run_state}
+                            hasPendingReview={task.has_pending_review}
+                            successRate={task.role_success_rate}
+                            hasPrediction={task.has_prediction}
+                            predictionType={task.prediction_type}
+                            onClick={() => navigate(`/control/tasks/${task.id}`)}
+                          />
+                        ))}
+                      </TeamZone>
+                    );
+                  })()}
                 </div>
-                <div style={{ gridColumn: 3, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
-                  <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+              ) : (
+                /* Standard zone-based view */
+                <div
+                  className="grid gap-3 h-full"
+                  style={{
+                    gridTemplateColumns: "repeat(3, minmax(170px, 1fr))",
+                    gridTemplateRows: "repeat(4, minmax(120px, 1fr))",
+                  }}
+                >
+                  {ZONES.map((zone) => {
+                    let zoneTasks: TaskCard[];
+                    if (zone.key === "qa") {
+                      zoneTasks = qaTasks;
+                    } else if (zone.key === "release") {
+                      zoneTasks = releaseTasks;
+                    } else {
+                      zoneTasks = filteredTasks.filter((t) =>
+                        (zone.states as readonly string[]).includes(t.state)
+                      );
+                    }
+                    return (
+                      <div key={zone.key} style={{ gridColumn: zone.col, gridRow: zone.row }}>
+                        <PixelZone label={zone.label} zoneKey={zone.key} icon={zone.icon} count={zoneTasks.length}>
+                          {zoneTasks.map((task) => (
+                            <PixelAgent
+                              key={task.id}
+                              taskTitle={task.title}
+                              roleName={task.role_name}
+                              roleCode={task.role_code}
+                              state={task.state}
+                              latestRunState={task.latest_run_state}
+                              hasPendingReview={task.has_pending_review}
+                              successRate={task.role_success_rate}
+                              hasPrediction={task.has_prediction}
+                              predictionType={task.prediction_type}
+                              onClick={() => navigate(`/control/tasks/${task.id}`)}
+                            />
+                          ))}
+                        </PixelZone>
+                      </div>
+                    );
+                  })}
+                  <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
+                    <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                  </div>
+                  <div style={{ gridColumn: 3, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
+                    <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* RIGHT — Live Feed */}
