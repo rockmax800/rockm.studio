@@ -151,6 +151,9 @@ export function useOfficeData() {
       }));
 
       const autonomySettings = autonomyRes.data ?? [];
+      const blogPosts = (blogRes.data ?? []) as any[];
+      const hasDraftBlog = blogPosts.some((p: any) => p.status === "draft");
+      const hasApprovedBlog = blogPosts.some((p: any) => p.status === "approved");
       const isLeanMode = autonomySettings.length === 0 || autonomySettings.some((s: any) => s.auto_execute_implementation === false);
 
       // Compute team load indicators
