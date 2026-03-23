@@ -22,6 +22,7 @@ import ControlProviderDetail from "./pages/control/ControlProviderDetail";
 import OfficePage from "./pages/control/OfficePage";
 import HRDashboard from "./pages/control/HRDashboard";
 import HiringMarketDashboard from "./pages/control/HiringMarketDashboard";
+import BlogDashboard from "./pages/control/BlogDashboard";
 
 const queryClient = new QueryClient();
 
