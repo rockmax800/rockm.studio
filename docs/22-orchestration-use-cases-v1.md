@@ -281,20 +281,20 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 
 **State transitions triggered:**
 1. Review: `in_progress` → `approved` or `approved_with_notes` (guards V4, V5)
-2. Artifact: `under_review` → `accepted` (guard A4)
-3. Task: `waiting_review` → `approved` (guard T7)
-4. Review: `approved`/`approved_with_notes` → `closed` (guards V8, V9)
+2. Review: `approved`/`approved_with_notes` → `closed` (guards V8, V9) — Review must reach terminal state before cascading
+3. Artifact: `under_review` → `accepted` (guard A4)
+4. Task: `waiting_review` → `approved` (guard T7)
 
 **Entities affected:**
-- Review (verdict set, state transitions, closed_at set)
-- Artifact (state update)
-- Task (state update)
+- Review (verdict set, state transitions, closed_at set — completed first)
+- Artifact (state update — only after review is closed)
+- Task (state update — only after review is closed)
 
 **Activity events emitted:**
 - `review.approved` or `review.approved_with_notes` — entity_type: review
+- `review.closed` — entity_type: review
 - `artifact.accepted` — entity_type: artifact
 - `task.approved` — entity_type: task
-- `review.closed` — entity_type: review
 
 **Failure paths:**
 | Failure | Handling |
