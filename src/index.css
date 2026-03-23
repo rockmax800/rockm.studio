@@ -122,3 +122,8 @@
     font-family: var(--font-mono);
   }
 }
+
+@keyframes pixel-blink {
+  0%, 100% { border-color: hsl(var(--destructive) / 0.6); }
+  50% { border-color: hsl(var(--destructive) / 0.15); }
+}
