@@ -46,7 +46,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, blogRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number, agent_role_id").order("run_number", { ascending: false }),
@@ -55,6 +55,7 @@ export function useOfficeData() {
         supabase.from("activity_events").select("*").order("created_at", { ascending: false }).limit(100),
         supabase.from("office_events").select("*").order("timestamp", { ascending: false }).limit(200),
         supabase.from("autonomy_settings").select("*").limit(10),
+        supabase.from("blog_posts" as any).select("id, status").order("created_at", { ascending: false }).limit(10),
         supabase.from("agent_roles").select("id, name, code, success_rate, performance_score, status, team_id, max_parallel_tasks, capacity_score").eq("status", "active"),
         supabase.from("approvals").select("id").eq("state", "pending"),
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
@@ -150,6 +151,9 @@ export function useOfficeData() {
       }));
 
       const autonomySettings = autonomyRes.data ?? [];
+      const blogPosts = (blogRes.data ?? []) as any[];
+      const hasDraftBlog = blogPosts.some((p: any) => p.status === "draft");
+      const hasApprovedBlog = blogPosts.some((p: any) => p.status === "approved");
       const isLeanMode = autonomySettings.length === 0 || autonomySettings.some((s: any) => s.auto_execute_implementation === false);
 
       // Compute team load indicators
@@ -189,6 +193,8 @@ export function useOfficeData() {
         predictions,
         roleOverloads,
         companySettings,
+        hasDraftBlog,
+        hasApprovedBlog,
       };
     },
   });

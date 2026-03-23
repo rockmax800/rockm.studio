@@ -22,6 +22,7 @@ import ControlProviderDetail from "./pages/control/ControlProviderDetail";
 import OfficePage from "./pages/control/OfficePage";
 import HRDashboard from "./pages/control/HRDashboard";
 import HiringMarketDashboard from "./pages/control/HiringMarketDashboard";
+import BlogDashboard from "./pages/control/BlogDashboard";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/control/founder" element={<FounderDashboard />} />
           <Route path="/control/hr" element={<HRDashboard />} />
           <Route path="/control/hiring-market" element={<HiringMarketDashboard />} />
+          <Route path="/control/blog" element={<BlogDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

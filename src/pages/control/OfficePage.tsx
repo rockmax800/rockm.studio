@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { PixelZone } from "@/components/office/PixelZone";
 import { PixelAgent } from "@/components/office/PixelAgent";
 import { OfficeFeed } from "@/components/office/OfficeFeed";
@@ -259,12 +260,31 @@ export default function OfficePage() {
                       </div>
                     );
                   })}
-                  <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
-                    <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
-                  </div>
-                  <div style={{ gridColumn: 3, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
-                    <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
-                  </div>
+                  {/* PART 7 — Copywriter & Blog Status */}
+                  {data.hasDraftBlog && (
+                    <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border border-border/40 bg-muted/20 flex flex-col items-center justify-center gap-1 p-2">
+                      <span className="text-lg">✍️</span>
+                      <span className="text-[9px] font-mono text-muted-foreground">Copywriter</span>
+                      <Badge variant="secondary" className="text-[7px]">Writing Draft</Badge>
+                    </div>
+                  )}
+                  {!data.hasDraftBlog && (
+                    <div style={{ gridColumn: 2, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
+                      <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                    </div>
+                  )}
+                  {data.hasApprovedBlog && (
+                    <div style={{ gridColumn: 3, gridRow: 4 }} className="rounded-lg border border-border/40 bg-muted/20 flex flex-col items-center justify-center gap-1 p-2">
+                      <span className="text-lg">📣</span>
+                      <span className="text-[9px] font-mono text-muted-foreground">Ready to Publish</span>
+                      <Badge variant="default" className="text-[7px] bg-primary">Approved</Badge>
+                    </div>
+                  )}
+                  {!data.hasApprovedBlog && (
+                    <div style={{ gridColumn: 3, gridRow: 4 }} className="rounded-lg border-2 border-dashed border-border/30 flex items-center justify-center">
+                      <span className="text-[10px] text-muted-foreground/40 font-mono">— — —</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

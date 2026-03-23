@@ -14,6 +14,7 @@ import {
   Building2,
   Crown,
   ShoppingBag,
+  Megaphone,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -54,6 +55,7 @@ const controlNav = [
   { title: "Office", url: "/control/office", icon: Building2 },
   { title: "AI HR", url: "/control/hr", icon: Bot },
   { title: "Hiring Market", url: "/control/hiring-market", icon: ShoppingBag },
+  { title: "Blog & SMM", url: "/control/blog", icon: Megaphone },
   { title: "Provider Control", url: "/control/providers", icon: Unplug },
 ];
 
