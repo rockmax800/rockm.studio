@@ -9,7 +9,6 @@ import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 import { callOpenAI, healthCheckOpenAI } from "@/services/providers/openaiAdapter";
 import { callAnthropic, healthCheckAnthropic } from "@/services/providers/anthropicAdapter";
 import { DualVerificationService, type DualVerificationResult } from "@/services/DualVerificationService";
-import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 
 interface PrismaTransactionClient {
   [key: string]: {
