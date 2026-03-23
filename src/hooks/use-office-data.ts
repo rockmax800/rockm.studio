@@ -180,6 +180,9 @@ export function useOfficeData() {
         };
       });
 
+      const systemMode = (systemModeRes.data as any)?.mode ?? "production";
+      const experimentalFeatures = (systemModeRes.data as any)?.experimental_features ?? {};
+
       return {
         projects,
         allTasks: taskCards,
@@ -196,6 +199,8 @@ export function useOfficeData() {
         companySettings,
         hasDraftBlog,
         hasApprovedBlog,
+        systemMode: systemMode as "production" | "experimental",
+        experimentalFeatures,
       };
     },
   });
