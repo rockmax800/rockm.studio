@@ -61,6 +61,9 @@ export function getServices() {
     dualVerificationService: new DualVerificationService(prisma, officeEmitter),
     promptVersionService: new PromptVersionService(prisma, officeEmitter),
     promptImprovementService: new PromptImprovementService(prisma, officeEmitter),
+    autonomyPipelineService: new AutonomyPipelineService(
+      prisma, orchestration, new TaskService(prisma, orchestration), runService, officeEmitter,
+    ),
   };
 }
 
