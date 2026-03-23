@@ -26,6 +26,8 @@ interface PixelAgentProps {
   predictionType?: string | null;
   employeeName?: string | null;
   employeeReputation?: number | null;
+  employeeStatus?: string | null;
+  isNewHire?: boolean;
   onClick: () => void;
 }
 
@@ -41,6 +43,8 @@ export function PixelAgent({
   predictionType,
   employeeName,
   employeeReputation,
+  employeeStatus,
+  isNewHire,
   onClick,
 }: PixelAgentProps) {
   const isBlocked = state === "blocked";
@@ -66,10 +70,13 @@ export function PixelAgent({
     ? "ring-2 ring-amber-400/60 animate-[prediction-pulse_2s_ease-in-out_infinite]"
     : "";
 
+  // PART 6 — Inactive fade for soft-fired employees
+  const isInactive = employeeStatus === "inactive";
+
   return (
     <div
       onClick={onClick}
-      className="relative flex flex-col items-center cursor-pointer group transition-transform duration-200 hover:scale-105"
+      className={`relative flex flex-col items-center cursor-pointer group transition-all duration-500 hover:scale-105 ${isInactive ? "opacity-30 grayscale" : ""}`}
       style={{ width: 68 }}
     >
       {/* Visual indicators above sprite */}
@@ -118,6 +125,11 @@ export function PixelAgent({
 
       {/* Labels */}
       <div className="mt-0.5 flex flex-col items-center max-w-[68px]">
+        {isNewHire && (
+          <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
+            NEW HIRE
+          </Badge>
+        )}
         {employeeName && (
           <span className="text-[8px] font-bold text-foreground truncate max-w-full">
             {employeeName}

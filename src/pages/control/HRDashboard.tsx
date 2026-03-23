@@ -1,10 +1,11 @@
-// HR Dashboard — AI Company HR Core
+// HR Dashboard — AI Company HR Core with Replacement Engine
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useHRDashboard } from "@/hooks/use-hr-data";
-import { Users, UserCheck, UserX, AlertTriangle, TrendingUp, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useHRDashboard, useGenerateCandidates, useApproveProposal, useExecuteProposal } from "@/hooks/use-hr-data";
+import { Users, UserCheck, UserX, AlertTriangle, TrendingUp, Star, UserPlus, RefreshCw, CheckCircle, Play } from "lucide-react";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -20,6 +21,9 @@ const SUGGESTION_ICON: Record<string, typeof AlertTriangle> = {
 
 export default function HRDashboard() {
   const { data, isLoading, error } = useHRDashboard();
+  const generateCandidates = useGenerateCandidates();
+  const approveProposal = useApproveProposal();
+  const executeProposal = useExecuteProposal();
 
   return (
     <AppLayout title="AI Company HR">
@@ -36,7 +40,7 @@ export default function HRDashboard() {
             <KpiCard icon={<AlertTriangle className="h-4 w-4" />} label="Suggestions" value={data.suggestions.length} variant={data.suggestions.length > 0 ? "warn" : undefined} />
           </div>
 
-          {/* HR Suggestions */}
+          {/* HR Suggestions with Generate Candidates button */}
           {data.suggestions.length > 0 && (
             <Card className="border-amber-500/30">
               <CardHeader className="pb-3">
@@ -54,7 +58,7 @@ export default function HRDashboard() {
                         s.suggestion_type === "promote" ? "text-emerald-500" :
                         "text-amber-500"
                       }`} />
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant={s.suggestion_type === "replace" ? "destructive" : s.suggestion_type === "promote" ? "default" : "secondary"} className="text-[9px]">
                             {s.suggestion_type}
@@ -63,9 +67,105 @@ export default function HRDashboard() {
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">{s.reason}</p>
                       </div>
+                      {s.suggestion_type === "replace" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-[10px] h-6 shrink-0"
+                          onClick={() => generateCandidates.mutate(s.employee_id)}
+                          disabled={generateCandidates.isPending}
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Find Replacements
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Candidate Proposals */}
+          {data.proposals && data.proposals.length > 0 && (
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" /> Replacement Proposals
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>For Employee</TableHead>
+                      <TableHead>Provider</TableHead>
+                      <TableHead>Model</TableHead>
+                      <TableHead className="text-right">Proj. Success</TableHead>
+                      <TableHead className="text-right">Proj. Cost</TableHead>
+                      <TableHead className="text-right">Proj. Latency</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.proposals.map((p: any) => (
+                      <TableRow key={p.id} className={p.executed ? "opacity-50" : ""}>
+                        <TableCell>
+                          <div>
+                            <span className="text-xs font-medium">{p.employee_name}</span>
+                            <Badge variant="outline" className="text-[8px] ml-1">{p.employee_role}</Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs">{p.suggested_provider ?? "—"}</TableCell>
+                        <TableCell className="text-xs">{p.suggested_model ?? "—"}</TableCell>
+                        <TableCell className="text-right font-mono text-xs">{(p.projected_success_rate * 100).toFixed(1)}%</TableCell>
+                        <TableCell className="text-right font-mono text-xs">${p.projected_cost?.toFixed(3) ?? "—"}</TableCell>
+                        <TableCell className="text-right font-mono text-xs">{Math.round(p.projected_latency ?? 0)}ms</TableCell>
+                        <TableCell>
+                          {p.executed ? (
+                            <Badge variant="default" className="text-[9px]">Executed</Badge>
+                          ) : p.approved ? (
+                            <Badge className="text-[9px] bg-emerald-600">Approved</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-[9px]">Pending</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {!p.executed && (
+                            <div className="flex gap-1">
+                              {!p.approved && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-[10px] h-6"
+                                  onClick={() => approveProposal.mutate(p.id)}
+                                  disabled={approveProposal.isPending}
+                                >
+                                  <CheckCircle className="h-3 w-3 mr-1" /> Approve
+                                </Button>
+                              )}
+                              {p.approved && (
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="text-[10px] h-6"
+                                  onClick={() => executeProposal.mutate(p.id)}
+                                  disabled={executeProposal.isPending}
+                                >
+                                  <Play className="h-3 w-3 mr-1" /> Execute
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <p className="text-[10px] text-muted-foreground mt-2">
+                  Proposals require founder approval before execution. Employees with active tasks cannot be replaced.
+                </p>
               </CardContent>
             </Card>
           )}
@@ -93,8 +193,19 @@ export default function HRDashboard() {
                 </TableHeader>
                 <TableBody>
                   {data.employees.map((emp: any) => (
-                    <TableRow key={emp.id} className={emp.reputation_score < 0.2 ? "bg-destructive/5" : emp.reputation_score > 0.5 ? "bg-emerald-500/5" : ""}>
-                      <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableRow key={emp.id} className={
+                      emp.status === "inactive" ? "opacity-40" :
+                      emp.reputation_score < 0.2 ? "bg-destructive/5" :
+                      emp.reputation_score > 0.5 ? "bg-emerald-500/5" : ""
+                    }>
+                      <TableCell className="font-medium">
+                        {emp.name}
+                        {emp.status === "inactive" && <span className="text-[9px] text-muted-foreground ml-1">(former)</span>}
+                        {/* Check if hired recently (within last hour for demo) */}
+                        {emp.status === "active" && new Date(emp.hired_at).getTime() > Date.now() - 3600000 && (
+                          <Badge variant="default" className="text-[8px] ml-1 bg-emerald-600">New Hire</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{emp.department}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-[9px]">{emp.role_code}</Badge>

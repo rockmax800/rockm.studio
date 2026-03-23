@@ -60,7 +60,7 @@ export function useOfficeData() {
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
         supabase.from("teams").select("*"),
         supabase.from("company_mode_settings").select("*").limit(1),
-        supabase.from("ai_employees").select("id, name, role_id, reputation_score, status").in("status", ["active", "probation"]),
+        supabase.from("ai_employees").select("id, name, role_id, reputation_score, status, hired_at"),
       ]);
 
       const tasks = tasksRes.data ?? [];
@@ -112,6 +112,8 @@ export function useOfficeData() {
           role_team_id: role?.team_id ?? null,
           employee_name: employee?.name ?? null,
           employee_reputation: employee?.reputation_score ?? null,
+          employee_status: employee?.status ?? null,
+          is_new_hire: employee ? (new Date(employee.hired_at).getTime() > Date.now() - 3600000) : false,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };

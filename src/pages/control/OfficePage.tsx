@@ -43,6 +43,8 @@ interface TaskCard {
   role_team_id?: string | null;
   employee_name?: string | null;
   employee_reputation?: number | null;
+  employee_status?: string | null;
+  is_new_hire?: boolean;
   has_prediction: boolean;
   prediction_type: string | null;
 }
@@ -166,6 +168,8 @@ export default function OfficePage() {
                             predictionType={task.prediction_type}
                             employeeName={task.employee_name}
                             employeeReputation={task.employee_reputation}
+                            employeeStatus={task.employee_status}
+                            isNewHire={task.is_new_hire}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
@@ -192,6 +196,8 @@ export default function OfficePage() {
                             predictionType={task.prediction_type}
                             employeeName={task.employee_name}
                             employeeReputation={task.employee_reputation}
+                            employeeStatus={task.employee_status}
+                            isNewHire={task.is_new_hire}
                             onClick={() => navigate(`/control/tasks/${task.id}`)}
                           />
                         ))}
@@ -236,6 +242,8 @@ export default function OfficePage() {
                               predictionType={task.prediction_type}
                               employeeName={task.employee_name}
                               employeeReputation={task.employee_reputation}
+                              employeeStatus={task.employee_status}
+                              isNewHire={task.is_new_hire}
                               onClick={() => navigate(`/control/tasks/${task.id}`)}
                             />
                           ))}

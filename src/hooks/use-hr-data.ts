@@ -1,28 +1,26 @@
-// PART 5 — HR Dashboard data hook
+// PART 5 — HR Dashboard data hook (extended with proposals)
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { generateHRSuggestions } from "@/services/HRSuggestionService";
+import { toast } from "sonner";
 
 export function useHRDashboard() {
   return useQuery({
     queryKey: ["hr-dashboard"],
     queryFn: async () => {
-      const [employeesRes, suggestionsRes, teamsRes, runsRes, usageRes, reviewsRes, tasksRes] = await Promise.all([
+      const [employeesRes, suggestionsRes, teamsRes, proposalsRes] = await Promise.all([
         supabase.from("ai_employees").select("*").order("name"),
         supabase.from("hr_suggestions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
         supabase.from("teams").select("id, name"),
-        supabase.from("runs").select("id, agent_role_id, state, duration_ms").order("created_at", { ascending: false }).limit(500),
-        supabase.from("provider_usage_logs").select("run_id, estimated_cost_usd, latency_ms").order("created_at", { ascending: false }).limit(500),
-        supabase.from("reviews").select("task_id, verdict").in("state", ["approved", "approved_with_notes", "rejected", "closed"]).limit(300),
-        supabase.from("tasks").select("id, owner_role_id, state").limit(500),
+        supabase.from("candidate_proposals" as any).select("*").order("created_at", { ascending: false }).limit(50),
       ]);
 
       const employees = employeesRes.data ?? [];
       const storedSuggestions = suggestionsRes.data ?? [];
       const teams = teamsRes.data ?? [];
+      const proposals = proposalsRes.data ?? [];
       const teamsById = Object.fromEntries(teams.map(t => [t.id, t]));
 
-      // Compute live suggestions from current metrics
       const liveSuggestions = generateHRSuggestions(
         employees.map((e: any) => ({
           id: e.id,
@@ -41,10 +39,19 @@ export function useHRDashboard() {
         department: e.team_id ? teamsById[e.team_id]?.name ?? "Unassigned" : "Unassigned",
       }));
 
+      // Enrich proposals with employee name
+      const employeesById = Object.fromEntries(employees.map((e: any) => [e.id, e]));
+      const enrichedProposals = proposals.map((p: any) => ({
+        ...p,
+        employee_name: employeesById[p.employee_id]?.name ?? "Unknown",
+        employee_role: employeesById[p.employee_id]?.role_code ?? "unknown",
+      }));
+
       return {
         employees: enrichedEmployees,
         suggestions: liveSuggestions,
         storedSuggestions,
+        proposals: enrichedProposals,
         totalActive: employees.filter((e: any) => e.status === "active").length,
         totalProbation: employees.filter((e: any) => e.status === "probation").length,
         totalInactive: employees.filter((e: any) => e.status === "inactive").length,
@@ -53,5 +60,75 @@ export function useHRDashboard() {
           : 0,
       };
     },
+  });
+}
+
+export function useGenerateCandidates() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (employeeId: string) => {
+      const res = await supabase.functions.invoke("hr-proposals", {
+        method: "POST",
+        body: { employee_id: employeeId },
+        headers: { "x-action": "generate" },
+      });
+      // Use the edge function generate endpoint
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-proposals/generate`;
+      const response = await fetch(fnUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify({ employee_id: employeeId }),
+      });
+      if (!response.ok) throw new Error("Failed to generate candidates");
+      return response.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      toast.success("Replacement candidates generated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useApproveProposal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (proposalId: string) => {
+      const { error } = await supabase
+        .from("candidate_proposals" as any)
+        .update({ approved: true })
+        .eq("id", proposalId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      toast.success("Proposal approved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useExecuteProposal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (proposalId: string) => {
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-proposals/${proposalId}/execute`;
+      const response = await fetch(fnUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: "{}",
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to execute replacement");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      qc.invalidateQueries({ queryKey: ["office"] });
+      toast.success("Replacement executed — new employee hired");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 }
