@@ -1,10 +1,8 @@
 // UC-01 Activate Project
-// Requires:
-// - approved project_activation approval
-// - required core documents (00-project-brief, 04-domain-boundaries, 05-lifecycle-state-machine)
-// - scoped state
-// Transition:
-// scoped → active
+// UC-12 Complete Project Milestone
+// Transitions:
+// Activate: scoped → active
+// Complete: in_review → completed (+ approval → closed)
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -54,16 +52,12 @@ export class ProjectService {
   }
 
   async activateProject(projectId: string, actorType: "founder" = "founder") {
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Load project
-      const project = await tx.projects.findUniqueOrThrow({
-        where: { id: projectId },
-      });
+    await this.prisma.$transaction(async (tx) => {
+      const project = await tx.projects.findUniqueOrThrow({ where: { id: projectId } });
 
-      // 2. Ensure project is in scoped state
       if (project.state !== "scoped") {
         throw new GuardError({
-          message: `Project must be in "scoped" state to activate. Current state: "${project.state}"`,
+          message: `Project must be in "scoped" state to activate. Current: "${project.state}"`,
           entityType: "project",
           entityId: projectId,
           fromState: project.state,
@@ -71,17 +65,11 @@ export class ProjectService {
         });
       }
 
-      // 3. Validate required documents exist
       const docs = await tx.documents.findMany({
-        where: {
-          project_id: projectId,
-          file_path: { in: REQUIRED_DOC_PATHS },
-        },
+        where: { project_id: projectId, file_path: { in: REQUIRED_DOC_PATHS } },
       });
-
       const foundPaths = new Set(docs.map((d: any) => d.file_path));
       const missingPaths = REQUIRED_DOC_PATHS.filter((p) => !foundPaths.has(p));
-
       if (missingPaths.length > 0) {
         throw new GuardError({
           message: `Missing required documents: ${missingPaths.join(", ")}`,
@@ -92,7 +80,6 @@ export class ProjectService {
         });
       }
 
-      // 4. Ensure approved project_activation approval exists
       const approval = await tx.approvals.findFirst({
         where: {
           project_id: projectId,
@@ -102,10 +89,9 @@ export class ProjectService {
           state: "approved",
         },
       });
-
       if (!approval) {
         throw new GuardError({
-          message: "No approved project_activation approval found for this project",
+          message: "No approved project_activation approval found",
           entityType: "project",
           entityId: projectId,
           fromState: "scoped",
@@ -113,23 +99,121 @@ export class ProjectService {
         });
       }
 
-      return null; // validation passed inside transaction
-    }).then(async () => {
-      // 5-6. Delegate state transition to OrchestrationService
-      // OrchestrationService handles its own transaction, guard call, and activity event
-      const updated = await this.orchestration.transitionEntity({
+      return null;
+    });
+
+    const updated = await this.orchestration.transitionEntity({
+      entityType: "project",
+      entityId: projectId,
+      toState: "active",
+      actorType,
+      projectId,
+      metadata: { use_case: "UC-01", trigger: "founder activates project" },
+    });
+
+    return updated;
+  }
+
+  async completeMilestone({
+    projectId,
+    actorType,
+  }: {
+    projectId: string;
+    actorType: "founder";
+  }) {
+    if (actorType !== "founder") {
+      throw new GuardError({
+        message: "Only founder can complete a project milestone",
         entityType: "project",
         entityId: projectId,
-        toState: "active",
-        actorType,
-        projectId,
-        metadata: {
-          use_case: "UC-01",
-          trigger: "founder activates project",
+        fromState: "in_review",
+        toState: "completed",
+      });
+    }
+
+    const { project, approval } = await this.prisma.$transaction(async (tx) => {
+      const project = await tx.projects.findUniqueOrThrow({ where: { id: projectId } });
+
+      // 1. Validate project state
+      if (project.state !== "in_review") {
+        throw new GuardError({
+          message: `Project must be in "in_review" state to complete milestone. Current: "${project.state}"`,
+          entityType: "project",
+          entityId: projectId,
+          fromState: project.state,
+          toState: "completed",
+        });
+      }
+
+      // 2. Validate release approval exists and is approved
+      const approval = await tx.approvals.findFirst({
+        where: {
+          project_id: projectId,
+          approval_type: "release",
+          target_type: "project",
+          target_id: projectId,
+          state: "approved",
         },
       });
 
-      return updated;
+      if (!approval) {
+        throw new GuardError({
+          message: "No approved release approval found for this project",
+          entityType: "project",
+          entityId: projectId,
+          fromState: "in_review",
+          toState: "completed",
+        });
+      }
+
+      // 3. Validate all tasks are terminal
+      const nonTerminalTasks = await tx.tasks.count({
+        where: {
+          project_id: projectId,
+          state: { notIn: ["done", "cancelled"] },
+        },
+      });
+
+      if (nonTerminalTasks > 0) {
+        throw new GuardError({
+          message: `${nonTerminalTasks} task(s) are not in terminal state. All tasks must be done or cancelled.`,
+          entityType: "project",
+          entityId: projectId,
+          fromState: "in_review",
+          toState: "completed",
+        });
+      }
+
+      return { project, approval };
     });
+
+    // 4. Transition project → completed
+    const updated = await this.orchestration.transitionEntity({
+      entityType: "project",
+      entityId: projectId,
+      toState: "completed",
+      actorType,
+      projectId,
+      metadata: {
+        use_case: "UC-12",
+        trigger: "founder completes milestone",
+        approval_id: approval.id,
+      },
+    });
+
+    // 5. Transition approval → closed
+    await this.orchestration.transitionEntity({
+      entityType: "approval",
+      entityId: approval.id,
+      toState: "closed",
+      actorType,
+      projectId,
+      metadata: {
+        use_case: "UC-12",
+        trigger: "release approval consumed by milestone completion",
+      },
+    });
+
+    return updated;
   }
 }
