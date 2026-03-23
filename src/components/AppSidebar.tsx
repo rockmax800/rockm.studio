@@ -12,6 +12,7 @@ import {
   Unplug,
   Shield,
   Building2,
+  Crown,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
