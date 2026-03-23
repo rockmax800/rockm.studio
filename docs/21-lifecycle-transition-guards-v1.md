@@ -168,7 +168,7 @@ function guardTaskTransition(task, to_state):
 
   if to_state == "in_progress":
     ASSERT task.state == "assigned"
-    ASSERT context_pack_exists(task) OR context_waived(task)
+    ASSERT context_pack_exists(task)
     RETURN ALLOW
 
   if to_state == "waiting_review":
