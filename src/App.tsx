@@ -9,6 +9,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import TasksPage from "./pages/Tasks";
 import DocsWorkspace from "./pages/DocsWorkspace";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import ProvidersPage from "./pages/Providers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
