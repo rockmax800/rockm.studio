@@ -125,6 +125,11 @@ export function PixelAgent({
 
       {/* Labels */}
       <div className="mt-0.5 flex flex-col items-center max-w-[68px]">
+        {isNewHire && (
+          <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
+            NEW HIRE
+          </Badge>
+        )}
         {employeeName && (
           <span className="text-[8px] font-bold text-foreground truncate max-w-full">
             {employeeName}
