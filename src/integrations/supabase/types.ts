@@ -74,8 +74,14 @@ export type Database = {
           description: string
           forbidden_actions: Json | null
           id: string
+          model_preference: Json | null
           name: string
+          performance_score: number
+          prompt_template: string | null
+          skill_profile: Json | null
           status: Database["public"]["Enums"]["agent_role_status"]
+          success_rate: number
+          total_runs: number
           updated_at: string
         }
         Insert: {
@@ -86,8 +92,14 @@ export type Database = {
           description: string
           forbidden_actions?: Json | null
           id?: string
+          model_preference?: Json | null
           name: string
+          performance_score?: number
+          prompt_template?: string | null
+          skill_profile?: Json | null
           status?: Database["public"]["Enums"]["agent_role_status"]
+          success_rate?: number
+          total_runs?: number
           updated_at?: string
         }
         Update: {
@@ -98,11 +110,58 @@ export type Database = {
           description?: string
           forbidden_actions?: Json | null
           id?: string
+          model_preference?: Json | null
           name?: string
+          performance_score?: number
+          prompt_template?: string | null
+          skill_profile?: Json | null
           status?: Database["public"]["Enums"]["agent_role_status"]
+          success_rate?: number
+          total_runs?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      agent_skills: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          prompt_fragment: string
+          role_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          prompt_fragment?: string
+          role_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          prompt_fragment?: string
+          role_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_skills_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       approvals: {
         Row: {
@@ -388,6 +447,57 @@ export type Database = {
             columns: ["source_task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_events: {
+        Row: {
+          actor_role_id: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_zone: string | null
+          id: string
+          project_id: string
+          timestamp: string
+          to_zone: string | null
+        }
+        Insert: {
+          actor_role_id?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_zone?: string | null
+          id?: string
+          project_id: string
+          timestamp?: string
+          to_zone?: string | null
+        }
+        Update: {
+          actor_role_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          from_zone?: string | null
+          id?: string
+          project_id?: string
+          timestamp?: string
+          to_zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_events_actor_role_id_fkey"
+            columns: ["actor_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -807,6 +917,54 @@ export type Database = {
             columns: ["preferred_provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      run_evaluations: {
+        Row: {
+          cost_score: number
+          created_at: string
+          id: string
+          latency_ms: number | null
+          quality_score: number
+          review_outcome: string | null
+          role_id: string | null
+          run_id: string
+        }
+        Insert: {
+          cost_score?: number
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          quality_score?: number
+          review_outcome?: string | null
+          role_id?: string | null
+          run_id: string
+        }
+        Update: {
+          cost_score?: number
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          quality_score?: number
+          review_outcome?: string | null
+          role_id?: string | null
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "run_evaluations_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "run_evaluations_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "runs"
             referencedColumns: ["id"]
           },
         ]

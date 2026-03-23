@@ -1,6 +1,7 @@
 // UC-06 Resolve Review — Approve
 // UC-07 Resolve Review — Reject (Rework Loop)
 // Hardened with Serializable isolation
+// Extended with RunEvaluation recording (PART 7)
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -34,15 +35,30 @@ interface OrchestrationServiceLike {
   }) => Promise<any>;
 }
 
+interface AgentPerformanceServiceLike {
+  recordRunEvaluation: (params: {
+    runId: string;
+    roleId: string | null;
+    qualityScore: number;
+    reviewOutcome: string;
+  }) => Promise<void>;
+}
+
 const VALID_APPROVE_VERDICTS = ["approved", "approved_with_notes"] as const;
 
 export class ReviewService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
+  private performanceService: AgentPerformanceServiceLike | null;
 
-  constructor(prisma: PrismaLike, orchestrationService: OrchestrationServiceLike) {
+  constructor(
+    prisma: PrismaLike,
+    orchestrationService: OrchestrationServiceLike,
+    performanceService?: AgentPerformanceServiceLike,
+  ) {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
+    this.performanceService = performanceService ?? null;
   }
 
   async approveReview({
@@ -66,11 +82,16 @@ export class ReviewService {
       });
     }
 
-    const { review, artifact, task } = await this.prisma.$transaction(async (tx) => {
+    const { review, artifact, task, run } = await this.prisma.$transaction(async (tx) => {
       const review = await tx.reviews.findUniqueOrThrow({ where: { id: reviewId } });
       const artifact = await tx.artifacts.findUniqueOrThrow({ where: { id: review.artifact_id } });
       const task = review.task_id
         ? await tx.tasks.findUniqueOrThrow({ where: { id: review.task_id } })
+        : null;
+
+      // Find associated run for performance tracking
+      const run = artifact.run_id
+        ? await tx.runs.findUnique({ where: { id: artifact.run_id } })
         : null;
 
       if (review.state !== "in_progress") {
@@ -103,7 +124,7 @@ export class ReviewService {
         },
       });
 
-      return { review, artifact, task };
+      return { review, artifact, task, run };
     }, { isolationLevel: "Serializable" });
 
     const projectId = review.project_id;
@@ -148,6 +169,20 @@ export class ReviewService {
       });
     }
 
+    // PART 7 — Record RunEvaluation (approved → quality_score = 1)
+    if (run && this.performanceService) {
+      try {
+        await this.performanceService.recordRunEvaluation({
+          runId: run.id,
+          roleId: run.agent_role_id ?? null,
+          qualityScore: 1,
+          reviewOutcome: verdict,
+        });
+      } catch {
+        // Best-effort performance tracking
+      }
+    }
+
     return task ?? artifact;
   }
 
@@ -172,11 +207,15 @@ export class ReviewService {
       });
     }
 
-    const { review, artifact, task } = await this.prisma.$transaction(async (tx) => {
+    const { review, artifact, task, run } = await this.prisma.$transaction(async (tx) => {
       const review = await tx.reviews.findUniqueOrThrow({ where: { id: reviewId } });
       const artifact = await tx.artifacts.findUniqueOrThrow({ where: { id: review.artifact_id } });
       const task = review.task_id
         ? await tx.tasks.findUniqueOrThrow({ where: { id: review.task_id } })
+        : null;
+
+      const run = artifact.run_id
+        ? await tx.runs.findUnique({ where: { id: artifact.run_id } })
         : null;
 
       if (review.state !== "in_progress") {
@@ -210,7 +249,7 @@ export class ReviewService {
         },
       });
 
-      return { review, artifact, task };
+      return { review, artifact, task, run };
     }, { isolationLevel: "Serializable" });
 
     const projectId = review.project_id;
@@ -253,6 +292,20 @@ export class ReviewService {
         projectId,
         metadata: { use_case: "UC-07", trigger: "rework required after rejection", review_id: reviewId, reason },
       });
+    }
+
+    // PART 7 — Record RunEvaluation (rejected → quality_score = 0)
+    if (run && this.performanceService) {
+      try {
+        await this.performanceService.recordRunEvaluation({
+          runId: run.id,
+          roleId: run.agent_role_id ?? null,
+          qualityScore: 0,
+          reviewOutcome: "rejected",
+        });
+      } catch {
+        // Best-effort performance tracking
+      }
     }
 
     return task ?? artifact;

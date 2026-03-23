@@ -10,6 +10,7 @@ import { ArtifactService } from "@/services/ArtifactService";
 import { ReviewService } from "@/services/ReviewService";
 import { ApprovalService } from "@/services/ApprovalService";
 import { ProviderService } from "@/services/ProviderService";
+import { AgentPerformanceService } from "@/services/AgentPerformanceService";
 
 interface PrismaLike {
   $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
@@ -29,15 +30,17 @@ export function getServices() {
 
   const prisma = createSafePrisma(_rawPrisma);
   const orchestration = new OrchestrationService(prisma);
+  const performanceService = new AgentPerformanceService(prisma);
 
   return {
     prisma,
     orchestration,
+    performanceService,
     projectService: new ProjectService(prisma, orchestration),
     taskService: new TaskService(prisma, orchestration),
     runService: new RunService(prisma, orchestration),
     artifactService: new ArtifactService(prisma, orchestration),
-    reviewService: new ReviewService(prisma, orchestration),
+    reviewService: new ReviewService(prisma, orchestration, performanceService),
     approvalService: new ApprovalService(prisma, orchestration),
     providerService: new ProviderService(prisma),
   };
