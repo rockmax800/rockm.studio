@@ -122,6 +122,7 @@ export type Database = {
           target_id: string
           target_type: Database["public"]["Enums"]["approval_target_type"]
           updated_at: string
+          version: number
         }
         Insert: {
           approval_type: Database["public"]["Enums"]["approval_type"]
@@ -140,6 +141,7 @@ export type Database = {
           target_id: string
           target_type: Database["public"]["Enums"]["approval_target_type"]
           updated_at?: string
+          version?: number
         }
         Update: {
           approval_type?: Database["public"]["Enums"]["approval_type"]
@@ -158,6 +160,7 @@ export type Database = {
           target_id?: string
           target_type?: Database["public"]["Enums"]["approval_target_type"]
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -194,6 +197,7 @@ export type Database = {
           task_id: string | null
           title: string
           updated_at: string
+          version: number
         }
         Insert: {
           artifact_type: Database["public"]["Enums"]["artifact_type"]
@@ -212,6 +216,7 @@ export type Database = {
           task_id?: string | null
           title: string
           updated_at?: string
+          version?: number
         }
         Update: {
           artifact_type?: Database["public"]["Enums"]["artifact_type"]
@@ -230,6 +235,7 @@ export type Database = {
           task_id?: string | null
           title?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -399,6 +405,7 @@ export type Database = {
           slug: string
           state: Database["public"]["Enums"]["project_state"]
           updated_at: string
+          version: number
         }
         Insert: {
           archived_at?: string | null
@@ -412,6 +419,7 @@ export type Database = {
           slug: string
           state?: Database["public"]["Enums"]["project_state"]
           updated_at?: string
+          version?: number
         }
         Update: {
           archived_at?: string | null
@@ -425,6 +433,7 @@ export type Database = {
           slug?: string
           state?: Database["public"]["Enums"]["project_state"]
           updated_at?: string
+          version?: number
         }
         Relationships: []
       }
@@ -652,6 +661,7 @@ export type Database = {
           task_id: string | null
           updated_at: string
           verdict: Database["public"]["Enums"]["review_verdict"] | null
+          version: number
         }
         Insert: {
           artifact_id: string
@@ -668,6 +678,7 @@ export type Database = {
           task_id?: string | null
           updated_at?: string
           verdict?: Database["public"]["Enums"]["review_verdict"] | null
+          version?: number
         }
         Update: {
           artifact_id?: string
@@ -684,6 +695,7 @@ export type Database = {
           task_id?: string | null
           updated_at?: string
           verdict?: Database["public"]["Enums"]["review_verdict"] | null
+          version?: number
         }
         Relationships: [
           {
@@ -818,6 +830,7 @@ export type Database = {
           superseded_by_run_id: string | null
           task_id: string
           updated_at: string
+          version: number
         }
         Insert: {
           agent_role_id: string
@@ -837,6 +850,7 @@ export type Database = {
           superseded_by_run_id?: string | null
           task_id: string
           updated_at?: string
+          version?: number
         }
         Update: {
           agent_role_id?: string
@@ -856,6 +870,7 @@ export type Database = {
           superseded_by_run_id?: string | null
           task_id?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -923,6 +938,7 @@ export type Database = {
           title: string
           updated_at: string
           urgency: Database["public"]["Enums"]["task_urgency"] | null
+          version: number
         }
         Insert: {
           acceptance_criteria?: Json
@@ -944,6 +960,7 @@ export type Database = {
           title: string
           updated_at?: string
           urgency?: Database["public"]["Enums"]["task_urgency"] | null
+          version?: number
         }
         Update: {
           acceptance_criteria?: Json
@@ -965,6 +982,7 @@ export type Database = {
           title?: string
           updated_at?: string
           urgency?: Database["public"]["Enums"]["task_urgency"] | null
+          version?: number
         }
         Relationships: [
           {

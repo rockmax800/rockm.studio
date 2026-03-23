@@ -44,6 +44,7 @@ export function getServices() {
 export function errorResponse(error: unknown, fallbackStatus = 500) {
   const message = error instanceof Error ? error.message : "Unknown error";
   const isGuardError = error instanceof Error && error.name === "GuardError";
-  const status = isGuardError ? 400 : fallbackStatus;
+  const isConcurrencyError = error instanceof Error && error.name === "ConcurrencyError";
+  const status = isGuardError ? 400 : isConcurrencyError ? 409 : fallbackStatus;
   return { status, body: { error: message } };
 }

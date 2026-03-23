@@ -1,10 +1,8 @@
 // UC-02 Assign Task
 // UC-11 Complete Task
-// Allowed from (assign):
-// ready, rework_required, blocked, escalated, approved
-// Transition: → assigned
-// Allowed from (complete):
-// approved → done
+// Hardened with:
+// - Serializable isolation
+// - Re-check reviews/approvals in complete (PART 6)
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -21,7 +19,7 @@ interface PrismaTransactionClient {
 }
 
 interface PrismaLike {
-  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>) => Promise<T>;
+  $transaction: <T>(fn: (tx: PrismaTransactionClient) => Promise<T>, options?: any) => Promise<T>;
   [key: string]: any;
 }
 
@@ -145,7 +143,7 @@ export class TaskService {
       });
 
       return { task, agentRole };
-    });
+    }, { isolationLevel: "Serializable" });
 
     const updated = await this.orchestration.transitionEntity({
       entityType: "task",
@@ -173,9 +171,9 @@ export class TaskService {
     actorType: "system" | "founder" | "agent_role";
   }) {
     const task = await this.prisma.$transaction(async (tx) => {
+      // PART 8 — Reload and re-validate inside transaction
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
 
-      // 1. Validate task state
       if (task.state !== "approved") {
         throw new GuardError({
           message: `Task must be in "approved" state to complete. Current: "${task.state}"`,
@@ -186,7 +184,7 @@ export class TaskService {
         });
       }
 
-      // 2. Ensure all reviews are closed
+      // PART 6 — Re-check no open reviews inside transaction
       const openReviews = await tx.reviews.count({
         where: {
           task_id: taskId,
@@ -204,7 +202,7 @@ export class TaskService {
         });
       }
 
-      // 3. Ensure no pending approvals linked to this task
+      // PART 6 — Re-check no pending approvals inside transaction
       const pendingApprovals = await tx.approvals.count({
         where: {
           target_type: "task",
@@ -230,9 +228,8 @@ export class TaskService {
       });
 
       return task;
-    });
+    }, { isolationLevel: "Serializable" });
 
-    // 4. Transition task → done
     const updated = await this.orchestration.transitionEntity({
       entityType: "task",
       entityId: taskId,
