@@ -36,13 +36,27 @@ export interface AutonomySettings {
   auto_execute_implementation: boolean;
   auto_retry_enabled: boolean;
   max_parallel_runs: number;
+  max_autonomy_depth: number;
+  autonomy_token_budget: number;
 }
 
 const DEFAULT_SETTINGS: AutonomySettings = {
-  auto_generate_tasks: false,
+  auto_generate_tasks: true,
   auto_execute_implementation: false,
-  auto_retry_enabled: true,
-  max_parallel_runs: 3,
+  auto_retry_enabled: false,
+  max_parallel_runs: 1,
+  max_autonomy_depth: 3,
+  autonomy_token_budget: 15000,
+};
+
+// Lean mode: pipeline stops after decomposition (depth 3)
+const LEAN_PIPELINE_DEPTH: Record<string, number> = {
+  idea: 0,
+  spec: 1,
+  architecture: 2,
+  decomposition: 3,
+  qa: 4,
+  release: 5,
 };
 
 // Pipeline step definitions
