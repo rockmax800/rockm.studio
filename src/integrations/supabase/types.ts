@@ -69,11 +69,13 @@ export type Database = {
         Row: {
           allowed_actions: Json | null
           allowed_domains: Json | null
+          capacity_score: number
           code: string
           created_at: string
           description: string
           forbidden_actions: Json | null
           id: string
+          max_parallel_tasks: number
           model_preference: Json | null
           name: string
           performance_score: number
@@ -81,17 +83,20 @@ export type Database = {
           skill_profile: Json | null
           status: Database["public"]["Enums"]["agent_role_status"]
           success_rate: number
+          team_id: string | null
           total_runs: number
           updated_at: string
         }
         Insert: {
           allowed_actions?: Json | null
           allowed_domains?: Json | null
+          capacity_score?: number
           code: string
           created_at?: string
           description: string
           forbidden_actions?: Json | null
           id?: string
+          max_parallel_tasks?: number
           model_preference?: Json | null
           name: string
           performance_score?: number
@@ -99,17 +104,20 @@ export type Database = {
           skill_profile?: Json | null
           status?: Database["public"]["Enums"]["agent_role_status"]
           success_rate?: number
+          team_id?: string | null
           total_runs?: number
           updated_at?: string
         }
         Update: {
           allowed_actions?: Json | null
           allowed_domains?: Json | null
+          capacity_score?: number
           code?: string
           created_at?: string
           description?: string
           forbidden_actions?: Json | null
           id?: string
+          max_parallel_tasks?: number
           model_preference?: Json | null
           name?: string
           performance_score?: number
@@ -117,10 +125,19 @@ export type Database = {
           skill_profile?: Json | null
           status?: Database["public"]["Enums"]["agent_role_status"]
           success_rate?: number
+          team_id?: string | null
           total_runs?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_roles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_skills: {
         Row: {
@@ -422,6 +439,33 @@ export type Database = {
           },
         ]
       }
+      company_mode_settings: {
+        Row: {
+          created_at: string
+          cross_team_allowed: boolean
+          enable_multi_team: boolean
+          id: string
+          max_parallel_projects: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cross_team_allowed?: boolean
+          enable_multi_team?: boolean
+          id?: string
+          max_parallel_projects?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cross_team_allowed?: boolean
+          enable_multi_team?: boolean
+          id?: string
+          max_parallel_projects?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       context_packs: {
         Row: {
           assumptions: Json | null
@@ -648,6 +692,7 @@ export type Database = {
           purpose: string
           slug: string
           state: Database["public"]["Enums"]["project_state"]
+          team_id: string | null
           updated_at: string
           version: number
         }
@@ -662,6 +707,7 @@ export type Database = {
           purpose: string
           slug: string
           state?: Database["public"]["Enums"]["project_state"]
+          team_id?: string | null
           updated_at?: string
           version?: number
         }
@@ -676,10 +722,19 @@ export type Database = {
           purpose?: string
           slug?: string
           state?: Database["public"]["Enums"]["project_state"]
+          team_id?: string | null
           updated_at?: string
           version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prompt_experiments: {
         Row: {
@@ -1480,6 +1535,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          focus_domain: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          focus_domain?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          focus_domain?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {
