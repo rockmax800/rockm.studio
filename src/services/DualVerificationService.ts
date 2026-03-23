@@ -67,19 +67,6 @@ export class DualVerificationService {
     if (!(await isFeatureEnabled("enable_dual_verification"))) {
       return { valid: true, risk_level: "low", notes: "Dual verification skipped (production mode)" };
     }
-    providerService,
-    fallbackProviderCode,
-    fallbackModelCode,
-    agentRoleId,
-  }: {
-    runId: string;
-    projectId: string;
-    generatedText: string;
-    providerService: ProviderServiceLike;
-    fallbackProviderCode: string;
-    fallbackModelCode: string;
-    agentRoleId?: string | null;
-  }): Promise<DualVerificationResult> {
     const validationPrompt = `Validate the following output for correctness, consistency, and risks:\n\n--- OUTPUT ---\n${generatedText.slice(0, 4000)}\n--- END ---\n\nRespond with exactly one JSON object:\n{"valid": true/false, "risk_level": "low"|"medium"|"high", "notes": "your assessment"}`;
 
     try {
