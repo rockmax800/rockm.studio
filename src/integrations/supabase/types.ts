@@ -180,6 +180,94 @@ export type Database = {
           },
         ]
       }
+      ai_employees: {
+        Row: {
+          avg_cost: number
+          avg_latency: number
+          bug_rate: number
+          created_at: string
+          escalation_rate: number
+          hired_at: string
+          id: string
+          last_evaluated_at: string | null
+          model_name: string | null
+          name: string
+          prompt_version_id: string | null
+          provider: string | null
+          reputation_score: number
+          role_code: string
+          role_id: string | null
+          status: string
+          success_rate: number
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          avg_cost?: number
+          avg_latency?: number
+          bug_rate?: number
+          created_at?: string
+          escalation_rate?: number
+          hired_at?: string
+          id?: string
+          last_evaluated_at?: string | null
+          model_name?: string | null
+          name: string
+          prompt_version_id?: string | null
+          provider?: string | null
+          reputation_score?: number
+          role_code: string
+          role_id?: string | null
+          status?: string
+          success_rate?: number
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avg_cost?: number
+          avg_latency?: number
+          bug_rate?: number
+          created_at?: string
+          escalation_rate?: number
+          hired_at?: string
+          id?: string
+          last_evaluated_at?: string | null
+          model_name?: string | null
+          name?: string
+          prompt_version_id?: string | null
+          provider?: string | null
+          reputation_score?: number
+          role_code?: string
+          role_id?: string | null
+          status?: string
+          success_rate?: number
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_employees_prompt_version_id_fkey"
+            columns: ["prompt_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employees_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employees_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           approval_type: Database["public"]["Enums"]["approval_type"]
@@ -625,6 +713,41 @@ export type Database = {
             columns: ["source_task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_suggestions: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          resolved: boolean
+          suggestion_type: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          reason: string
+          resolved?: boolean
+          suggestion_type: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          reason?: string
+          resolved?: boolean
+          suggestion_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_suggestions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
             referencedColumns: ["id"]
           },
         ]
