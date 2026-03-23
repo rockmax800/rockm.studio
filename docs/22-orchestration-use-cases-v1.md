@@ -143,7 +143,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 
 **Preconditions:**
 1. Task.state == `assigned`
-2. Context available: ContextPack exists for task OR context explicitly waived
+2. ContextPack exists for the task (no waiver allowed — run cannot start without ContextPack)
 3. AgentRole (task.owner_role_id) is active
 4. Task belongs to an active Project (project.state == `active`)
 
@@ -155,7 +155,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Entities affected:**
 - Run (created, state transitions)
 - Task (state update)
-- ContextPack (read or created)
+- ContextPack (read, must exist)
 - AgentRole (validated)
 - Project (validated)
 
@@ -167,7 +167,7 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **Failure paths:**
 | Failure | Handling |
 |---|---|
-| No context pack and no waiver | REJECT "context required" |
+| No ContextPack exists for task | REJECT "ContextPack required — run cannot start without context" |
 | Agent role inactive | REJECT "assigned role is not active" |
 | Task not in `assigned` state | REJECT "task must be assigned first" |
 | Project not active | REJECT "project is not active" |
