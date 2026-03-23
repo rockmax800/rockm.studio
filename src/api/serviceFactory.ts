@@ -16,6 +16,8 @@ import { SelfReviewService } from "@/services/SelfReviewService";
 import { ContextCompressionService } from "@/services/ContextCompressionService";
 import { DualVerificationService } from "@/services/DualVerificationService";
 import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
+import { PromptVersionService } from "@/services/PromptVersionService";
+import { PromptImprovementService } from "@/services/PromptImprovementService";
 
 interface PrismaLike {
   $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
@@ -56,6 +58,8 @@ export function getServices() {
     selfReviewService: new SelfReviewService(prisma),
     contextCompressionService: new ContextCompressionService(prisma),
     dualVerificationService: new DualVerificationService(prisma, officeEmitter),
+    promptVersionService: new PromptVersionService(prisma, officeEmitter),
+    promptImprovementService: new PromptImprovementService(prisma, officeEmitter),
   };
 }
 
