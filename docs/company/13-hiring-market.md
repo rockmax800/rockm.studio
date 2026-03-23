@@ -71,3 +71,10 @@ If top-ranked model ≠ current best employee model AND performance delta > 10%:
 - Never auto-replace active employees
 - Only apply on next hire cycle
 - All proposals through approval endpoint
+
+---
+
+## 7 — UI Location (v2.1)
+
+Hiring Market is displayed as the **AI Talent Market** card inside the Company page (`/company`).
+Badge color: cyan. Shows ranked models table with competition scores, cost, and reliability.

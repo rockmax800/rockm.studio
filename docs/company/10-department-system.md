@@ -56,3 +56,18 @@ Defines the team/department organizational structure that groups agent roles and
 - Teams do not own lifecycle states (lifecycle defined in `core/03-state-machine.md`)
 - Cross-team task assignment requires `cross_team_allowed = true`
 - Department system is optional — Core Engine operates without it
+
+---
+
+## 5 — UI Representation (v2.1)
+
+The Company page (`/company`) presents three internal departments as clickable cards:
+
+| Card | Badge Color | Data Source |
+|------|-------------|-------------|
+| HR Department | Blue | `useHRDashboard` → `ai_employees`, `hr_suggestions` |
+| AI Talent Market | Cyan | `useHiringMarket` → `model_market`, `model_benchmarks`, `prompt_experiments` |
+| Media & SMM | Green | `useBlogPosts` → `blog_posts` |
+
+Each card shows summary metrics on the overview and drills into a sub-view.
+Navigation does not change — Company remains a secondary nav item under Management.

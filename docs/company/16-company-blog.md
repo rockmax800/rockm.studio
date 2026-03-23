@@ -62,3 +62,10 @@ Low-level transitions are filtered out.
 - No financial claims or promises
 - No auto-publishing
 - Founder is always final approver
+
+---
+
+## 6 — UI Location (v2.1)
+
+Blog is displayed as the **Media & SMM** card inside the Company page (`/company`).
+Badge color: green. Includes "Generate Post from Recent Events" CTA button and per-post approve action.

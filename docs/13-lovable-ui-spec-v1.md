@@ -88,26 +88,42 @@ Avoid vague actions like "optimize" or "improve".
 
 ---
 
-## 4 — Core Navigation
+## 4 — Core Navigation (v2.1)
 
 Primary navigation:
 
-- Dashboard
-- Projects
-- Tasks
-- Runs
-- Artifacts
-- Reviews
-- Approvals
-- Agents
-- Docs Workspace
-- Settings
+- Home (operational overview)
+- Departments (production departments with blueprints and presales)
+- Projects (active / in review / completed)
+- Office (pixel office with mode badge)
 
-Optional later:
+Secondary navigation (Management):
 
-- Metrics
-- GitHub
-- Voice
+- Founder (inbox, budget, risk, alerts, mode control)
+- Company (internal company dashboard — see §4.1)
+- System (providers, mode, health, audit, docs)
+
+Entity-level pages (Tasks, Runs, Artifacts, Reviews, Approvals) are nested
+inside Project detail or Management tabs — never shown in top-level nav.
+
+### 4.1 — Company Page Structure
+
+The Company page is an internal company dashboard with three department cards:
+
+1. **HR Department** (badge: blue)
+   - Summary: Total Employees, Avg Performance, Active Suggestions
+   - Inside: Employees table, Suggestions list
+
+2. **AI Talent Market** (badge: cyan)
+   - Summary: Models Ranked, Active Experiments, Upgrade Suggestions
+   - Inside: Ranked models table with competition scores
+
+3. **Media & SMM** (badge: green)
+   - Summary: Drafts, Approved, Published post counts
+   - Inside: Blog post list with approve actions, "Generate Post from Recent Events" CTA
+
+Each card is clickable and opens the department sub-view with a back button.
+Data hooks: `useHRDashboard`, `useHiringMarket`, `useBlogPosts`.
 
 ---
 

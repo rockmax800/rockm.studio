@@ -65,3 +65,10 @@ Defines the AI employee abstraction that wraps agent roles with named identity, 
 - Never auto-switch model mid-task
 - All proposals go through approval endpoint
 - Only apply changes on next hire cycle
+
+---
+
+## 5 — UI Location (v2.1)
+
+HR is displayed as the **HR Department** card inside the Company page (`/company`).
+Badge color: blue. Sub-view has two tabs: Employees (table) and Suggestions (list).
