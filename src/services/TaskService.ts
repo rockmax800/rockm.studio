@@ -1,12 +1,10 @@
 // UC-02 Assign Task
-// Allowed from:
-// ready
-// rework_required
-// blocked
-// escalated
-// approved
-// Transition:
-// → assigned
+// UC-11 Complete Task
+// Allowed from (assign):
+// ready, rework_required, blocked, escalated, approved
+// Transition: → assigned
+// Allowed from (complete):
+// approved → done
 
 import { GuardError } from "@/guards/GuardError";
 
@@ -60,19 +58,10 @@ export class TaskService {
     ownerRoleId: string;
     actorType: "system" | "founder" | "agent_role";
   }) {
-    // Pre-validate inside transaction, then delegate transition
     const validationResult = await this.prisma.$transaction(async (tx) => {
-      // 1. Load task
-      const task = await tx.tasks.findUniqueOrThrow({
-        where: { id: taskId },
-      });
+      const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
+      const agentRole = await tx.agent_roles.findUniqueOrThrow({ where: { id: ownerRoleId } });
 
-      // 2. Load agent role
-      const agentRole = await tx.agent_roles.findUniqueOrThrow({
-        where: { id: ownerRoleId },
-      });
-
-      // 3. Validate agent role is active
       if (agentRole.status !== "active") {
         throw new GuardError({
           message: `Agent role "${agentRole.name}" is not active (status: "${agentRole.status}")`,
@@ -83,10 +72,9 @@ export class TaskService {
         });
       }
 
-      // 4. Validate task is in an assignable state
-      if (!ASSIGNABLE_STATES.includes(task.state)) {
+      if (!ASSIGNABLE_STATES.includes(task.state as any)) {
         throw new GuardError({
-          message: `Task cannot be assigned from state "${task.state}". Allowed states: ${ASSIGNABLE_STATES.join(", ")}`,
+          message: `Task cannot be assigned from state "${task.state}". Allowed: ${ASSIGNABLE_STATES.join(", ")}`,
           entityType: "task",
           entityId: taskId,
           fromState: task.state,
@@ -94,14 +82,13 @@ export class TaskService {
         });
       }
 
-      // 5. State-specific validations
       if (task.state === "rework_required") {
         const hasReworkNotes =
           (task.constraints && (Array.isArray(task.constraints) ? task.constraints.length > 0 : true)) ||
           (task.escalation_reason && task.escalation_reason.trim().length > 0);
         if (!hasReworkNotes) {
           throw new GuardError({
-            message: "Task in rework_required must have rework notes (constraints or escalation_reason)",
+            message: "Task in rework_required must have rework notes",
             entityType: "task",
             entityId: taskId,
             fromState: "rework_required",
@@ -113,7 +100,7 @@ export class TaskService {
       if (task.state === "blocked") {
         if (task.blocker_reason && task.blocker_reason.trim().length > 0) {
           throw new GuardError({
-            message: `Task is still blocked: "${task.blocker_reason}". Clear blocker_reason before reassigning.`,
+            message: `Task is still blocked: "${task.blocker_reason}"`,
             entityType: "task",
             entityId: taskId,
             fromState: "blocked",
@@ -123,24 +110,12 @@ export class TaskService {
       }
 
       if (task.state === "escalated") {
-        // Check for founder decision via activity event or approval
         const founderDecision = await tx.activity_events.findFirst({
-          where: {
-            entity_type: "task",
-            entity_id: taskId,
-            actor_type: "founder",
-            event_type: "task.escalation_resolved",
-          },
+          where: { entity_type: "task", entity_id: taskId, actor_type: "founder", event_type: "task.escalation_resolved" },
         });
-
         const founderApproval = await tx.approvals.findFirst({
-          where: {
-            target_type: "task",
-            target_id: taskId,
-            state: "approved",
-          },
+          where: { target_type: "task", target_id: taskId, state: "approved" },
         });
-
         if (!founderDecision && !founderApproval) {
           throw new GuardError({
             message: "Escalated task requires founder decision before reassignment",
@@ -155,7 +130,7 @@ export class TaskService {
       if (task.state === "approved") {
         if (!task.requested_outcome || task.requested_outcome.trim().length === 0) {
           throw new GuardError({
-            message: "Approved task requires requested_outcome (next stage definition) before reassignment",
+            message: "Approved task requires requested_outcome before reassignment",
             entityType: "task",
             entityId: taskId,
             fromState: "approved",
@@ -164,19 +139,14 @@ export class TaskService {
         }
       }
 
-      // 6. Update owner_role_id
       await tx.tasks.update({
         where: { id: taskId },
-        data: {
-          owner_role_id: ownerRoleId,
-          updated_at: new Date().toISOString(),
-        },
+        data: { owner_role_id: ownerRoleId, updated_at: new Date().toISOString() },
       });
 
       return { task, agentRole };
     });
 
-    // 7. Delegate state transition to OrchestrationService
     const updated = await this.orchestration.transitionEntity({
       entityType: "task",
       entityId: taskId,
@@ -189,6 +159,89 @@ export class TaskService {
         trigger: "task assigned to role",
         from_state: validationResult.task.state,
         owner_role_name: validationResult.agentRole.name,
+      },
+    });
+
+    return updated;
+  }
+
+  async completeTask({
+    taskId,
+    actorType,
+  }: {
+    taskId: string;
+    actorType: "system" | "founder" | "agent_role";
+  }) {
+    const task = await this.prisma.$transaction(async (tx) => {
+      const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
+
+      // 1. Validate task state
+      if (task.state !== "approved") {
+        throw new GuardError({
+          message: `Task must be in "approved" state to complete. Current: "${task.state}"`,
+          entityType: "task",
+          entityId: taskId,
+          fromState: task.state,
+          toState: "done",
+        });
+      }
+
+      // 2. Ensure all reviews are closed
+      const openReviews = await tx.reviews.count({
+        where: {
+          task_id: taskId,
+          state: { not: "closed" },
+        },
+      });
+
+      if (openReviews > 0) {
+        throw new GuardError({
+          message: `Task has ${openReviews} non-closed review(s). All reviews must be closed before completing task.`,
+          entityType: "task",
+          entityId: taskId,
+          fromState: "approved",
+          toState: "done",
+        });
+      }
+
+      // 3. Ensure no pending approvals linked to this task
+      const pendingApprovals = await tx.approvals.count({
+        where: {
+          target_type: "task",
+          target_id: taskId,
+          state: "pending",
+        },
+      });
+
+      if (pendingApprovals > 0) {
+        throw new GuardError({
+          message: `Task has ${pendingApprovals} pending approval(s). All approvals must be resolved before completing task.`,
+          entityType: "task",
+          entityId: taskId,
+          fromState: "approved",
+          toState: "done",
+        });
+      }
+
+      // Set closed_at
+      await tx.tasks.update({
+        where: { id: taskId },
+        data: { closed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      });
+
+      return task;
+    });
+
+    // 4. Transition task → done
+    const updated = await this.orchestration.transitionEntity({
+      entityType: "task",
+      entityId: taskId,
+      toState: "done",
+      actorType,
+      projectId: task.project_id,
+      metadata: {
+        use_case: "UC-11",
+        trigger: "task completed",
       },
     });
 
