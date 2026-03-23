@@ -497,16 +497,15 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 **State transitions triggered:**
 1. Task: `approved` → `done` (guard T12)
 2. Task: closed_at set
-3. Run(s): any `produced_output` runs → `finalized` (guard R8) if not already finalized
+3. Approval(s) linked to task: `approved`/`rejected` → `closed` (guards G5, G6)
 
 **Entities affected:**
 - Task (state update, closed_at)
-- Run(s) (finalized if pending)
-- Approval(s) linked to task: `approved`/`rejected` → `closed` (guards G5, G6)
+- Approval(s) linked to task (closed)
+- Run lifecycle is independent — Complete Task does NOT modify Run state
 
 **Activity events emitted:**
 - `task.done` — entity_type: task
-- `run.finalized` — entity_type: run (per run finalized)
 - `approval.closed` — entity_type: approval (per approval closed)
 
 **Failure paths:**
