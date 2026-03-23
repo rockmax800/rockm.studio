@@ -60,7 +60,7 @@ export function useOfficeData() {
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
         supabase.from("teams").select("*"),
         supabase.from("company_mode_settings").select("*").limit(1),
-        supabase.from("ai_employees").select("id, name, role_id, reputation_score, status").in("status", ["active", "probation"]),
+        supabase.from("ai_employees").select("id, name, role_id, reputation_score, status, hired_at"),
       ]);
 
       const tasks = tasksRes.data ?? [];
