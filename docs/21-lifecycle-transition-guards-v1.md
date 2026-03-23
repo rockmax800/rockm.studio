@@ -563,7 +563,7 @@ function guardReviewTransition(review, to_state):
 
 | # | from_state | to_state | required_conditions | side_effects | forbidden_if |
 |---|---|---|---|---|---|
-| G1 | `pending` | `approved` | founder accepts; decision_note recorded; decided_at set | emit `approval.approved` event; set decided_at | actor is not founder; no decision recorded |
+| G1 | `pending` | `approved` | founder accepts; decision_note recorded; decided_at set; target entity exists | emit `approval.approved` event; set decided_at | actor is not founder; no decision recorded; target does not exist |
 | G2 | `pending` | `rejected` | founder denies; reason recorded; decided_at set | emit `approval.rejected` event; set decided_at | actor is not founder; no reason |
 | G3 | `pending` | `deferred` | founder postpones; follow-up note recorded | emit `approval.deferred` event | no follow-up note |
 | G4 | `pending` | `expired` | request becomes obsolete; expiration_reason recorded | emit `approval.expired` event | no expiration reason |
