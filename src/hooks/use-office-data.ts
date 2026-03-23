@@ -112,6 +112,8 @@ export function useOfficeData() {
           role_team_id: role?.team_id ?? null,
           employee_name: employee?.name ?? null,
           employee_reputation: employee?.reputation_score ?? null,
+          employee_status: employee?.status ?? null,
+          is_new_hire: employee ? (new Date(employee.hired_at).getTime() > Date.now() - 3600000) : false,
           has_prediction: taskPredictions.length > 0,
           prediction_type: taskPredictions[0]?.prediction_type ?? null,
         };
