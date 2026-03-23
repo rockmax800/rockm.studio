@@ -46,7 +46,7 @@ export function useOfficeData() {
   return useQuery({
     queryKey: ["office"],
     queryFn: async () => {
-      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes] = await Promise.all([
+      const [projectsRes, tasksRes, runsRes, reviewsRes, approvalsRes, eventsRes, officeEventsRes, autonomyRes, blogRes, rolesRes, inboxApprovalsRes, predictionsRes, teamsRes, companyRes, employeesRes, experimentsRes, benchmarksRes, marketModelsRes] = await Promise.all([
         supabase.from("projects").select("*").neq("state", "archived").order("name"),
         supabase.from("tasks").select("id, title, state, project_id, owner_role_id, domain, priority").neq("state", "cancelled"),
         supabase.from("runs").select("id, task_id, state, run_number, agent_role_id").order("run_number", { ascending: false }),
