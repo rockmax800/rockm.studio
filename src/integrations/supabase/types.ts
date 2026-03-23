@@ -428,6 +428,214 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_credentials: {
+        Row: {
+          created_at: string
+          credential_label: string
+          id: string
+          last_error: string | null
+          last_validated_at: string | null
+          provider_id: string
+          secret_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credential_label: string
+          id?: string
+          last_error?: string | null
+          last_validated_at?: string | null
+          provider_id: string
+          secret_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credential_label?: string
+          id?: string
+          last_error?: string | null
+          last_validated_at?: string | null
+          provider_id?: string
+          secret_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_credentials_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_models: {
+        Row: {
+          cost_profile_hint: string | null
+          created_at: string
+          display_name: string
+          id: string
+          intended_use: string | null
+          latency_profile_hint: string | null
+          max_context: number | null
+          model_code: string
+          provider_id: string
+          quality_profile_hint: string | null
+          status: string
+          supports_json: boolean | null
+          supports_streaming: boolean | null
+          supports_tool_use: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          cost_profile_hint?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          intended_use?: string | null
+          latency_profile_hint?: string | null
+          max_context?: number | null
+          model_code: string
+          provider_id: string
+          quality_profile_hint?: string | null
+          status?: string
+          supports_json?: boolean | null
+          supports_streaming?: boolean | null
+          supports_tool_use?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          cost_profile_hint?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          intended_use?: string | null
+          latency_profile_hint?: string | null
+          max_context?: number | null
+          model_code?: string
+          provider_id?: string
+          quality_profile_hint?: string | null
+          status?: string
+          supports_json?: boolean | null
+          supports_streaming?: boolean | null
+          supports_tool_use?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_models_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_usage_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          estimated_cost_usd: number | null
+          id: string
+          input_tokens: number | null
+          latency_ms: number | null
+          model_id: string | null
+          output_tokens: number | null
+          project_id: string | null
+          provider_id: string | null
+          run_id: string | null
+          success: boolean | null
+          total_tokens: number | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          id?: string
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model_id?: string | null
+          output_tokens?: number | null
+          project_id?: string | null
+          provider_id?: string | null
+          run_id?: string | null
+          success?: boolean | null
+          total_tokens?: number | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          id?: string
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model_id?: string | null
+          output_tokens?: number | null
+          project_id?: string | null
+          provider_id?: string | null
+          run_id?: string | null
+          success?: boolean | null
+          total_tokens?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_usage_logs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "provider_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_usage_logs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      providers: {
+        Row: {
+          base_url: string | null
+          code: string
+          created_at: string
+          id: string
+          name: string
+          status: string
+          supports_streaming: boolean
+          supports_text: boolean
+          supports_tools: boolean
+          updated_at: string
+        }
+        Insert: {
+          base_url?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          supports_streaming?: boolean
+          supports_text?: boolean
+          supports_tools?: boolean
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          supports_streaming?: boolean
+          supports_text?: boolean
+          supports_tools?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           artifact_id: string
@@ -504,6 +712,89 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routing_policies: {
+        Row: {
+          allow_cross_provider_retry: boolean
+          allow_fallback: boolean
+          created_at: string
+          fallback_model_id: string | null
+          fallback_provider_id: string | null
+          id: string
+          notes: string | null
+          policy_name: string
+          preferred_model_id: string
+          preferred_provider_id: string
+          requested_outcome: string | null
+          role_code: string
+          status: string
+          task_domain: string
+          updated_at: string
+        }
+        Insert: {
+          allow_cross_provider_retry?: boolean
+          allow_fallback?: boolean
+          created_at?: string
+          fallback_model_id?: string | null
+          fallback_provider_id?: string | null
+          id?: string
+          notes?: string | null
+          policy_name: string
+          preferred_model_id: string
+          preferred_provider_id: string
+          requested_outcome?: string | null
+          role_code: string
+          status?: string
+          task_domain: string
+          updated_at?: string
+        }
+        Update: {
+          allow_cross_provider_retry?: boolean
+          allow_fallback?: boolean
+          created_at?: string
+          fallback_model_id?: string | null
+          fallback_provider_id?: string | null
+          id?: string
+          notes?: string | null
+          policy_name?: string
+          preferred_model_id?: string
+          preferred_provider_id?: string
+          requested_outcome?: string | null
+          role_code?: string
+          status?: string
+          task_domain?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routing_policies_fallback_model_id_fkey"
+            columns: ["fallback_model_id"]
+            isOneToOne: false
+            referencedRelation: "provider_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_policies_fallback_provider_id_fkey"
+            columns: ["fallback_provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_policies_preferred_model_id_fkey"
+            columns: ["preferred_model_id"]
+            isOneToOne: false
+            referencedRelation: "provider_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_policies_preferred_provider_id_fkey"
+            columns: ["preferred_provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
             referencedColumns: ["id"]
           },
         ]
