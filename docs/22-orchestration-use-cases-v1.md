@@ -880,15 +880,21 @@ Each use case is an atomic workflow action that coordinates one or more entity s
 1. Task: current_state → `cancelled` (guard T14)
 2. Task: closed_at set
 3. Any active Runs for this task: → `cancelled` → `finalized` (guards R7, R11)
+4. Open Reviews (state `in_progress` or `needs_clarification`):
+   - Set review.verdict = `rejected`
+   - Set review.reason = "Task cancelled by founder"
+   - Transition review: current_state → `rejected` (guard V6) → `closed` (guard V10)
+   - Review must end with explicit verdict — silent closure is forbidden
 
 **Entities affected:**
 - Task (state update, closed_at)
 - Run(s) (cancelled and finalized)
-- Review(s) (open reviews → closed with note "task cancelled")
+- Review(s) (verdict set to rejected, reason set, transitioned to closed via guard V10)
 
 **Activity events emitted:**
 - `task.cancelled` — entity_type: task, actor_type: founder
 - `run.cancelled` — entity_type: run (per active run)
+- `review.rejected` — entity_type: review (per open review, with reason "Task cancelled by founder")
 - `review.closed` — entity_type: review (per open review)
 
 **Failure paths:**
