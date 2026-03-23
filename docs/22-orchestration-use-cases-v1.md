@@ -1164,12 +1164,12 @@ UC-09 (Request Approval — project_activation)
 | UC-08 | Escalate Review | Review | 1 | sync | no | no |
 | UC-09 | Request Approval | Approval | 1 | sync | no | no |
 | UC-10 | Resolve Approval | Approval | 1 | sync | yes | no |
-| UC-11 | Complete Task | Task, Run(s), Approval(s) | 2-4 | sync | no | no |
+| UC-11 | Complete Task | Task, Approval(s) | 1-2 | sync | no | no |
 | UC-12 | Complete Milestone | Project, Approval | 2 | sync | yes | no |
 | UC-13 | Execute Agent Run | Run, ProviderUsageLog | 2-3 | async | no | **yes** |
 | UC-14 | Handle Run Failure | Run | 1 | async | no | no |
 | UC-15 | Handle Run Timeout | Run | 1 | async | no | no |
-| UC-16 | Supersede Run | Run (old+new) | 3 | sync | no | no |
+| UC-16 | Supersede Run | Run (old+new) | 2 | sync | no | no |
 | UC-17 | Block Task | Task | 1 | sync | no | no |
 | UC-18 | Unblock Task | Task | 1 | sync | no | no |
 | UC-19 | Escalate Task | Task | 1 | sync | no | no |
