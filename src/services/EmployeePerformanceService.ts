@@ -121,13 +121,15 @@ export async function aggregateEmployeePerformance(): Promise<EmployeeMetrics[]>
     const escalatedCount = roleTasks.filter(t => t.state === "escalated").length;
     const escalationRate = roleTasks.length > 0 ? escalatedCount / roleTasks.length : 0;
 
-    // reputation_score formula from spec
-    const reputationScore =
-      (successRate * 0.4) +
-      (1 / (1 + avgCost)) * 0.2 +
-      (1 / (1 + avgLatency / 1000)) * 0.1 -
-      (bugRate * 0.2) -
-      (escalationRate * 0.1);
+    // Unified scoring via ScoringService
+    const { computePerformanceScore } = await import("@/services/ScoringService");
+    const reputationScore = computePerformanceScore({
+      success_rate: successRate,
+      avg_cost: avgCost,
+      avg_latency: avgLatency,
+      bug_rate: bugRate,
+      escalation_rate: escalationRate,
+    });
 
     results.push({
       employee_id: emp.id,

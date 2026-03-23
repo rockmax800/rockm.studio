@@ -61,20 +61,9 @@ interface EmployeeInfo {
 }
 
 /**
- * Compute competition score for a model using weighted formula.
+ * Compute competition score for a model using unified ScoringService.
  */
-export function computeCompetitionScore(
-  benchmark: { avg_success_rate: number; avg_cost: number; avg_latency: number },
-  market: { reliability_score: number; avg_quality_score: number }
-): number {
-  return (
-    benchmark.avg_success_rate * 0.4 +
-    (1 / (1 + benchmark.avg_cost)) * 0.2 +
-    (1 / (1 + benchmark.avg_latency / 1000)) * 0.1 +
-    market.reliability_score * 0.2 +
-    market.avg_quality_score * 0.1
-  );
-}
+export { computeCompetitionScore } from "@/services/ScoringService";
 
 /**
  * Rank all models for a given team (or globally if teamId is null).

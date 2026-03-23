@@ -92,13 +92,18 @@ export async function selectBestRoleForTask(
 }
 
 function computeScore(r: RoleLoadMetrics): number {
+  // Load factor is unique to balancer (not a performance score)
   const loadFactor = (1 / (1 + r.active_tasks_count)) * 0.4;
-  const successFactor = r.success_rate * 0.3;
-  const perfFactor = Math.min(r.performance_score, 1) * 0.2;
-  const speedFactor = r.avg_run_duration_ms > 0
-    ? (1 / (1 + r.avg_run_duration_ms / 60000)) * 0.1
-    : 0.05;
-  return loadFactor + successFactor + perfFactor + speedFactor;
+  // Use unified scoring for performance component
+  const { computePerformanceScore } = require("@/services/ScoringService");
+  const perfScore = computePerformanceScore({
+    success_rate: r.success_rate,
+    avg_cost: 0,
+    avg_latency: r.avg_run_duration_ms,
+    bug_rate: 0,
+    escalation_rate: 0,
+  });
+  return loadFactor + perfScore * 0.6;
 }
 
 /**
