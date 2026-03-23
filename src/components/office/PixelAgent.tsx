@@ -70,10 +70,13 @@ export function PixelAgent({
     ? "ring-2 ring-amber-400/60 animate-[prediction-pulse_2s_ease-in-out_infinite]"
     : "";
 
+  // PART 6 — Inactive fade for soft-fired employees
+  const isInactive = employeeStatus === "inactive";
+
   return (
     <div
       onClick={onClick}
-      className="relative flex flex-col items-center cursor-pointer group transition-transform duration-200 hover:scale-105"
+      className={`relative flex flex-col items-center cursor-pointer group transition-all duration-500 hover:scale-105 ${isInactive ? "opacity-30 grayscale" : ""}`}
       style={{ width: 68 }}
     >
       {/* Visual indicators above sprite */}
