@@ -193,6 +193,8 @@ export function useOfficeData() {
         predictions,
         roleOverloads,
         companySettings,
+        hasDraftBlog,
+        hasApprovedBlog,
       };
     },
   });
