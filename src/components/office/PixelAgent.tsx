@@ -118,7 +118,12 @@ export function PixelAgent({
 
       {/* Labels */}
       <div className="mt-0.5 flex flex-col items-center max-w-[68px]">
-        {roleName && (
+        {employeeName && (
+          <span className="text-[8px] font-bold text-foreground truncate max-w-full">
+            {employeeName}
+          </span>
+        )}
+        {!employeeName && roleName && (
           <span className="text-[8px] font-medium text-muted-foreground truncate max-w-full">
             {roleName}
           </span>
