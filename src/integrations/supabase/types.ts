@@ -749,6 +749,36 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           content_markdown: string
@@ -994,6 +1024,120 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      presale_sessions: {
+        Row: {
+          blueprint_id: string | null
+          client_brief: string
+          client_name: string
+          converted_project_id: string | null
+          created_at: string
+          department_slug: string
+          estimate_cost_max: number
+          estimate_cost_min: number
+          estimate_timeline_days: number
+          estimate_tokens_avg: number
+          estimate_tokens_max: number
+          estimate_tokens_min: number
+          id: string
+          risk_level: string
+          risk_notes: string
+          spec_content: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          blueprint_id?: string | null
+          client_brief?: string
+          client_name?: string
+          converted_project_id?: string | null
+          created_at?: string
+          department_slug: string
+          estimate_cost_max?: number
+          estimate_cost_min?: number
+          estimate_timeline_days?: number
+          estimate_tokens_avg?: number
+          estimate_tokens_max?: number
+          estimate_tokens_min?: number
+          id?: string
+          risk_level?: string
+          risk_notes?: string
+          spec_content?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          blueprint_id?: string | null
+          client_brief?: string
+          client_name?: string
+          converted_project_id?: string | null
+          created_at?: string
+          department_slug?: string
+          estimate_cost_max?: number
+          estimate_cost_min?: number
+          estimate_timeline_days?: number
+          estimate_tokens_avg?: number
+          estimate_tokens_max?: number
+          estimate_tokens_min?: number
+          id?: string
+          risk_level?: string
+          risk_notes?: string
+          spec_content?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presale_sessions_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "product_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presale_sessions_converted_project_id_fkey"
+            columns: ["converted_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_blueprints: {
+        Row: {
+          created_at: string
+          default_autonomy_level: string
+          department_slug: string
+          estimate_profile: Json
+          id: string
+          name: string
+          required_roles: Json
+          scope_template: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_autonomy_level?: string
+          department_slug: string
+          estimate_profile?: Json
+          id?: string
+          name: string
+          required_roles?: Json
+          scope_template?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_autonomy_level?: string
+          department_slug?: string
+          estimate_profile?: Json
+          id?: string
+          name?: string
+          required_roles?: Json
+          scope_template?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       projects: {
         Row: {
