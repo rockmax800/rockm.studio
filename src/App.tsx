@@ -55,6 +55,7 @@ const App = () => (
           <Route path="/control/office" element={<OfficePage />} />
           <Route path="/control/founder" element={<FounderDashboard />} />
           <Route path="/control/hr" element={<HRDashboard />} />
+          <Route path="/control/hiring-market" element={<HiringMarketDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
