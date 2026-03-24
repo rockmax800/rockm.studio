@@ -10,6 +10,7 @@ import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness"
 import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
 import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
+import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
 import { Button } from "@/components/ui/button";
