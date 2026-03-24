@@ -89,7 +89,22 @@ export async function executeRun(
         phase: "run_executor",
         trigger: "execution started",
         run_number: run.run_number,
+        correlation_id: run.correlation_id,
       },
+    });
+
+    // PART 11 — Set heartbeat and lease at execution start
+    const executionStart = new Date().toISOString();
+    await prisma.$transaction(async (tx) => {
+      await tx.runs.update({
+        where: { id: runId },
+        data: {
+          heartbeat_at: executionStart,
+          lease_owner: `executor:${runId.slice(0, 8)}`,
+          started_at: executionStart,
+          updated_at: executionStart,
+        },
+      });
     });
 
     // 4. Call ProviderService (includes dual verification & adaptive routing)
