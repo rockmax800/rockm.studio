@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight } from "lucide-react";
+import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight, History } from "lucide-react";
 
 export default function FounderPage() {
   const navigate = useNavigate();
