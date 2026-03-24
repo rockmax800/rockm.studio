@@ -1544,6 +1544,63 @@ export type Database = {
           },
         ]
       }
+      learning_proposals: {
+        Row: {
+          approved_at: string | null
+          baseline_metrics_json: Json
+          candidate_version_ref: string | null
+          created_at: string
+          evaluated_at: string | null
+          evaluation_result_json: Json | null
+          expected_gain_json: Json
+          hypothesis: string
+          id: string
+          promoted_at: string | null
+          promoted_version_ref: string | null
+          proposal_type: string
+          rejection_reason: string | null
+          shadow_comparison_json: Json | null
+          source_runs_json: Json
+          status: string
+        }
+        Insert: {
+          approved_at?: string | null
+          baseline_metrics_json?: Json
+          candidate_version_ref?: string | null
+          created_at?: string
+          evaluated_at?: string | null
+          evaluation_result_json?: Json | null
+          expected_gain_json?: Json
+          hypothesis?: string
+          id?: string
+          promoted_at?: string | null
+          promoted_version_ref?: string | null
+          proposal_type: string
+          rejection_reason?: string | null
+          shadow_comparison_json?: Json | null
+          source_runs_json?: Json
+          status?: string
+        }
+        Update: {
+          approved_at?: string | null
+          baseline_metrics_json?: Json
+          candidate_version_ref?: string | null
+          created_at?: string
+          evaluated_at?: string | null
+          evaluation_result_json?: Json | null
+          expected_gain_json?: Json
+          hypothesis?: string
+          id?: string
+          promoted_at?: string | null
+          promoted_version_ref?: string | null
+          proposal_type?: string
+          rejection_reason?: string | null
+          shadow_comparison_json?: Json | null
+          source_runs_json?: Json
+          status?: string
+        }
+        Relationships: []
+      }
       model_benchmarks: {
         Row: {
           avg_cost: number
