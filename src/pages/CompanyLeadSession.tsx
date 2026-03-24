@@ -533,7 +533,7 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Constraints">
                     <div className="flex flex-wrap gap-1">
                       {scope.constraints.map((c) => (
-                        <span key={c} className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ background: "hsl(38 92% 50% / 0.08)", border: "1px solid hsl(38 92% 50% / 0.2)", color: "hsl(38 92% 50%)" }}>{c}</span>
+                        <span key={c} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-status-amber/10 border border-status-amber/20 text-status-amber">{c}</span>
                       ))}
                     </div>
                   </ExtRow>
