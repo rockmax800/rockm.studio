@@ -22,6 +22,7 @@ import FounderPage from "./pages/FounderPage";
 import SystemPage from "./pages/SystemPage";
 import SMMCapability from "./pages/SMMCapability";
 import CompanyLeadSession from "./pages/CompanyLeadSession";
+import CompanyLeadProfile from "./pages/CompanyLeadProfile";
 import EvolutionDashboard from "./pages/EvolutionDashboard";
 
 // Deep-link pages (preserved for backward compat)
