@@ -408,7 +408,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
       {/* ── Purpose strip ────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-2 border-b border-border/50 bg-secondary/30">
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Target className="h-3 w-3 text-status-blue/60" />
+          <Target className="h-3 w-3 text-muted-foreground" />
           <span className="font-medium">This conversation feeds the project blueprint and estimate.</span>
         </div>
         {showExtraction && scope.goal && (
