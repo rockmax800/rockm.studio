@@ -193,3 +193,4 @@ The ONLY write-back from Knowledge to Delivery-adjacent entities is the promotio
 | `autonomy/22-prompt-versioning.md` | Prompt versions are the primary promotion target |
 | `autonomy/23-model-competition.md` | Model benchmarks feed evaluation evidence |
 | `core/07-system-mode.md` | Shadow mode requires Experimental mode |
+| `delivery/42-evaluation-rail.md` | Promotions require eval gate to pass |
