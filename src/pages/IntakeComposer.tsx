@@ -215,6 +215,7 @@ export default function IntakeComposerV2() {
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-semibold text-foreground">Navigator</span>
                   <span className="text-[13px] text-muted-foreground">Delivery Lead</span>
+                  <span className="text-[10px] text-muted-foreground/40 ml-1 px-1.5 py-0.5 bg-surface-glass rounded border border-border/30">Step 2 — Structured Intake</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className={`h-2 w-2 rounded-full ${
