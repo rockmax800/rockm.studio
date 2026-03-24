@@ -94,8 +94,20 @@ export function useOfficeData() {
       ];
       const teamsById = Object.fromEntries(operationalTeams.map(t => [t.id, t]));
       const employees = employeesRes.data ?? [];
-      const employeesByRoleId = Object.fromEntries(employees.map((e: any) => [e.role_id, e]));
-      const companySettings = (companyRes.data ?? [])[0] ?? null;
+
+      // Grouped index: one role may have multiple employees.
+      // Never silently collapse multiple employees into one identity.
+      const roleEmployeesByRoleId: Record<string, typeof employees> = {};
+      for (const e of employees) {
+        if (e.role_id) {
+          if (!roleEmployeesByRoleId[e.role_id]) roleEmployeesByRoleId[e.role_id] = [];
+          roleEmployeesByRoleId[e.role_id].push(e);
+        }
+      }
+      // Legacy 1:1 kept for backward-compat consumers but now picks first only
+      const employeesByRoleId = Object.fromEntries(
+        Object.entries(roleEmployeesByRoleId).map(([k, v]) => [k, v[0]])
+      );
 
       // Experiment lookup by role_id
       const experiments = experimentsRes.data ?? [];
