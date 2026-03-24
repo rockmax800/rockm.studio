@@ -206,7 +206,7 @@ function generateModuleEstimates(scope: ExtractedScope): ModuleEstimate[] {
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════════ */
 
-export default function CompanyLeadSession() {
+export default function CompanyLeadSession({ embedded = false, onClose }: { embedded?: boolean; onClose?: () => void }) {
   const navigate = useNavigate();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
