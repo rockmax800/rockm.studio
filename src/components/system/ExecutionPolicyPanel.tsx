@@ -15,6 +15,9 @@ import {
   Cpu, Zap, AlertTriangle, Check, Loader2, Info,
   Server, Bot, Sparkles, Shield,
 } from "lucide-react";
+import {
+  ENGINE_EXPLAINER, PROVIDER_EXPLAINER, MODE_EXPLAINER, POLICY_SUMMARY,
+} from "@/components/ui/execution-policy-explainer";
 import type {
   ExecutionEngine,
   ProviderFamily,
