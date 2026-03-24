@@ -5,8 +5,10 @@
 // - Retry idempotency
 // - Serializable isolation
 // - Handoff acknowledgement validation (PART 9)
+// - Delivery Spine workspace creation (PART 10)
 
 import { GuardError } from "@/guards/GuardError";
+import { DeliverySpineService } from "@/services/DeliverySpineService";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -15,6 +17,7 @@ interface PrismaTransactionClient {
     findFirst: (args: any) => Promise<any>;
     findMany: (args: any) => Promise<any>;
     update: (args: any) => Promise<any>;
+    updateMany: (args: any) => Promise<{ count: number }>;
     create: (args: any) => Promise<any>;
     count: (args: any) => Promise<number>;
   };
@@ -43,10 +46,12 @@ const ACTIVE_RUN_STATES = ["created", "preparing", "running"] as const;
 export class RunService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
+  private deliverySpine: DeliverySpineService;
 
   constructor(prisma: PrismaLike, orchestrationService: OrchestrationServiceLike) {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
+    this.deliverySpine = new DeliverySpineService(prisma);
   }
 
   async startRun({
@@ -176,6 +181,25 @@ export class RunService {
       projectId: task.project_id,
       metadata: { use_case: "UC-03", trigger: "run started for task", run_id: run.id },
     });
+
+    // PART 10 — Create RepoWorkspace for code-producing domains
+    const CODE_DOMAINS = ["frontend_delivery", "backend_delivery", "frontend", "backend"];
+    if (task.domain && CODE_DOMAINS.includes(task.domain)) {
+      try {
+        const repo = await this.deliverySpine.findProjectRepository(task.project_id);
+        if (repo) {
+          await this.deliverySpine.createWorkspace({
+            projectId: task.project_id,
+            taskId: taskId,
+            runId: run.id,
+            repositoryId: repo.id,
+            branchName: `task/${taskId.slice(0, 8)}/run-${run.run_number}`,
+          });
+        }
+      } catch {
+        // Best-effort workspace creation — run proceeds without it
+      }
+    }
 
     // Enqueue execution
     await this.enqueueRunExecution(run.id);

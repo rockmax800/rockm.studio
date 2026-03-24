@@ -3,9 +3,11 @@
 // Hardened with Serializable isolation
 // Extended with RunEvaluation recording (PART 7)
 // Extended with Handoff creation on rejection (PART 9)
+// Extended with PullRequest creation on validation (PART 10)
 
 import { GuardError } from "@/guards/GuardError";
 import { HandoffService } from "@/services/HandoffService";
+import { DeliverySpineService } from "@/services/DeliverySpineService";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -54,6 +56,7 @@ export class ReviewService {
   private orchestration: OrchestrationServiceLike;
   private performanceService: AgentPerformanceServiceLike | null;
   private handoffService: HandoffService;
+  private deliverySpine: DeliverySpineService;
 
   constructor(
     prisma: PrismaLike,
@@ -64,6 +67,7 @@ export class ReviewService {
     this.orchestration = orchestrationService;
     this.performanceService = performanceService ?? null;
     this.handoffService = new HandoffService(prisma);
+    this.deliverySpine = new DeliverySpineService(prisma);
   }
 
   async approveReview({
@@ -187,6 +191,32 @@ export class ReviewService {
         });
       } catch {
         // Best-effort performance tracking
+      }
+    }
+
+    // PART 10 — Create logical PullRequest on validation (code domains)
+    if (task && run) {
+      const CODE_DOMAINS = ["frontend_delivery", "backend_delivery", "frontend", "backend"];
+      if (task.domain && CODE_DOMAINS.includes(task.domain)) {
+        try {
+          const workspace = await this.deliverySpine.findRunWorkspace(run.id);
+          if (workspace) {
+            const repo = await this.deliverySpine.findProjectRepository(task.project_id);
+            if (repo) {
+              await this.deliverySpine.createPullRequest({
+                projectId: task.project_id,
+                taskId: task.id,
+                runId: run.id,
+                repositoryId: repo.id,
+                sourceBranch: workspace.branch_name,
+                targetBranch: repo.default_branch,
+                title: `[${task.id.slice(0, 8)}] ${task.title ?? "Task delivery"}`,
+              });
+            }
+          }
+        } catch {
+          // Best-effort PR creation — review result stands
+        }
       }
     }
 

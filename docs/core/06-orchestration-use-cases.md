@@ -133,4 +133,34 @@ UC-02 Assign Task (+ create Handoff)
 4. **Handoff acknowledgement** is a prerequisite step between assignment and execution — the target role must explicitly accept work before running.
 5. **All Handoff lifecycle changes** emit `ActivityEvent` records: `handoff.created`, `handoff.acknowledged`, `handoff.completed`, `handoff.cancelled`.
 
+---
+
+## 9 — Delivery Spine Hooks
+
+Orchestration integrates with the Delivery Spine for code-producing tasks.
+No external API calls — model-only records.
+
+### 9.1 UC-03 (Start Run) — Workspace Creation
+
+When `task.domain ∈ {frontend, backend, frontend_delivery, backend_delivery}`:
+1. Find the project's default repository
+2. Create a `repo_workspaces` record linked to project, task, run, repository
+3. Branch name: `task/{task_id_prefix}/run-{run_number}`
+4. Best-effort: run proceeds even if no repository configured
+
+### 9.2 UC-06 (Resolve Review — Approve) — PullRequest Creation
+
+When task is validated and `task.domain` is a code domain:
+1. Find the run's workspace
+2. Create a `pull_requests` record (logical only, no GitHub API)
+3. Source branch from workspace, target branch from repository default
+4. PR title includes task ID prefix and task title
+
+### 9.3 Deployment (Manual)
+
+Deployments are created manually for now. Future integration will automate:
+- PR merge → staging deployment
+- Staging verification → production deployment
+- Rollback tracking via `rollback_of_deployment_id`
+
 For full use case details, see original `docs/22-orchestration-use-cases-v1.md`.

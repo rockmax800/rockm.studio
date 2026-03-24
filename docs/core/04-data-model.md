@@ -256,3 +256,122 @@ Defines the core data model supporting project control, task orchestration, exec
 - Task 1:N ContextPack, Run, Artifact, Review
 - Run 1:N Artifact
 - Artifact 1:N Review
+
+---
+
+## 14 — Delivery Spine Entities
+
+> Additive layer for code, CI, and deployment lifecycle.
+> All entities trace back to Project → Task → Run.
+
+### 14.1 Repository
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| project_id | uuid | yes | FK |
+| provider | enum | yes | github, gitea, gitlab, other |
+| repo_owner | text | yes | |
+| repo_name | text | yes | |
+| default_branch | text | yes | Default: main |
+| status | enum | yes | active, archived |
+| created_at | timestamp | yes | |
+
+**Invariant:** (repo_owner, repo_name) is unique.
+
+### 14.2 RepoWorkspace
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| project_id | uuid | yes | FK |
+| task_id | uuid | yes | FK |
+| run_id | uuid | yes | FK |
+| repository_id | uuid | yes | FK |
+| branch_name | text | yes | |
+| worktree_path | text | no | |
+| head_sha | text | no | |
+| sandbox_mode | enum | yes | isolated, host |
+| status | enum | yes | created, active, merged, discarded |
+| created_at | timestamp | yes | |
+| released_at | timestamp | no | |
+
+**Invariant:** Each code-producing run creates exactly one workspace.
+
+### 14.3 PullRequest
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| project_id | uuid | yes | FK |
+| task_id | uuid | yes | FK |
+| run_id | uuid | yes | FK |
+| repository_id | uuid | yes | FK |
+| pr_number | integer | no | Set when actual PR created |
+| source_branch | text | yes | |
+| target_branch | text | yes | |
+| title | text | yes | |
+| status | enum | yes | opened, merged, closed |
+| opened_at | timestamp | yes | |
+| merged_at | timestamp | no | |
+| closed_at | timestamp | no | |
+
+**Traceability:** Every PR must reference project_id, task_id, run_id.
+
+### 14.4 CheckSuite
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| project_id | uuid | yes | FK |
+| task_id | uuid | yes | FK |
+| pull_request_id | uuid | yes | FK |
+| provider | enum | yes | github_actions, other |
+| external_run_ref | text | no | |
+| status | enum | yes | queued, running, passed, failed |
+| summary | text | no | |
+| logs_ref | text | no | |
+| started_at | timestamp | no | |
+| finished_at | timestamp | no | |
+
+### 14.5 Deployment
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| project_id | uuid | yes | FK |
+| environment | enum | yes | staging, production, preview |
+| source_type | enum | yes | branch, pr, tag |
+| source_ref | text | yes | |
+| version_label | text | no | |
+| status | enum | yes | pending, deploying, live, failed, rolled_back |
+| preview_url | text | no | |
+| logs_ref | text | no | |
+| started_at | timestamp | no | |
+| finished_at | timestamp | no | |
+| rollback_of_deployment_id | uuid | no | Self-reference |
+
+### 14.6 DomainBinding
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| project_id | uuid | yes | FK |
+| environment | enum | yes | staging, production, preview |
+| domain | text | yes | Unique |
+| dns_status | text | yes | |
+| tls_status | text | yes | |
+| target_type | enum | yes | ip, cname, platform |
+| target_value | text | yes | |
+| healthcheck_url | text | no | |
+| status | enum | yes | active, misconfigured, pending |
+
+---
+
+## 15 — Delivery Spine Relationships
+
+- Project 1:N Repository, Deployment, DomainBinding
+- Repository 1:N RepoWorkspace, PullRequest
+- Run 1:1 RepoWorkspace (for code-producing runs)
+- Task 1:N PullRequest (via runs)
+- PullRequest 1:N CheckSuite

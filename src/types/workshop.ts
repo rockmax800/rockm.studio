@@ -1,5 +1,5 @@
 // Core entity types for AI Workshop OS
-// v2.1 — Lifecycle/Outcome separation refactor
+// v2.2 — Lifecycle/Outcome separation + Delivery Spine
 
 export type ProjectState = "draft" | "scoped" | "active" | "blocked" | "in_review" | "paused" | "completed" | "archived";
 
@@ -24,6 +24,20 @@ export type ApprovalDecision = "approved" | "rejected" | "deferred" | null;
 // Handoff: collaboration contract between roles
 export type HandoffOutcome = "implementation" | "review" | "clarification" | "approval_prep" | "qa" | "release";
 export type HandoffStatus = "created" | "acknowledged" | "completed" | "cancelled";
+
+// Delivery Spine types
+export type RepoProvider = "github" | "gitea" | "gitlab" | "other";
+export type RepoStatus = "active" | "archived";
+export type WorkspaceStatus = "created" | "active" | "merged" | "discarded";
+export type SandboxMode = "isolated" | "host";
+export type PRStatus = "opened" | "merged" | "closed";
+export type CheckSuiteStatus = "queued" | "running" | "passed" | "failed";
+export type CIProvider = "github_actions" | "other";
+export type DeployEnvironment = "staging" | "production" | "preview";
+export type DeploySourceType = "branch" | "pr" | "tag";
+export type DeployStatus = "pending" | "deploying" | "live" | "failed" | "rolled_back";
+export type DomainBindingStatus = "active" | "misconfigured" | "pending";
+export type DomainTargetType = "ip" | "cname" | "platform";
 
 export type EntityState = ProjectState | TaskState | RunState | ArtifactState | ReviewLifecycleState | ApprovalLifecycleState;
 
