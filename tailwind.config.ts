@@ -132,6 +132,7 @@ export default {
           overlay: "hsl(var(--surface-overlay))",
           sunken: "hsl(var(--surface-sunken))",
           glass: "hsl(var(--surface-glass))",
+          elevated: "hsl(var(--surface-elevated))",
         },
         lifecycle: {
           draft: "hsl(var(--lifecycle-draft))",
