@@ -85,10 +85,10 @@ This is what runs when you check out the repo and start the dev server.
 | Founder | `/founder` | Decision queue (approvals, escalations, risk) |
 | System | `/system` | Health, providers, mode, audit, docs |
 
-### Management
+### Teams & Capabilities
 | Page | Route | Purpose |
 |------|-------|---------|
-| Teams | `/teams` | Capability pools, team members, hiring & performance |
+| Teams | `/teams` | Capability teams, team members, hiring & performance |
 | Evolution | `/evolution` | Gödel proposals, Darwin experiments, feedback triggers |
 | Content | `/smm` | AI-generated content from production events |
 
