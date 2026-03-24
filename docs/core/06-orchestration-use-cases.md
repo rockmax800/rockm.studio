@@ -91,15 +91,16 @@ Events are post-commit: if emission fails, state change is still valid (events r
 ## 5 — Core Workflow Chain
 
 ```
-UC-02 Assign Task
-  → UC-03 Start Run
-    → UC-13 Execute Agent Run (Provider)
-      → UC-04 Complete Run
-        → UC-05 Submit Artifact for Review
-          → UC-06 Resolve Review
-            verdict=approved → Task → validated (UC-11 Complete Task)
-            verdict=rejected → Task → rework_required → UC-02 Reassign
-            verdict=escalated → UC-20 Resolve Escalation
+UC-02 Assign Task (+ create Handoff)
+  → Handoff acknowledged by target role
+    → UC-03 Start Run (validates acknowledged handoff)
+      → UC-13 Execute Agent Run (Provider)
+        → UC-04 Complete Run
+          → UC-05 Submit Artifact for Review
+            → UC-06 Resolve Review
+              verdict=approved → Task → validated (UC-11 Complete Task)
+              verdict=rejected → Task → rework_required + rework Handoff created → UC-02 Reassign
+              verdict=escalated → UC-20 Resolve Escalation
 ```
 
 ---
