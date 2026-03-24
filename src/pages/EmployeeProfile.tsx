@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { getPersona, getStatusMeta } from "@/lib/personas";
+import { TrainingLab } from "@/components/employees/TrainingLab";
 
 import {
   TrendingUp, TrendingDown, Shield, Brain, GraduationCap, Wrench, AlertTriangle,
@@ -16,7 +17,7 @@ import {
   ChevronDown, ChevronRight, Zap, Rocket, RotateCcw, FlaskConical,
   ArrowUpRight, GitPullRequest, Server, FolderX, FolderCheck as FolderCheckIcon,
   BookOpen, Lightbulb, Ban, Save, ArrowLeft, Activity, Eye, Layers,
-} from "lucide-react";
+}from "lucide-react";
 
 export default function EmployeeProfile() {
   const { id = "" } = useParams();
@@ -467,95 +468,29 @@ export default function EmployeeProfile() {
           </section>
 
           {/* ════════════════════════════════════════════════════════
-              SECTION 4 — TRAINING MODE
+              SECTION 4 — TRAINING LAB
               ════════════════════════════════════════════════════════ */}
           <section>
-            <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Training" />
+            <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Training Lab"
+              subtitle="Teach this agent through conversation, notes, and structured prompt drafting" />
             <div className="mt-4">
-              <div className={`rounded-2xl border bg-card p-6 ${trainingMode ? "border-l-4 border-l-status-amber border-status-amber/30 bg-status-amber/3" : "border-border"}`}>
-                {!trainingMode ? (
+              {!trainingMode ? (
+                <div className="rounded-2xl border border-border bg-card p-6">
                   <div className="flex items-center gap-6">
                     <div className="flex-1">
-                      <p className="text-[18px] font-bold text-foreground">Training Mode</p>
+                      <p className="text-[18px] font-bold text-foreground">Training Lab</p>
                       <p className="text-[14px] text-muted-foreground mt-1 leading-relaxed max-w-[600px]">
-                        Enter training mode to add rules, examples, corrections, and constraints. Changes are staged until explicitly saved.
+                        Enter training mode to open the full Training Lab — a 3-panel workspace for teaching through conversation, adding materials, and refining a synthesized prompt draft.
                       </p>
                     </div>
                     <Button className="h-11 text-[14px] font-bold gap-2 px-6 shrink-0 bg-foreground text-background hover:bg-foreground/90" onClick={() => setTrainingMode(true)}>
-                      <Unlock className="h-4 w-4" /> Enter Training Mode
+                      <Unlock className="h-4 w-4" /> Open Training Lab
                     </Button>
                   </div>
-                ) : (
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[18px] font-bold text-foreground">Training Mode Active</p>
-                        <p className="text-[14px] text-status-amber mt-0.5">Add rules, examples, corrections. Changes are staged until saved.</p>
-                      </div>
-                      <Button variant="outline" size="sm" className="h-9 text-[13px] gap-2 font-bold" onClick={() => setTrainingMode(false)}>
-                        <Lock className="h-4 w-4" /> Exit
-                      </Button>
-                    </div>
-
-                    {/* Quick actions */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <TrainingAction icon={<Plus className="h-4 w-4" />} label="Add Rule" desc="New behavioral rule" />
-                      <TrainingAction icon={<FileCode className="h-4 w-4" />} label="Add Example" desc="Reference pattern" />
-                      <TrainingAction icon={<Ban className="h-4 w-4" />} label="Add Constraint" desc="Explicit restriction" />
-                      <TrainingAction icon={<AlertTriangle className="h-4 w-4" />} label="Add Correction" desc="Fix past mistake" />
-                    </div>
-
-                    {/* Inline add */}
-                    <div className="border border-border/40 rounded-xl p-5 bg-card">
-                      <p className="text-[14px] font-bold text-foreground mb-3">Quick Add Memory Entry</p>
-                      <Textarea
-                        value={newRuleText}
-                        onChange={(e) => setNewRuleText(e.target.value)}
-                        placeholder="Type a new rule, pattern, or correction…"
-                        className="h-20 text-[14px] resize-none bg-background rounded-xl"
-                      />
-                      <div className="flex items-center gap-3 mt-3">
-                        <select value={newRuleCategory} onChange={(e) => setNewRuleCategory(e.target.value)}
-                          className="h-9 rounded-lg border border-input bg-background px-3 text-[13px] text-foreground">
-                          <option value="core_knowledge">Core Knowledge</option>
-                          <option value="project_memory">Project Memory</option>
-                          <option value="learned_patterns">Learned Pattern</option>
-                          <option value="failure_corrections">Failure Correction</option>
-                          <option value="manual_overrides">Manual Override</option>
-                        </select>
-                        <Button size="sm" className="h-9 text-[13px] gap-2 px-4 font-bold" onClick={addPendingRule}
-                          disabled={!newRuleText.trim()}>
-                          <Plus className="h-4 w-4" /> Stage Entry
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Pending updates */}
-                    {pendingUpdates.length > 0 && (
-                      <div className="border border-status-amber/30 rounded-xl p-5 bg-status-amber/5">
-                        <p className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-status-amber" /> Pending Memory Updates ({pendingUpdates.length})
-                        </p>
-                        <div className="space-y-2">
-                          {pendingUpdates.map((u, i) => (
-                            <div key={i} className="flex items-start gap-2 text-[14px] text-foreground bg-card rounded-lg px-3 py-2.5">
-                              <span className="w-2 h-2 rounded-full bg-status-amber mt-2 shrink-0" />
-                              <span className="flex-1">{u}</span>
-                              <button onClick={() => setPendingUpdates((p) => p.filter((_, j) => j !== i))}
-                                className="text-muted-foreground hover:text-destructive transition-colors">
-                                <XCircle className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <Button className="mt-4 w-full h-11 text-[14px] font-bold gap-2 bg-foreground text-background hover:bg-foreground/90">
-                          <Save className="h-4 w-4" /> Save All Memory Updates
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <TrainingLab employeeName={employee.name} roleName={roleName} />
+              )}
             </div>
           </section>
 
