@@ -5,28 +5,25 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDepartments } from "@/hooks/use-department-data";
-import { useHRDashboard } from "@/hooks/use-hr-data";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { getPersona } from "@/lib/personas";
 import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
-import { HRProposalCard } from "@/components/teams/HRProposalCard";
-import { PerformanceProposalCard } from "@/components/teams/PerformanceProposalCard";
 import { TeamBalanceChart } from "@/components/teams/TeamBalanceChart";
 import { toast } from "sonner";
 import { getMBTI } from "@/lib/mbtiData";
 import { getNationality } from "@/lib/nationalityData";
 import {
-  generateHRProposals, generatePerformanceProposals, computeTeamDistribution,
-  type HRProposal, type HRPerformanceProposal, ROLE_OPTIONS, STATUS_META,
+  computeTeamDistribution,
+  ROLE_OPTIONS, STATUS_META,
 } from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
-  ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy,
-  Zap, Activity, GraduationCap, FlaskConical, Plus,
-  UserPlus, ShieldAlert, BarChart3, Sparkles,
+  ChevronDown, ChevronRight, AlertTriangle,
+  Zap, Activity, Plus,
+  Sparkles,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
