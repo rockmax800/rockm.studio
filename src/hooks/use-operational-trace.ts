@@ -33,7 +33,7 @@ async function fetchOperationalTrace(filters: TraceFilters): Promise<TraceItem[]
     .order("created_at", { ascending: false })
     .limit(200);
   if (filters.projectId) aeQ = aeQ.eq("project_id", filters.projectId);
-  if (filters.entityType) aeQ = aeQ.eq("entity_type", filters.entityType);
+  if (filters.entityType) aeQ = aeQ.eq("entity_type", filters.entityType as any);
   if (filters.eventType) aeQ = aeQ.eq("event_type", filters.eventType);
   if (filters.since) aeQ = aeQ.gte("created_at", filters.since);
   if (filters.until) aeQ = aeQ.lte("created_at", filters.until);
