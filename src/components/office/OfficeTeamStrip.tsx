@@ -82,7 +82,7 @@ export function OfficeTeamStrip({ agents }: OfficeTeamStripProps) {
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
