@@ -498,7 +498,7 @@ html {
   --ls-text: var(--foreground);
   --ls-text-muted: var(--muted-foreground);
   --ls-text-faint: var(--muted-foreground);
-  --ls-accent: 217 91% 60%;
+  --ls-accent: 152 56% 42%;             /* green accent — not blue */
   --ls-accent-soft: var(--accent);
   --ls-green: 152 60% 42%;
   --ls-amber: 38 92% 50%;
