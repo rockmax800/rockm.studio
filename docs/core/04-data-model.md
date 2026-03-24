@@ -233,13 +233,16 @@ When a Run enters `preparing`, `ContextSnapshotService.assembleSnapshot()` freez
 
 ## 9 — Artifact
 
+### 9.1 Core Fields
+
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | uuid | yes | PK |
 | project_id | uuid | yes | FK |
 | task_id | uuid | no | FK |
 | run_id | uuid | no | FK |
-| artifact_type | enum | yes | |
+| artifact_type | enum | yes | Legacy type enum |
+| artifact_category | text | no | Typed category (v3.0) — see §9.3 |
 | title | string | yes | |
 | state | enum | yes | artifact_state |
 | storage_kind | enum | yes | db_text, file_path, github_ref, external |
@@ -252,6 +255,36 @@ When a Run enters `preparing`, `ContextSnapshotService.assembleSnapshot()` freez
 | version | integer | yes | |
 | created_at | timestamp | yes | |
 | updated_at | timestamp | yes | |
+
+### 9.2 Evidence Fields (v3.0)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| source_entity_type | text | no | run, review, deployment, blueprint, estimate, check_suite |
+| source_entity_id | uuid | no | FK to originating entity |
+| related_repo_workspace_id | uuid | no | FK repo_workspaces |
+| related_pull_request_id | uuid | no | FK pull_requests |
+| related_check_suite_id | uuid | no | FK check_suites |
+| related_deployment_id | uuid | no | FK deployments |
+| changed_files_json | jsonb | no | Files modified (for implementation_patch) |
+| tests_executed_json | jsonb | no | Test results (for qa_evidence) |
+
+### 9.3 Artifact Categories (v3.0)
+
+| Category | Source Entity | Key Requirements |
+|----------|--------------|-----------------|
+| spec | blueprint | — |
+| architecture | blueprint | — |
+| implementation_patch | run | run_id + workspace required |
+| review_report | review | review must have verdict |
+| qa_evidence | check_suite / deployment | — |
+| release_note | deployment | deployment required |
+| deployment_receipt | deployment | deployment must be live |
+| blueprint | blueprint | — |
+| estimate | estimate | — |
+| technical_plan | — | — |
+
+See `core/11-artifact-type-system.md` for full contract rules.
 
 **Invariant:** At least one of `task_id` or `run_id` must exist.
 
