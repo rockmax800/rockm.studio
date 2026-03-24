@@ -336,7 +336,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </button>
               <div>
                 <p className="text-[11px] text-muted-foreground">Command Center /</p>
-                <h1 className="text-[15px] font-bold text-foreground">Company Lead</h1>
+                <h1 className="text-[15px] font-bold text-foreground">Project Briefing</h1>
               </div>
             </>
           ) : (
@@ -348,8 +348,8 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <h1 className="text-[16px] font-bold text-foreground">Company Lead</h1>
-                <p className="text-[11px] text-muted-foreground">Step 1 — Consultation & scope definition</p>
+                <h1 className="text-[16px] font-bold text-foreground">Project Briefing Workspace</h1>
+                <p className="text-[11px] text-muted-foreground">Company Lead · Structured scope & estimate session</p>
               </div>
             </>
           )}
@@ -405,10 +405,49 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
         </div>
       </header>
 
+      {/* ── Purpose strip ────────────────────────────────── */}
+      <div className="shrink-0 flex items-center gap-3 px-6 py-2 border-b border-border/50 bg-secondary/30">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Target className="h-3 w-3 text-status-blue/60" />
+          <span className="font-medium">This conversation feeds the project blueprint and estimate.</span>
+        </div>
+        {showExtraction && scope.goal && (
+          <div className="ml-auto flex items-center gap-4 text-[10px] font-mono text-muted-foreground/70">
+            {scope.goal && (
+              <span className="flex items-center gap-1 max-w-[200px] truncate">
+                <span className="font-semibold text-muted-foreground uppercase tracking-wider">Objective</span>
+                <span className="text-foreground/70 truncate">{scope.goal.slice(0, 60)}</span>
+              </span>
+            )}
+            {scope.modules.length > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="font-semibold text-muted-foreground uppercase tracking-wider">Scope</span>
+                <span className="text-foreground/70">{scope.modules.length} modules</span>
+              </span>
+            )}
+            {scope.constraints.length > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="font-semibold text-muted-foreground uppercase tracking-wider">Constraints</span>
+                <span className="text-foreground/70">{scope.constraints.length}</span>
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <span className="font-semibold text-muted-foreground uppercase tracking-wider">Confidence</span>
+              <span className={cn(
+                "text-foreground/70",
+                userMessageCount >= 4 ? "text-status-green" : userMessageCount >= 2 ? "text-status-amber" : ""
+              )}>
+                {userMessageCount >= 4 ? "High" : userMessageCount >= 2 ? "Medium" : "Low"}
+              </span>
+            </span>
+          </div>
+        )}
+      </div>
+
       {/* ── Main content ─────────────────────────────────── */}
       <div className="flex-1 min-h-0 flex overflow-hidden">
 
-        {/* ══ LEFT — Character-led conversation ══ */}
+        {/* ══ LEFT — Guided briefing conversation ══ */}
         <div className="flex-1 flex flex-col min-h-0 relative">
 
           {/* Conversation area */}
@@ -521,9 +560,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
               </div>
-              <p className="text-[11px] mt-2 text-center text-muted-foreground">
-                Press Enter to send · Shift+Enter for new line
-              </p>
+              <div className="flex items-center justify-between mt-2 px-1">
+                <p className="text-[10px] text-muted-foreground/50">
+                  {phase === "discovery"
+                    ? `Question ${Math.min(questionIndex + 1, LEAD_QUESTIONS.length)} of ${LEAD_QUESTIONS.length} · guided briefing`
+                    : `Phase: ${PHASE_LABELS[phase]}`}
+                </p>
+                <p className="text-[10px] text-muted-foreground/50">
+                  Enter to send · Shift+Enter for new line
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -538,9 +584,12 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             <div className="flex items-center gap-2 px-1">
               <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.8} />
               <span className="text-[11px] font-semibold tracking-[0.02em] text-muted-foreground">
-                Live Extraction
+                Live Extraction → Blueprint
               </span>
             </div>
+            <p className="text-[10px] text-muted-foreground/50 px-1 -mt-2">
+              Structured outputs extracted from the briefing conversation
+            </p>
 
             {/* Scope */}
             {showExtraction ? (
