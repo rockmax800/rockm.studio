@@ -71,3 +71,17 @@ The Company page (`/company`) presents three internal departments as clickable c
 
 Each card shows summary metrics on the overview and drills into a sub-view.
 Navigation does not change — Company remains a secondary nav item under Management.
+
+---
+
+## 6 — Front Office Integration (v2.3)
+
+Departments are linked to Front Office via `intake_requests.department_id`:
+
+```
+IntakeRequest → department_id → Department
+  → BlueprintContract → EstimateReport → LaunchDecision → Project
+```
+
+The department determines which teams and roles are available for the resulting project.
+IntakeRequests can be filtered by department for workload tracking.

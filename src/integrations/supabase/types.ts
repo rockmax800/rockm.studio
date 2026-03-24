@@ -521,6 +521,56 @@ export type Database = {
         }
         Relationships: []
       }
+      blueprint_contracts: {
+        Row: {
+          acceptance_criteria_json: Json
+          approved_at: string | null
+          approved_by_founder: boolean
+          created_at: string
+          critical_risks_json: Json
+          effort_band: string
+          id: string
+          intake_request_id: string
+          key_decisions_json: Json
+          out_of_scope_json: Json
+          scope_json: Json
+        }
+        Insert: {
+          acceptance_criteria_json?: Json
+          approved_at?: string | null
+          approved_by_founder?: boolean
+          created_at?: string
+          critical_risks_json?: Json
+          effort_band?: string
+          id?: string
+          intake_request_id: string
+          key_decisions_json?: Json
+          out_of_scope_json?: Json
+          scope_json?: Json
+        }
+        Update: {
+          acceptance_criteria_json?: Json
+          approved_at?: string | null
+          approved_by_founder?: boolean
+          created_at?: string
+          critical_risks_json?: Json
+          effort_band?: string
+          id?: string
+          intake_request_id?: string
+          key_decisions_json?: Json
+          out_of_scope_json?: Json
+          scope_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blueprint_contracts_intake_request_id_fkey"
+            columns: ["intake_request_id"]
+            isOneToOne: false
+            referencedRelation: "intake_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bottleneck_predictions: {
         Row: {
           confidence_score: number
@@ -1020,6 +1070,62 @@ export type Database = {
           },
         ]
       }
+      estimate_reports: {
+        Row: {
+          approved_at: string | null
+          approved_by_founder: boolean
+          avg_cost_estimate: number
+          avg_token_estimate: number
+          blueprint_contract_id: string
+          created_at: string
+          id: string
+          min_cost_estimate: number
+          min_token_estimate: number
+          risk_notes_json: Json
+          timeline_days_estimate: number
+          worst_case_cost_estimate: number
+          worst_case_token_estimate: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_founder?: boolean
+          avg_cost_estimate?: number
+          avg_token_estimate?: number
+          blueprint_contract_id: string
+          created_at?: string
+          id?: string
+          min_cost_estimate?: number
+          min_token_estimate?: number
+          risk_notes_json?: Json
+          timeline_days_estimate?: number
+          worst_case_cost_estimate?: number
+          worst_case_token_estimate?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_founder?: boolean
+          avg_cost_estimate?: number
+          avg_token_estimate?: number
+          blueprint_contract_id?: string
+          created_at?: string
+          id?: string
+          min_cost_estimate?: number
+          min_token_estimate?: number
+          risk_notes_json?: Json
+          timeline_days_estimate?: number
+          worst_case_cost_estimate?: number
+          worst_case_token_estimate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimate_reports_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       handoffs: {
         Row: {
           acceptance_criteria_json: Json
@@ -1154,6 +1260,88 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intake_requests: {
+        Row: {
+          business_goal: string
+          client_name: string
+          constraints_json: Json
+          created_at: string
+          department_id: string | null
+          id: string
+          non_goals_json: Json
+          risk_class: string
+          status: string
+          success_metrics_json: Json
+          target_users_json: Json
+        }
+        Insert: {
+          business_goal?: string
+          client_name?: string
+          constraints_json?: Json
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          non_goals_json?: Json
+          risk_class?: string
+          status?: string
+          success_metrics_json?: Json
+          target_users_json?: Json
+        }
+        Update: {
+          business_goal?: string
+          client_name?: string
+          constraints_json?: Json
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          non_goals_json?: Json
+          risk_class?: string
+          status?: string
+          success_metrics_json?: Json
+          target_users_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intake_requests_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_decisions: {
+        Row: {
+          created_at: string
+          decision: string
+          estimate_report_id: string
+          founder_note: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          decision?: string
+          estimate_report_id: string
+          founder_note?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          estimate_report_id?: string
+          founder_note?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_decisions_estimate_report_id_fkey"
+            columns: ["estimate_report_id"]
+            isOneToOne: false
+            referencedRelation: "estimate_reports"
             referencedColumns: ["id"]
           },
         ]
@@ -1464,10 +1652,13 @@ export type Database = {
       projects: {
         Row: {
           archived_at: string | null
+          blueprint_contract_id: string | null
           created_at: string
           current_phase: string | null
+          estimate_report_id: string | null
           founder_notes: string | null
           id: string
+          intake_request_id: string | null
           name: string
           project_type: string | null
           purpose: string
@@ -1479,10 +1670,13 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          blueprint_contract_id?: string | null
           created_at?: string
           current_phase?: string | null
+          estimate_report_id?: string | null
           founder_notes?: string | null
           id?: string
+          intake_request_id?: string | null
           name: string
           project_type?: string | null
           purpose: string
@@ -1494,10 +1688,13 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          blueprint_contract_id?: string | null
           created_at?: string
           current_phase?: string | null
+          estimate_report_id?: string | null
           founder_notes?: string | null
           id?: string
+          intake_request_id?: string | null
           name?: string
           project_type?: string | null
           purpose?: string
@@ -1508,6 +1705,27 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_estimate_report_id_fkey"
+            columns: ["estimate_report_id"]
+            isOneToOne: false
+            referencedRelation: "estimate_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_intake_request_id_fkey"
+            columns: ["intake_request_id"]
+            isOneToOne: false
+            referencedRelation: "intake_requests"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_team_id_fkey"
             columns: ["team_id"]

@@ -1,8 +1,10 @@
 // UC-01 Activate Project
 // UC-12 Complete Project Milestone
+// Front Office guard: project creation requires approved pipeline
 // Hardened with Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
+import { FrontOfficeService } from "@/services/FrontOfficeService";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -43,10 +45,54 @@ const REQUIRED_DOC_PATHS = [
 export class ProjectService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
+  private frontOffice: FrontOfficeService;
 
   constructor(prisma: PrismaLike, orchestrationService: OrchestrationServiceLike) {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
+    this.frontOffice = new FrontOfficeService(prisma);
+  }
+
+  /**
+   * Create a new project with Front Office guard validation.
+   * Requires approved IntakeRequest → BlueprintContract → EstimateReport → LaunchDecision.
+   */
+  async createProject(params: {
+    name: string;
+    slug: string;
+    purpose: string;
+    intakeRequestId: string;
+    blueprintContractId: string;
+    estimateReportId: string;
+    teamId?: string;
+    projectType?: string;
+  }) {
+    // Validate Front Office pipeline
+    await this.frontOffice.validateProjectCreationGuard({
+      intakeRequestId: params.intakeRequestId,
+      blueprintContractId: params.blueprintContractId,
+      estimateReportId: params.estimateReportId,
+    });
+
+    // Create project with traceability references
+    const now = new Date().toISOString();
+    const project = await this.prisma.projects.create({
+      data: {
+        name: params.name,
+        slug: params.slug,
+        purpose: params.purpose,
+        project_type: params.projectType ?? null,
+        team_id: params.teamId ?? null,
+        state: "scoped",
+        intake_request_id: params.intakeRequestId,
+        blueprint_contract_id: params.blueprintContractId,
+        estimate_report_id: params.estimateReportId,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+
+    return project;
   }
 
   async activateProject(projectId: string, actorType: "founder" = "founder") {

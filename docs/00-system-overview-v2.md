@@ -126,6 +126,18 @@ Controlled self-improvement and experimental features.
 Founder Intent
     │
     ▼
+IntakeRequest (draft → discussed → blueprint_created)
+    │
+    ▼
+BlueprintContract (founder approval required)
+    │
+    ▼
+EstimateReport (founder approval required)
+    │
+    ▼
+LaunchDecision (approved | rejected | deferred)
+    │  ← Project creation BLOCKED unless decision=approved
+    ▼
 Project (draft → scoped → active)
     │
     ▼

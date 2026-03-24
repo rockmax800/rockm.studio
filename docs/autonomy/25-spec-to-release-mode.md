@@ -47,7 +47,24 @@ End-to-end autonomous delivery pipeline from specification to release candidate.
 
 ---
 
-## 5 — Status
+## 5 — Front Office Pipeline (v2.3)
+
+In Spec-to-Release mode, the pipeline starts with the formalized Front Office flow:
+
+```
+IntakeRequest (client brief → structured request)
+  → BlueprintContract (scope + acceptance criteria, founder-approved)
+    → EstimateReport (tokens, cost, timeline, founder-approved)
+      → LaunchDecision (founder approves/rejects/defers)
+        → Project creation (only if decision=approved)
+          → Delivery Core (standard lifecycle)
+```
+
+**No auto-launch from presale.** Even in full autonomy mode, the LaunchDecision requires explicit founder approval. Presale sessions may inform IntakeRequests but do not bypass the approval chain.
+
+---
+
+## 6 — Status
 
 Experimental. Not recommended for production client projects.
 High token usage — see `28-token-economy-and-budgeting.md`.
