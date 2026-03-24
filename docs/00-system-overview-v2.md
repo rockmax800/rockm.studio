@@ -117,6 +117,7 @@ Controlled self-improvement and experimental features.
 | 27 | Operating Modes | Four mode configurations |
 | 28 | Token Economy | Cost analysis and budget hierarchy |
 | 29 | Risk & Safety Matrix | Risk categorization and mitigation |
+| 30 | Delivery Lane | Deterministic release pipeline: PR → CI → Staging → Production |
 
 ---
 
