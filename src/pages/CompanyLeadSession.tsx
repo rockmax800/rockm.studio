@@ -86,7 +86,7 @@ const COMPLEXITY_CONFIG = {
 };
 
 const SEVERITY_CONFIG = {
-  info: { label: "Info", color: "hsl(217 91% 60%)", bg: "hsl(217 91% 60% / 0.06)", border: "hsl(217 91% 60% / 0.15)" },
+  info: { label: "Info", color: "hsl(210 40% 52%)", bg: "hsl(210 40% 52% / 0.06)", border: "hsl(210 40% 52% / 0.15)" },
   warning: { label: "Warning", color: "hsl(38 92% 50%)", bg: "hsl(38 92% 50% / 0.06)", border: "hsl(38 92% 50% / 0.15)" },
   critical: { label: "Critical", color: "hsl(0 72% 51%)", bg: "hsl(0 72% 51% / 0.06)", border: "hsl(0 72% 51% / 0.15)" },
 };
