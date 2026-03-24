@@ -239,6 +239,7 @@ export function useOfficeData() {
         hasApprovedBlog,
         employees,
         employeesByRoleId,
+        roleEmployeesByRoleId,
         systemMode: systemMode as "production" | "experimental",
         experimentalFeatures,
       };
