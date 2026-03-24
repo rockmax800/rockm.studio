@@ -6,7 +6,6 @@ import { StatusStrip } from "@/components/command-center/StatusStrip";
 import { FounderInbox } from "@/components/command-center/FounderInbox";
 import { ActiveDelivery } from "@/components/command-center/ActiveDelivery";
 import { LiveFlow } from "@/components/command-center/LiveFlow";
-import { HeroComposer } from "@/components/command-center/HeroComposer";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWorkerNodes, fetchStalledEntities } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,9 +81,9 @@ export default function CommandCenter() {
   const onlineWorkers = workers.filter((w: any) => w.derived_status === "online").length;
 
   return (
-    <AppLayout title="Command Center">
-      <div className="grid-content space-y-4 pb-8">
-        {/* STATUS STRIP — full width, 64px height */}
+    <AppLayout title="Nerve Center">
+      <div className="grid-content space-y-3 pb-8">
+        {/* STATUS STRIP */}
         <StatusStrip
           systemMode={modeData?.mode ?? "production"}
           workerCount={onlineWorkers}
@@ -95,22 +94,27 @@ export default function CommandCenter() {
           deploysInProgress={activeDeploys.length}
         />
 
-        {/* HERO COMPOSER — 12 columns */}
-        <HeroComposer />
-
-        {/* 3-COLUMN GRID — 4+4+4 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ minHeight: "calc(100vh - 380px)" }}>
-          <div className="ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+        {/* ASYMMETRIC 5 / 4 / 3 GRID */}
+        <div
+          className="grid grid-cols-1 lg:grid-cols-12 gap-3"
+          style={{ minHeight: "calc(100vh - 200px)" }}
+        >
+          {/* LEFT — Founder Inbox (5 cols, visually dominant) */}
+          <div className="lg:col-span-5 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <FounderInbox items={inboxItems} />
           </div>
-          <div className="ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+
+          {/* CENTER — Active Delivery (4 cols) */}
+          <div className="lg:col-span-4 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <ActiveDelivery
               inProgress={inProgressTasks}
               waitingReview={waitingReviewTasks}
               blocked={blockedTasks}
             />
           </div>
-          <div className="ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+
+          {/* RIGHT — Live Flow (3 cols, compact) */}
+          <div className="lg:col-span-3 ds-card p-3 flex flex-col min-h-0 overflow-hidden">
             <LiveFlow events={events} />
           </div>
         </div>
