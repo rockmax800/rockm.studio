@@ -447,6 +447,8 @@ export default function IntakeComposerV2() {
 
             {/* ── RIGHT: Structured Brief (5 cols) ─────────── */}
             <div className="col-span-12 lg:col-span-5 flex flex-col" style={{ minHeight: "420px" }}>
+              {/* Panel label */}
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5 px-1">What will be saved into the brief</p>
               <div className="flex-1 bg-secondary rounded-[16px] border border-border flex flex-col min-h-0 overflow-hidden">
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
