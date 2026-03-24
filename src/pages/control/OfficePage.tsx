@@ -322,7 +322,7 @@ export default function OfficePage() {
                     <div className="px-5 py-4 border-b border-border/40">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", activeCount > 0 ? tint.dot : "bg-muted-foreground/15", activeCount > 0 && "animate-pulse")} />
+                          <div className={cn("h-2 w-2 rounded-full shrink-0", activeCount > 0 ? "bg-status-green" : "bg-muted-foreground/15", activeCount > 0 && "animate-pulse")} />
                           <div className="min-w-0">
                             <h3 className="text-[16px] font-bold text-foreground tracking-tight leading-tight truncate">{team.name}</h3>
                             <p className="text-[11px] text-muted-foreground/60 mt-0.5 truncate">{team.focus_domain || "Production Capability"}</p>
