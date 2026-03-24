@@ -14,6 +14,7 @@ import ProjectsPage from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
 import TeamRoom from "./pages/TeamRoom";
+import EmployeeProfile from "./pages/EmployeeProfile";
 
 // Management pages
 import FounderPage from "./pages/FounderPage";
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/office" element={<OfficePage />} />
           <Route path="/team-room" element={<TeamRoom />} />
+          <Route path="/employees/:id" element={<EmployeeProfile />} />
 
           {/* MANAGEMENT */}
           <Route path="/founder" element={<FounderPage />} />

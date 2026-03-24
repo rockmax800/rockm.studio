@@ -167,8 +167,8 @@ export default function DepartmentDetail() {
                 const roleName = roles.find((r) => r.code === emp.role_code)?.name ?? emp.role_code;
 
                 return (
+                  <Link key={emp.id} to={`/employees/${emp.id}`}>
                   <div
-                    key={emp.id}
                     className={`ds-card p-3 hover:-translate-y-px transition-all cursor-pointer group ${
                       status === "blocked" ? "border-l-2 border-l-destructive" : ""
                     }`}
@@ -216,6 +216,7 @@ export default function DepartmentDetail() {
                       )}
                     </div>
                   </div>
+                  </Link>
                 );
               })}
             </div>
