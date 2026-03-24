@@ -796,7 +796,7 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
         <p className={cn("text-[14px] leading-[1.65] whitespace-pre-wrap", isLead ? "text-foreground" : "text-primary-foreground")}>
           {message.content}
         </p>
-        <span className={cn("text-[10px] mt-2 block", isLead ? "text-muted-foreground" : "text-white/50")}>
+        <span className={cn("text-[10px] mt-2 block", isLead ? "text-muted-foreground" : "text-primary-foreground/50")}>
           {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>

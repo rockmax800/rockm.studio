@@ -187,7 +187,7 @@ export default function TeamRoom() {
                   <button
                     onClick={() => setSelectedEmpId(null)}
                     className="text-[12px] hover:underline"
-                    style={{ color: "hsl(217 91% 60%)" }}
+                    style={{ color: "hsl(0 0% 55%)" }}
                   >
                     Choose a different specialist
                   </button>
