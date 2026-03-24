@@ -437,49 +437,46 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* ═══ TOP STRIP ═══ */}
-        <div className="px-6 py-3 border-b border-border/30 bg-card shrink-0">
+        <div className="px-6 py-2.5 border-b border-border/20 bg-card/80 shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={onBack} className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors font-medium">
-                <ArrowLeft className="h-3.5 w-3.5" /> Back
+            <div className="flex items-center gap-2.5">
+              <button onClick={onBack} className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors font-medium">
+                <ArrowLeft className="h-3 w-3" /> Back
               </button>
-              <span className="w-px h-5 bg-border/40" />
-              <span className="text-[13px] font-bold text-foreground">{deptName}</span>
-              <span className="w-px h-5 bg-border/40" />
-              <div className="flex items-center gap-2">
-                <img src={persona.avatar} alt="" className="h-6 w-6 rounded-md object-cover" width={24} height={24} />
-                <span className="text-[13px] font-semibold text-foreground">{emp.name}</span>
-              </div>
-              <span className="w-px h-5 bg-border/40" />
+              <span className="w-px h-4 bg-border/30" />
+              <img src={persona.avatar} alt="" className="h-5 w-5 rounded-md object-cover" width={20} height={20} />
+              <span className="text-[12px] font-bold text-foreground">{emp.name}</span>
+              <Badge variant="secondary" className="text-[9px] h-5 px-1.5 font-medium rounded-md">{roleName}</Badge>
+              <span className="w-px h-4 bg-border/30" />
               <div className="flex items-center gap-1.5">
-                <span className={cn("w-2 h-2 rounded-full", meetingDot)} />
-              <span className="text-[12px] font-bold text-muted-foreground">{meetingLabel}</span>
+                <span className={cn("w-1.5 h-1.5 rounded-full", meetingDot)} />
+                <span className="text-[11px] font-semibold text-muted-foreground/60">{meetingLabel}</span>
               </div>
-              <span className="w-px h-5 bg-border/40" />
+              <span className="w-px h-4 bg-border/30" />
+              <span className="text-[10px] text-muted-foreground/30 font-mono flex items-center gap-1">
+                <Coins className="h-2.5 w-2.5" /> {totalTokens.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
               <ExecutionPolicyBadge
                 label="Current execution environment"
                 policyOverride={execOverride.enabled ? execOverride.policy : null}
                 isOverride={execOverride.enabled}
               />
               <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <span className="text-[11px] text-muted-foreground/60 font-mono flex items-center gap-1.5">
-                <Coins className="h-3 w-3" /> {totalTokens.toLocaleString()} tokens
-              </span>
-              <div className="w-px h-5 bg-border/40" />
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="ghost" className="h-8 text-[12px] gap-1.5 text-muted-foreground px-3 rounded-lg hover:bg-secondary" disabled={meetingStatus !== "active"}>
-                  <SkipForward className="h-3.5 w-3.5" /> Skip
+              <span className="w-px h-4 bg-border/30" />
+              <div className="flex items-center gap-0.5">
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground/50 px-2 rounded-lg hover:bg-secondary" disabled={meetingStatus !== "active"}>
+                  <SkipForward className="h-3 w-3" /> Skip
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-[12px] gap-1.5 text-muted-foreground px-3 rounded-lg hover:bg-secondary"
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground/50 px-2 rounded-lg hover:bg-secondary"
                   onClick={() => setMeetingStatus("frozen")} disabled={meetingStatus !== "active"}>
-                  <Snowflake className="h-3.5 w-3.5" /> Freeze
+                  <Snowflake className="h-3 w-3" /> Freeze
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-[12px] gap-1.5 text-destructive px-3 rounded-lg hover:bg-destructive/5"
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-destructive/60 px-2 rounded-lg hover:bg-destructive/5"
                   onClick={() => setMeetingStatus("ended")} disabled={meetingStatus === "ended"}>
-                  <Square className="h-3.5 w-3.5" /> End
+                  <Square className="h-3 w-3" /> End
                 </Button>
               </div>
             </div>
