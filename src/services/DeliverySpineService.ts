@@ -1,8 +1,10 @@
 // Delivery Spine Service — Manages Repository, Workspace, PR, CheckSuite, Deployment entities.
 // Additive layer: no modifications to existing workflow engine.
 // All entities traceable to Project → Task → Run.
+// All mutations emit canonical event_log entries.
 
 import { GuardError } from "@/guards/GuardError";
+import { writeEventLog } from "@/lib/eventLogWriter";
 
 interface PrismaTransactionClient {
   [key: string]: {
