@@ -117,6 +117,8 @@ Promotion is allowed only when ALL conditions are met:
 | 2 | `evaluation_result_json` is present |
 | 3 | `statistically_significant` is `true` |
 | 4 | Improvement is measurable (not just noise) |
+| 5 | Evaluation Rail gate passed (`protected_scenarios_passed === true`) |
+| 6 | `evaluation_report` exists for the proposal |
 
 ### Promotion effects by type
 
