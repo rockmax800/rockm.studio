@@ -157,6 +157,7 @@ export default {
       boxShadow: {
         card: "var(--shadow-card)",
         elevated: "var(--shadow-elevated)",
+        heavy: "var(--shadow-heavy)",
         glow: "var(--shadow-glow)",
       },
       gridTemplateColumns: {
