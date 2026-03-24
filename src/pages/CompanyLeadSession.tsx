@@ -10,6 +10,7 @@ import {
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
+import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
