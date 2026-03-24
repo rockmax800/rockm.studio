@@ -134,16 +134,21 @@ Run (created → preparing → running → produced_output → finalized)
 Artifact (created → classified → submitted → under_review)
     │
     ▼
-Review (created → in_progress → approved/rejected → closed)
+Review lifecycle: created → in_progress → resolved → closed
+Review verdict:   null → approved | rejected | escalated
     │
-    ├─── If rejected: Task → rework_required → reassigned → new Run
-    │
-    ▼
-Approval (pending → approved/rejected → closed)
+    ├─── If verdict=rejected: Task → rework_required → reassigned → new Run
     │
     ▼
-Task → done → Project milestone
+Approval lifecycle: pending → decided → closed
+Approval decision:  null → approved | rejected | deferred
+    │
+    ▼
+Task → validated → done → Project milestone
 ```
+
+> **v2.1:** Lifecycle state and business outcome (verdict/decision) are separate fields.
+> See `core/03-state-machine.md` §2.1 for details.
 
 ---
 

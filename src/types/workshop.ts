@@ -1,13 +1,27 @@
 // Core entity types for AI Workshop OS
+// v2.1 — Lifecycle/Outcome separation refactor
 
 export type ProjectState = "draft" | "scoped" | "active" | "blocked" | "in_review" | "paused" | "completed" | "archived";
-export type TaskState = "draft" | "ready" | "assigned" | "in_progress" | "waiting_review" | "rework_required" | "blocked" | "escalated" | "approved" | "done" | "cancelled";
+
+// Task: 'approved' replaced by 'validated' (review passed, ready for next step)
+export type TaskState = "draft" | "ready" | "assigned" | "in_progress" | "waiting_review" | "rework_required" | "blocked" | "escalated" | "validated" | "done" | "cancelled";
+
 export type RunState = "created" | "preparing" | "running" | "produced_output" | "failed" | "timed_out" | "cancelled" | "superseded" | "finalized";
 export type ArtifactState = "created" | "classified" | "submitted" | "under_review" | "accepted" | "rejected" | "superseded" | "frozen" | "archived";
-export type ReviewState = "created" | "in_progress" | "needs_clarification" | "approved" | "approved_with_notes" | "rejected" | "escalated" | "closed";
-export type ApprovalState = "pending" | "approved" | "rejected" | "deferred" | "expired" | "closed";
 
-export type EntityState = ProjectState | TaskState | RunState | ArtifactState | ReviewState | ApprovalState;
+// Review: lifecycle_state only — verdict is a separate field
+export type ReviewLifecycleState = "created" | "in_progress" | "needs_clarification" | "resolved" | "closed";
+/** @deprecated Use ReviewLifecycleState + ReviewVerdict instead */
+export type ReviewState = ReviewLifecycleState;
+export type ReviewVerdict = "approved" | "approved_with_notes" | "rejected" | "escalated" | null;
+
+// Approval: lifecycle_state only — decision is a separate field
+export type ApprovalLifecycleState = "pending" | "decided" | "expired" | "closed";
+/** @deprecated Use ApprovalLifecycleState + ApprovalDecision instead */
+export type ApprovalState = ApprovalLifecycleState;
+export type ApprovalDecision = "approved" | "rejected" | "deferred" | null;
+
+export type EntityState = ProjectState | TaskState | RunState | ArtifactState | ReviewLifecycleState | ApprovalLifecycleState;
 
 export type AgentRole = "Product Strategist" | "Solution Architect" | "Frontend Builder" | "Backend Architect" | "Backend Implementer" | "Reviewer" | "QA Agent" | "Release Coordinator";
 

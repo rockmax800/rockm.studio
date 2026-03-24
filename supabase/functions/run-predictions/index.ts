@@ -50,7 +50,7 @@ serve(async (req) => {
     const { data: closedReviews } = await supabase
       .from("reviews")
       .select("created_at, closed_at")
-      .in("state", ["approved", "approved_with_notes", "rejected", "closed"])
+      .in("state", ["resolved", "closed"])
       .not("closed_at", "is", null)
       .order("closed_at", { ascending: false })
       .limit(100);

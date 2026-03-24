@@ -10,9 +10,11 @@ const STATE_TO_ZONE: Record<string, string> = {
   rework_required: "Rework",
   escalated: "Escalated",
   blocked: "Blocked",
-  approved: "Approved",
+  validated: "Validated",
   done: "Done",
   cancelled: "Done",
+  // Backward compat: old 'approved' maps to Validated
+  approved: "Validated",
 };
 
 export function taskStateToZone(state: string): string {

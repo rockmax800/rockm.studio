@@ -132,11 +132,12 @@ export class ReviewService {
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
-      toState: verdict,
+      toState: "resolved",
       actorType,
       actorRoleId: review.reviewer_role_id,
       projectId,
-      metadata: { use_case: "UC-06", trigger: "reviewer approved", verdict },
+      metadata: { use_case: "UC-06", trigger: "reviewer resolved", verdict },
+      guardContext: { verdict },
     });
 
     await this.orchestration.transitionEntity({
@@ -162,10 +163,11 @@ export class ReviewService {
       await this.orchestration.transitionEntity({
         entityType: "task",
         entityId: task.id,
-        toState: "approved",
+        toState: "validated",
         actorType,
         projectId,
-        metadata: { use_case: "UC-06", trigger: "task approved after review", review_id: reviewId, artifact_id: artifact.id },
+        metadata: { use_case: "UC-06", trigger: "task validated after review", review_id: reviewId, artifact_id: artifact.id },
+        guardContext: { reviewVerdict: verdict },
       });
     }
 
@@ -257,11 +259,12 @@ export class ReviewService {
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
-      toState: "rejected",
+      toState: "resolved",
       actorType,
       actorRoleId: review.reviewer_role_id,
       projectId,
-      metadata: { use_case: "UC-07", trigger: "reviewer rejected", reason },
+      metadata: { use_case: "UC-06", trigger: "reviewer resolved with rejection", verdict: "rejected", reason },
+      guardContext: { verdict: "rejected" },
     });
 
     await this.orchestration.transitionEntity({
@@ -271,7 +274,7 @@ export class ReviewService {
       actorType,
       actorRoleId: review.reviewer_role_id,
       projectId,
-      metadata: { use_case: "UC-07", trigger: "rejection finalized", reason },
+      metadata: { use_case: "UC-06", trigger: "rejection finalized", reason },
     });
 
     await this.orchestration.transitionEntity({

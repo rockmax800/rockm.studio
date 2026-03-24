@@ -26,6 +26,21 @@ These entities are distinct and must not be merged conceptually.
 4. A Review is a formal object with a verdict, not a comment
 5. Approval authorizes the next step; Review validates quality
 6. Terminal states must be explicit
+7. **Lifecycle state and business outcome (verdict/decision) are separate concerns**
+
+---
+
+## 2.1 — Lifecycle vs Outcome Separation
+
+Three entities have been refactored to separate process state from business decision:
+
+| Entity | Lifecycle Field | Outcome Field | Rationale |
+|--------|----------------|---------------|-----------|
+| Review | `state` (lifecycle) | `verdict` | Reviewer's judgment is outcome, not process position |
+| Approval | `state` (lifecycle) | `decision` | Founder's decision is outcome, not process position |
+| Task | `state` (lifecycle) | — | `validated` replaces old `approved` to avoid collision with Approval entity |
+
+**Guards must never infer lifecycle position from verdict/decision values.**
 
 ---
 
@@ -49,9 +64,11 @@ See `01-project-lifecycle.md` for full project state machine.
 | rework_required | Review rejected, changes requested |
 | blocked | Cannot proceed |
 | escalated | Founder decision needed |
-| approved | Task output accepted |
+| **validated** | Task output accepted by review (was: `approved`) |
 | done | No further work needed |
 | cancelled | Dropped intentionally |
+
+> **Migration note:** `approved` → `validated`. The term "validated" avoids semantic collision with the Approval entity. A task in `validated` means review passed, not that an Approval was granted.
 
 ### 4.2 Transitions
 
@@ -63,13 +80,13 @@ See `01-project-lifecycle.md` for full project state machine.
 | in_progress | waiting_review | Artifact submitted | Output exists |
 | in_progress | blocked | Dependency failure | Blocker recorded |
 | in_progress | escalated | Ambiguity/risk found | Escalation reason recorded |
-| waiting_review | approved | Reviewer accepts | Review verdict approved |
-| waiting_review | rework_required | Reviewer rejects | Review verdict rejected |
+| waiting_review | **validated** | Reviewer accepts | Review verdict = approved |
+| waiting_review | rework_required | Reviewer rejects | Review verdict = rejected |
 | rework_required | assigned | Task returned | Rework notes exist |
 | blocked | assigned | Blocker resolved | Blocker cleared |
 | escalated | assigned | Founder decides | Decision recorded |
-| approved | done | No further approval needed | Downstream complete |
-| approved | assigned | Follow-up needed | Next stage defined |
+| **validated** | done | No further approval needed | Downstream complete |
+| **validated** | assigned | Follow-up needed | Next stage defined |
 | any non-terminal | cancelled | Founder cancels | Cancellation reason; actor=founder |
 
 ### 4.3 Terminal States: `done`, `cancelled`
@@ -137,39 +154,76 @@ For guard details, see `05-guard-matrix.md`.
 
 ---
 
-## 7 — Review State Machine
+## 7 — Review State Machine (Lifecycle + Verdict)
 
-### 7.1 States
+### 7.1 Lifecycle States
 
 | State | Meaning |
 |-------|---------|
 | created | Requested, not started |
 | in_progress | Actively evaluating |
 | needs_clarification | Missing context |
+| **resolved** | Verdict has been set |
+| closed | Complete |
+
+### 7.2 Verdict (separate field, set when lifecycle → resolved)
+
+| Verdict | Meaning |
+|---------|---------|
+| null | No decision yet |
 | approved | Output accepted |
 | approved_with_notes | Accepted with remarks |
 | rejected | Failed validation |
 | escalated | Founder decision required |
-| closed | Complete |
 
-### 7.2 Terminal States: `closed`
+### 7.3 Transitions
+
+| From | To | Trigger | Guard |
+|------|----|---------|-------|
+| created | in_progress | Evaluation starts | Target artifact exists |
+| in_progress | needs_clarification | Missing info | Issue recorded |
+| needs_clarification | in_progress | Info received | Clarification linked |
+| in_progress | **resolved** | Reviewer decides | Verdict must be set |
+| **resolved** | closed | Finalization | — |
+
+### 7.4 Terminal States: `closed`
+
+> **Key invariant:** `verdict` is only set when transitioning to `resolved`. Guards check `review.verdict` for business logic, `review.state` for lifecycle position.
 
 ---
 
-## 8 — Approval State Machine
+## 8 — Approval State Machine (Lifecycle + Decision)
 
-### 8.1 States
+### 8.1 Lifecycle States
 
 | State | Meaning |
 |-------|---------|
 | pending | Requested, not decided |
-| approved | Accepted |
-| rejected | Denied |
-| deferred | Postponed |
+| **decided** | Founder has made a decision |
 | expired | No longer valid |
 | closed | Lifecycle completed |
 
-### 8.2 Terminal States: `closed`
+### 8.2 Decision (separate field, set when lifecycle → decided)
+
+| Decision | Meaning |
+|----------|---------|
+| null | No decision yet |
+| approved | Accepted |
+| rejected | Denied |
+| deferred | Postponed |
+
+### 8.3 Transitions
+
+| From | To | Trigger | Guard |
+|------|----|---------|-------|
+| pending | **decided** | Founder decides | Decision must be set |
+| pending | expired | Timeout | Expiration reason required |
+| **decided** | closed | Workflow consumed | Linked action exists |
+| expired | closed | Finalized | — |
+
+### 8.4 Terminal States: `closed`
+
+> **Key invariant:** `decision` is only set when transitioning to `decided`. Guards check `approval.decision` for business logic, `approval.state` for lifecycle position.
 
 ---
 
@@ -185,6 +239,9 @@ For guard details, see `05-guard-matrix.md`.
 8. A run in `running` must have started from `preparing`
 9. A rejected artifact cannot become canonical without replacement
 10. A closed project can only change through explicit reopen
+11. **Review verdict is null until lifecycle reaches `resolved`**
+12. **Approval decision is null until lifecycle reaches `decided`**
+13. **Task `validated` ≠ Approval `decided` with decision=approved — these are distinct concepts**
 
 ---
 
@@ -194,7 +251,22 @@ For guard details, see `05-guard-matrix.md`.
 `failed`/`timed_out` → finalize → task remains active/blocked → retry, reassign, or escalate
 
 ### Review rejection loop
-Artifact under review → rejected → task `rework_required` → reassigned → new run → new review
+Artifact under review → review resolved (verdict=rejected) → task `rework_required` → reassigned → new run → new review
 
 ### Founder escalation loop
 Task/review escalated → founder decision → reassign, pause, change, or cancel
+
+---
+
+## 11 — Migration Mapping
+
+| Entity | Old State | New Lifecycle State | New Outcome Field |
+|--------|-----------|--------------------|--------------------|
+| Review | approved | resolved | verdict = approved |
+| Review | approved_with_notes | resolved | verdict = approved_with_notes |
+| Review | rejected | resolved | verdict = rejected |
+| Review | escalated | resolved | verdict = escalated |
+| Approval | approved | decided | decision = approved |
+| Approval | rejected | decided | decision = rejected |
+| Approval | deferred | decided | decision = deferred |
+| Task | approved | validated | — |

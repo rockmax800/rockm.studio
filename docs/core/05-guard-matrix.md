@@ -15,6 +15,8 @@ Guards are pure validation functions that check preconditions and return allow/d
 
 **This is the single authoritative source for guard definitions.** No other layer may define new state transition guards.
 
+**v2.1 Separation:** Guards operate on lifecycle_state only. Business outcomes (verdict, decision) are checked via context fields, never by inspecting lifecycle state.
+
 ---
 
 ## 2 — Guard Contract
@@ -29,6 +31,8 @@ function guardTransition(
 
 Guards do NOT: modify state, emit events, call services, or access network.
 Guards DO: validate current state, check preconditions, return explicit reasons.
+
+**Guards NEVER infer lifecycle position from verdict/decision values.**
 
 ---
 
@@ -60,14 +64,16 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | T4 | in_progress → waiting_review | Artifact submitted | No output |
 | T5 | in_progress → blocked | Blocker reason recorded | Reason null |
 | T6 | in_progress → escalated | Escalation reason recorded | Reason null |
-| T7 | waiting_review → approved | Review verdict approved | No review; not approved |
-| T8 | waiting_review → rework_required | Review verdict rejected | Not rejected |
+| T7 | waiting_review → **validated** | Review verdict = approved | No review; verdict ≠ approved |
+| T8 | waiting_review → rework_required | Review verdict = rejected | Verdict ≠ rejected |
 | T9 | rework_required → assigned | Rework notes exist | Notes missing |
 | T10 | blocked → assigned | Blocker cleared | Blocker active |
 | T11 | escalated → assigned | Founder decision exists | No decision |
-| T12 | approved → done | All reviews closed; no pending approvals | Unresolved reviews |
-| T13 | approved → assigned | Next stage defined | No next stage |
+| T12 | **validated** → done | All reviews closed; no pending approvals | Unresolved reviews |
+| T13 | **validated** → assigned | Next stage defined | No next stage |
 | T14 | any non-terminal → cancelled | Actor=founder; cancellation reason | Not founder; no reason |
+
+> **Note:** T7 checks `review.verdict == approved`, not `review.state`. T8 checks `review.verdict == rejected`.
 
 ---
 
@@ -95,38 +101,40 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | A1 | created → classified | Source task/run exists | Both null |
 | A2 | classified → submitted | Target review/consumer exists | No target |
 | A3 | submitted → under_review | Review record exists | No review |
-| A4 | under_review → accepted | Review approved (terminal) | Review non-terminal |
-| A5 | under_review → rejected | Rejection reason exists | No reason |
+| A4 | under_review → accepted | Review verdict = approved (terminal) | Review verdict non-terminal |
+| A5 | under_review → rejected | Review verdict = rejected | Verdict ≠ rejected |
 | A6 | accepted → frozen | Freeze reason recorded | No reason |
 | A7-A8 | accepted/rejected → superseded | Replacement artifact linked | No replacement |
 | A9-A10 | frozen/accepted → archived | Archival reason recorded | No reason |
 
+> **Note:** A4/A5 check `review.verdict`, not `review.state`.
+
 ---
 
-## 7 — Review Guards
+## 7 — Review Guards (Lifecycle Only)
 
 | # | From → To | Required Conditions | Forbidden If |
 |---|-----------|-------------------|-------------|
 | V1 | created → in_progress | Target artifact exists | Missing |
 | V2 | in_progress → needs_clarification | Issue recorded | No issue |
 | V3 | needs_clarification → in_progress | Clarification linked | Missing |
-| V4 | in_progress → approved | No blocking issues | Blocking issues exist |
-| V5 | in_progress → approved_with_notes | Non-blocking notes recorded | — |
-| V6 | in_progress → rejected | Rejection reason recorded | No reason |
-| V7 | in_progress → escalated | Escalation reason recorded | No reason |
-| V8-V11 | verdict → closed | Finalization recorded | — |
+| V4 | in_progress → **resolved** | Verdict set (approved/approved_with_notes/rejected/escalated) | No verdict |
+| V5 | **resolved** → closed | Finalization recorded | — |
+
+> **Removed:** Old guards V4–V8 that tested `review.state == approved|rejected|escalated`. These are now `review.verdict` checks, not lifecycle transitions.
 
 ---
 
-## 8 — Approval Guards
+## 8 — Approval Guards (Lifecycle Only)
 
 | # | From → To | Required Conditions | Forbidden If |
 |---|-----------|-------------------|-------------|
-| G1 | pending → approved | Actor=founder; decision note | Not founder |
-| G2 | pending → rejected | Actor=founder; reason recorded | Not founder |
-| G3 | pending → deferred | Follow-up note recorded | — |
-| G4 | pending → expired | Expiration reason | — |
-| G5-G8 | decision → closed | Linked action exists | — |
+| G1 | pending → **decided** | Actor=founder; decision set (approved/rejected/deferred); decision note | Not founder |
+| G2 | pending → expired | Expiration reason | — |
+| G3 | **decided** → closed | Linked action exists | — |
+| G4 | expired → closed | — | — |
+
+> **Removed:** Old guards G1–G3 that tested `approval.state == approved|rejected|deferred`. These are now `approval.decision` checks, not lifecycle transitions.
 
 ---
 
@@ -136,4 +144,16 @@ Transitions that MUST go through OrchestrationService (not direct CRUD):
 - P2, P5, P6, P7 (Project)
 - T2, T3, T4, T7, T8, T9, T10, T11, T12, T13 (Task)
 - R1, R2, R4, R8-R14 (Run)
+- V4 (Review → resolved, must set verdict atomically)
+- G1 (Approval → decided, must set decision atomically)
 - All multi-entity cascades
+
+---
+
+## 10 — Forbidden Patterns
+
+1. ❌ `if (review.state === 'approved')` — use `review.verdict === 'approved'`
+2. ❌ `if (approval.state === 'approved')` — use `approval.decision === 'approved'`
+3. ❌ `if (task.state === 'approved')` — use `task.state === 'validated'`
+4. ❌ Inferring lifecycle position from verdict/decision values
+5. ❌ Setting verdict/decision without transitioning lifecycle state

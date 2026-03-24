@@ -129,7 +129,7 @@ export class BottleneckPredictionService {
     // Reviews that have been closed — compute time from created to closed
     const reviews = await this.prisma.reviews.findMany({
       where: {
-        state: { in: ["approved", "approved_with_notes", "rejected", "closed"] },
+        state: { in: ["resolved", "closed"] },
         closed_at: { not: null },
       },
       select: {

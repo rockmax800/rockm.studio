@@ -39,7 +39,7 @@ serve(async (req) => {
       supabase.from("provider_usage_logs").select("run_id, estimated_cost_usd, latency_ms")
         .order("created_at", { ascending: false }).limit(500),
       supabase.from("reviews").select("task_id, verdict")
-        .in("state", ["approved", "approved_with_notes", "rejected", "closed"]).limit(300),
+        .in("state", ["resolved", "closed"]).limit(300),
       supabase.from("tasks").select("id, owner_role_id, state")
         .in("owner_role_id", roleIds as string[]),
     ]);

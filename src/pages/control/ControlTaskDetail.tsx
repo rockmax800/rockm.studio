@@ -57,7 +57,7 @@ export default function ControlTaskDetail() {
                 {data.task.state === "assigned" && (
                   <Button size="sm" onClick={() => handleAction("start-run")}>Start Run</Button>
                 )}
-                {data.task.state === "approved" && (
+                {data.task.state === "validated" && (
                   <Button size="sm" onClick={() => handleAction("complete")}>Complete Task</Button>
                 )}
               </div>

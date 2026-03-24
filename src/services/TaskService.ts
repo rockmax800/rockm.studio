@@ -36,7 +36,7 @@ interface OrchestrationServiceLike {
   }) => Promise<any>;
 }
 
-const ASSIGNABLE_STATES = ["ready", "rework_required", "blocked", "escalated", "approved"] as const;
+const ASSIGNABLE_STATES = ["ready", "rework_required", "blocked", "escalated", "validated"] as const;
 
 export class TaskService {
   private prisma: PrismaLike;
@@ -112,7 +112,7 @@ export class TaskService {
           where: { entity_type: "task", entity_id: taskId, actor_type: "founder", event_type: "task.escalation_resolved" },
         });
         const founderApproval = await tx.approvals.findFirst({
-          where: { target_type: "task", target_id: taskId, state: "approved" },
+          where: { target_type: "task", target_id: taskId, decision: "approved" },
         });
         if (!founderDecision && !founderApproval) {
           throw new GuardError({
@@ -125,13 +125,13 @@ export class TaskService {
         }
       }
 
-      if (task.state === "approved") {
+      if (task.state === "validated") {
         if (!task.requested_outcome || task.requested_outcome.trim().length === 0) {
           throw new GuardError({
-            message: "Approved task requires requested_outcome before reassignment",
+            message: "Validated task requires requested_outcome before reassignment",
             entityType: "task",
             entityId: taskId,
-            fromState: "approved",
+            fromState: "validated",
             toState: "assigned",
           });
         }
@@ -174,9 +174,9 @@ export class TaskService {
       // PART 8 — Reload and re-validate inside transaction
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
 
-      if (task.state !== "approved") {
+      if (task.state !== "validated") {
         throw new GuardError({
-          message: `Task must be in "approved" state to complete. Current: "${task.state}"`,
+          message: `Task must be in "validated" state to complete. Current: "${task.state}"`,
           entityType: "task",
           entityId: taskId,
           fromState: task.state,
@@ -197,7 +197,7 @@ export class TaskService {
           message: `Task has ${openReviews} non-closed review(s). All reviews must be closed before completing task.`,
           entityType: "task",
           entityId: taskId,
-          fromState: "approved",
+          fromState: "validated",
           toState: "done",
         });
       }
@@ -216,7 +216,7 @@ export class TaskService {
           message: `Task has ${pendingApprovals} pending approval(s). All approvals must be resolved before completing task.`,
           entityType: "task",
           entityId: taskId,
-          fromState: "approved",
+          fromState: "validated",
           toState: "done",
         });
       }
