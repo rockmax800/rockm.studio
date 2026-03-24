@@ -220,12 +220,21 @@ export async function executeRun(
         const isTimeout = error instanceof Error && error.message.toLowerCase().includes("timed out");
 
         await prisma.$transaction(async (tx) => {
+          const errorClassName = error instanceof GuardError ? "guard_error"
+            : error instanceof Error && error.message.toLowerCase().includes("timed out") ? "timeout"
+            : error instanceof Error ? error.constructor.name
+            : "unknown";
+
           await tx.runs.update({
             where: { id: runId },
             data: {
               failure_reason: isTimeout ? `provider_timeout: ${failureReason}` : failureReason,
+              error_class: errorClassName,
               ended_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
+              duration_ms: run.started_at
+                ? new Date().getTime() - new Date(run.started_at).getTime()
+                : null,
             },
           });
         });
@@ -243,6 +252,7 @@ export async function executeRun(
             trigger: "execution failed",
             failure_reason: failureReason,
             run_number: run.run_number,
+            correlation_id: run.correlation_id,
           },
         });
 
