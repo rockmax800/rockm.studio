@@ -216,6 +216,7 @@ export default function DepartmentDetail() {
                       )}
                     </div>
                   </div>
+                  </Link>
                 );
               })}
             </div>
