@@ -2,27 +2,31 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
-version: v4.2
+version: v5.0
 doc_kind: contract
 load_strategy: auto
 ---
 
-# AI Production Studio — System Overview
+# AI Production Studio — System Overview (v2.2)
 
 ## 1 — Identity
 
-AI Production Studio is a deterministic, agent-first software delivery system for a solo product founder. It orchestrates AI agents across intake, planning, implementation, review, testing, and release — with founder approval gates at every critical transition.
+AI Production Studio is a deterministic, agent-first software delivery system with adaptive evolution for a solo product founder. It orchestrates AI agents across intake, planning, implementation, review, testing, and release — with founder approval gates at every critical transition. The system can reason about its own rules (Gödel Mode) and run controlled experiments (Darwin Mode) while maintaining deterministic delivery guarantees.
 
 **Production Mode is the default.** All experimental features are gated and disabled in production.
 
 ---
 
-## 2 — Architecture: Four Operational Planes
+## 2 — Architecture: Four Operational Planes + Evolution Layer
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
+│            EVOLUTION LAYER                                   │
+│  Gödel proposals, Darwin experiments, Cybernetic feedback    │
+│  Proposes only — requires Evaluation Rail + Founder Approval │
+├─────────────────────────────────────────────────────────────┤
 │            PLANE 4 — EXPERIENCE                             │
-│  Founder Dashboard, Pixel Office, Client Portal             │
+│  Founder Dashboard, Spatial Office, Client Portal            │
 │  Read-only projections from event_log                       │
 ├─────────────────────────────────────────────────────────────┤
 │            PLANE 3 — KNOWLEDGE                              │
@@ -35,7 +39,7 @@ AI Production Studio is a deterministic, agent-first software delivery system fo
 │  Deterministic execution spine                              │
 ├─────────────────────────────────────────────────────────────┤
 │            PLANE 1 — INTENT                                 │
-│  Intake, Blueprints, Estimates, Launch Decisions, TaskSpecs │
+│  Company Lead, Intake, Blueprints, Estimates, Launch Gates   │
 │  Defines WHAT and WHY — never executes                      │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -51,33 +55,38 @@ See `core/13-operational-planes.md` for full entity mapping and dependency matri
 ### 3.1 — Sidebar Navigation
 
 **Operations:**
-- Command Center (`/`) — Pipeline overview, founder inbox, intake CTA
+- Command Center (`/`) — Pipeline overview, founder inbox, project initiation via Company Lead
+- Company Lead (`/lead`) — AI Delivery Director, first contact for new projects
 - Projects (`/projects`) — Project list and cockpit
-- Office (`/office`) — Capability rooms with live employee state
+- Office (`/office`) — Spatial capability rooms (always-on, renders even when empty)
 - Founder (`/founder`) — Decision engine (approvals, escalations, risk)
 - System (`/system`) — Health, providers, mode, audit
 
 **Management:**
 - Teams (`/teams`) — Capability pools, employee table, hiring & performance
+- Evolution (`/evolution`) — Gödel proposals, Darwin experiments, feedback triggers, capability cloning
 - Content (`/smm`) — AI-generated content from production events
 
 ### 3.2 — Single Production Path
 
 ```
-Command Center → Intake → Capability → Employee → Team Session
-→ Blueprint → Project → Cockpit → Office → Founder → Deploy → SMM
+Command Center → Company Lead Discussion → Scope Extraction → Internal Consultation
+→ Cost/Token Estimate → Founder Decision → Create Blueprint
+→ Capability → Employee → Team Session → Blueprint Freeze → Project
+→ Cockpit → Office → Founder → Deploy → SMM
 ```
 
-All production begins at Command Center. No alternative entry points.
+All production begins at Command Center via Company Lead. No alternative entry points.
 
 ---
 
 ## 4 — Plane 1: Intent
 
-Captures business intent. Defines **what** to build and **why**.
+Captures business intent. Defines **what** to build and **why**. Entry point is Company Lead.
 
 | Entity | Purpose |
 |--------|---------|
+| Company Lead Session | AI Delivery Director conversation with structured extraction |
 | `intake_requests` | Client brief capture (via IntakeComposer) |
 | `blueprint_contracts` | Structured scope agreement |
 | `estimate_reports` | Cost and timeline projections |
@@ -87,7 +96,9 @@ Captures business intent. Defines **what** to build and **why**.
 
 **Flow:**
 ```
-Client Brief → IntakeRequest → BlueprintContract → EstimateReport → LaunchDecision → Project
+Company Lead Discussion → Scope Extraction + Internal Consultation
+→ Estimate → Founder Decision → IntakeRequest → BlueprintContract
+→ EstimateReport → LaunchDecision → Project
 ```
 
 **Constraint:** Intent Plane does not execute code, modify repositories, or deploy.
@@ -172,35 +183,105 @@ All user-facing surfaces. Read-only on canonical state.
 
 ---
 
-## 8 — Teams & Employee Model
+## 8 — Company Lead (AI Delivery Director)
 
-### 8.1 — Capability Pools
+The Company Lead is the single orchestration entry point for all new projects:
 
-Capability pools (stored as `departments` in DB, displayed as "Capabilities" in UI) organize AI employees by functional area. Each pool shows team size, success rate, and load percentage.
+| Phase | Description |
+|-------|-------------|
+| Discovery | Structured Q&A extracting goal, constraints, scope, modules, risk |
+| Internal Consultation | Simulated structured feedback from Architect, QA, Reviewer |
+| Estimate | Module breakdown with token budgets, cost, timeline, team composition |
+| Decision | Founder approves (→ Blueprint), revises scope, or cancels |
 
-### 8.2 — AI Employees
+Layout: 8/4 asymmetric grid — chat conversation on left, live structured extraction on right.
+
+Rules:
+- Structured conversation, not casual chat
+- No emoji, no marketing fluff
+- Deterministic extraction of scope artifacts
+- Internal consultation is summarized, not chaotic
+
+---
+
+## 9 — Teams & Employee Model
+
+### 9.1 — Capability Pools
+
+Capability pools (stored as `departments` in DB, displayed as "Capabilities" in UI) organize AI employees by functional area. Each pool shows team size, success rate, and load percentage. High-performing capabilities can be cloned via CapabilityTemplate.
+
+### 9.2 — AI Employees
 
 Employees are configured with:
-- Identity (name, role, seniority, capability)
+- Identity (name, role, seniority, mandatory capability assignment)
 - Personality (MBTI type, nationality)
 - Technical profile (stack, skill levels)
 - Operational traits (risk tolerance, strictness, speed/quality bias)
 
-### 8.3 — Office Visualization
+### 9.3 — Spatial Office
 
-Office renders capability rooms automatically when employees exist. Each room shows:
+Office always renders spatial map with one room per capability. Rooms render even when empty (with "Add Member" CTA). Each room shows:
 - Employee cards with avatar, MBTI tag, nationality flag, performance ring
 - Active tasks and load status
 - Tooltips with detailed work-style summaries
 
-### 8.4 — Team Room Sessions
+### 9.4 — Mandatory Capability Assignment
+
+Employee creation requires capability selection. After creation or assignment:
+- Teams page refreshes immediately
+- Office rooms update immediately
+- Capability view updates immediately
+- No page reload required
+
+### 9.5 — Team Room Sessions
 
 Entry: Teams → Select Capability → Select Employee → Start Session.
 Sessions use 8/4 split: hero message + live extraction panel.
 
 ---
 
-## 9 — Founder Intervention Points
+## 10 — AI Evolution Layer
+
+Adaptive intelligence with strict safety guarantees. All evolution is observable and reversible.
+
+### 10.1 — Gödel Mode (Formal Self-Modification)
+
+System reasons about its own contracts, prompts, rules, and policies. Creates `SelfModificationProposal` with:
+- Target component (prompt, rubric, guard, contract, retrieval_rule)
+- Formal reasoning summary and constraint preservation proof
+- Expected improvement and impact scope
+- Safety flags
+
+Status flow: candidate → evaluated → approved → promoted (or rejected)
+
+### 10.2 — Darwin Mode (Mutation & Selection)
+
+Controlled experiments creating small variations. `MutationExperiment` tracks:
+- Base version vs mutated version
+- Mutation type (prompt tweak, trait shift, stack change, routing change)
+- Pass rate, performance delta, token delta, cost delta
+
+Promotion requires: pass_rate > baseline, protected scenarios pass, no critical regression, founder approval.
+
+### 10.3 — Cybernetic Feedback Loop
+
+Monitors: rework rate, escalation frequency, CI failures, eval failures, deploy rollbacks, token inefficiency. Generates `CorrectionProposal` on anomaly detection. No automatic enforcement.
+
+### 10.4 — Capability Evolution
+
+Each capability tracks performance trend, avg eval pass rate, stability score, risk drift. Stable high-performers can be cloned via `CapabilityTemplate`.
+
+### 10.5 — Safety Guarantees
+
+Forbidden: direct prompt overwrite, auto contract changes, auto stack replacement, hidden trait modifications, silent mutation, self-edit without audit trail. Evolution layer NEVER modifies task/run state, triggers deploy, bypasses approval, or skips evaluation.
+
+### 10.6 — Versioning & Rollback
+
+Every prompt, role contract, trait configuration, rubric, and guard rule is versioned. Every promotion stores the previous version and allows rollback.
+
+---
+
+## 11 — Founder Intervention Points
 
 | Action | Automated? |
 |--------|------------|
@@ -211,10 +292,13 @@ Sessions use 8/4 split: hero message + live extraction panel.
 | Learning proposal promotion | **No** — founder approval |
 | Budget increases | **No** — founder controls |
 | Content publishing | **No** — founder approval |
+| Evolution proposal promotion | **No** — founder approval |
+| Mutation experiment promotion | **No** — founder approval |
+| Capability cloning | **No** — founder approval |
 
 ---
 
-## 10 — Production Mode (Default)
+## 12 — Production Mode (Default)
 
 | Feature | Production | Experimental |
 |---------|-----------|--------------|
@@ -225,10 +309,14 @@ Sessions use 8/4 split: hero message + live extraction panel.
 | Shadow testing | ❌ | ✅ |
 | Autonomous task generation | ❌ | ✅ |
 | Context compression | ❌ | ✅ |
+| Gödel Mode proposals | ❌ | ✅ |
+| Darwin Mode experiments | ❌ | ✅ |
+| Cybernetic feedback loop | ✅ (monitoring only) | ✅ (full) |
+| Capability cloning | ❌ | ✅ |
 
 ---
 
-## 11 — Technology Stack (LOCKED)
+## 13 — Technology Stack (LOCKED)
 
 | Layer | Technology | Notes |
 |-------|-----------|-------|
@@ -247,7 +335,7 @@ Sessions use 8/4 split: hero message + live extraction panel.
 
 ---
 
-## 12 — Documentation Index
+## 14 — Documentation Index
 
 | Document | Plane | Contents |
 |----------|-------|----------|
@@ -256,7 +344,7 @@ Sessions use 8/4 split: hero message + live extraction panel.
 | `front-office/` | Intent | Intake, blueprints, estimates, launch |
 | `delivery/` | Delivery | Backend, providers, delivery lane, sandbox |
 | `company/` | Knowledge/Experience | Departments, employees, HR, office |
-| `autonomy/` | Knowledge | Prompt versioning, model competition, learning |
+| `autonomy/` | Knowledge/Evolution | Prompt versioning, model competition, learning, evolution |
 | `business/` | Cross-cutting | Operating model, pricing, SLA |
 | `product/` | Cross-cutting | Vision, roadmap, personas |
 | `archive/` | — | Superseded v1 documents |
