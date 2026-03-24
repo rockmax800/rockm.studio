@@ -98,15 +98,38 @@ Each step produces typed artifacts for full traceability. See `core/11-artifact-
 
 All three are written atomically within the same transaction as the state change. See `core/12-event-log-architecture.md`.
 
-### 4.4 — Execution Isolation
+### 4.4 — Runtime Separation
 
-Runs execute inside Docker-based sandboxes with resource limits (CPU, memory, timeout, network). See `delivery/sandbox-and-execution-isolation.md`.
+The system runs as two separate processes with strict boundaries:
 
-### 4.5 — Failure Handling
+```
+┌──────────────────┐                  ┌──────────────────┐
+│  CONTROL PLANE   │                  │ EXECUTION PLANE  │
+│                  │                  │                  │
+│  Next.js UI      │                  │  RunExecutor     │
+│  API Routes      │    PostgreSQL    │  Docker Sandbox  │
+│  Orchestration   │◄───────────────►│  Git Operations  │
+│  Dashboards      │   (event_log)   │  CI Tracking     │
+│  Client Portal   │                  │  Deployments     │
+└──────────────────┘                  └──────────────────┘
+        │                                     │
+        ▼                                     ├──► GitHub
+   UI only                                    ├──► VPS (SSH)
+                                              ├──► Registry
+                                              └──► DNS
+```
+
+Control Plane never executes code. Execution Plane never renders UI. Communication only via PostgreSQL. See `delivery/runtime-and-secret-governance.md`.
+
+### 4.5 — Execution Isolation
+
+Runs execute inside Docker-based sandboxes with resource limits (CPU, memory, timeout, network). Sandbox containers never have production deploy credentials. See `delivery/sandbox-and-execution-isolation.md`.
+
+### 4.6 — Failure Handling
 
 Failures are classified by `error_class` (guard_error, timeout, provider_error, etc.) and recorded with `failure_reason`. Stalled runs are detected by heartbeat monitoring. See `delivery/failure-classification.md`.
 
-### 4.6 — Reproducibility
+### 4.7 — Reproducibility
 
 Every run captures a `context_pack` with content hash, source versions, and included artifacts — enabling exact replay. See `delivery/context-reproducibility.md`.
 
@@ -122,6 +145,7 @@ Every run captures a `context_pack` with content hash, source versions, and incl
 | `core/06-orchestration-use-cases.md` | 26 atomic workflow actions |
 | `core/10-role-contracts-and-taskspec.md` | Enforceable role boundaries |
 | `delivery/delivery-lane.md` | PR → CI → Staging → Production |
+| `delivery/runtime-and-secret-governance.md` | Runtime separation and secret injection |
 
 ---
 
