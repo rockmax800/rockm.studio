@@ -217,9 +217,16 @@ export default function TeamRoom() {
                         {/* Info */}
                         <div className="flex-1 min-w-0 pt-0.5">
                           <h3 className="text-[17px] font-bold text-foreground leading-tight truncate">{emp.name}</h3>
-                          <p className="text-[13px] text-muted-foreground mt-0.5 truncate">{roleName}</p>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <p className="text-[13px] text-muted-foreground truncate">{roleName}</p>
+                            <span className="text-[11px] text-muted-foreground/30">·</span>
+                            <span className="text-[11px] text-muted-foreground/40 italic truncate">{persona.nickname}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", meta.chipBg)}>{meta.label}</span>
+                            {persona.chips.slice(0, 2).map((chip) => (
+                              <span key={chip} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground">{chip}</span>
+                            ))}
                           </div>
                         </div>
                       </div>
