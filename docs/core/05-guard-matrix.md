@@ -108,7 +108,7 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | A7-A8 | accepted/rejected → superseded | Replacement artifact linked | No replacement |
 | A9-A10 | frozen/accepted → archived | Archival reason recorded | No reason |
 
-> **Note:** A4/A5 check `review.verdict`, not `review.state`.
+> **Note:** A4/A5 check `review.verdict`, not `review.state`. Both `approved` and `approved_with_notes` lead to artifact acceptance.
 
 ---
 

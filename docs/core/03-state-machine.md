@@ -89,6 +89,8 @@ See `01-project-lifecycle.md` for full project state machine.
 | **validated** | assigned | Follow-up needed | Next stage defined |
 | any non-terminal | cancelled | Founder cancels | Cancellation reason; actor=founder |
 
+> **approved_with_notes:** When `review.verdict = approved_with_notes`, the task proceeds to `validated` (same as `approved`), but a follow-up task is auto-created in `ready` state with `requested_outcome = clarification`. The follow-up must NOT auto-start — it requires explicit assignment.
+
 ### 4.3 Terminal States: `done`, `cancelled`
 
 For guard details, see `05-guard-matrix.md`.
