@@ -228,18 +228,18 @@ export default function IntakeComposerV2() {
           <div className="max-w-2xl mx-auto px-6 pt-10 pb-8 flex flex-col items-center">
             {/* Speech bubble */}
             <div className="ih-speech-bubble px-6 py-4 max-w-lg text-center mb-5">
-              <p className="text-[15px] leading-[160%]" style={{ color: "hsl(222 32% 14%)" }}>
+              <p className="text-[15px] leading-[160%] text-foreground">
                 {heroMessage(filledCount, isEmpty)}
               </p>
             </div>
 
             {/* Character */}
             <div className="ih-float flex flex-col items-center mb-6">
-              <div className="h-20 w-20 rounded-2xl border-2 overflow-hidden bg-white shadow-sm" style={{ borderColor: "hsl(220 14% 90%)" }}>
+              <div className="h-20 w-20 rounded-2xl border-2 border-border overflow-hidden bg-card shadow-sm">
                 <img src={leadAvatar} alt="Navigator" className="h-full w-full object-cover" />
               </div>
-              <span className="mt-2 text-[14px] font-bold" style={{ color: "hsl(222 32% 14%)" }}>Navigator</span>
-              <span className="text-[12px]" style={{ color: "hsl(220 10% 46%)" }}>AI Delivery Lead</span>
+              <span className="mt-2 text-[14px] font-bold text-foreground">Navigator</span>
+              <span className="text-[12px] text-muted-foreground">AI Delivery Lead</span>
             </div>
 
             {/* Guidance chips — shown when early */}
@@ -249,28 +249,17 @@ export default function IntakeComposerV2() {
                   <button
                     key={c.label}
                     onClick={() => handleChip(c.label)}
-                    className="group flex flex-col items-center px-5 py-3 rounded-2xl border transition-all duration-200 hover:scale-[1.03] hover:shadow-md"
-                    style={{
-                      backgroundColor: "hsl(0 0% 100%)",
-                      borderColor: "hsl(220 14% 90%)",
-                      color: "hsl(222 32% 14%)",
-                    }}
+                    className="group flex flex-col items-center px-5 py-3 rounded-2xl border border-border bg-card text-foreground transition-all duration-200 hover:scale-[1.03] hover:shadow-md"
                   >
                     <span className="text-[14px] font-semibold">{c.label}</span>
-                    <span className="text-[11px] mt-0.5" style={{ color: "hsl(220 10% 46%)" }}>{c.hint}</span>
+                    <span className="text-[11px] mt-0.5 text-muted-foreground">{c.hint}</span>
                   </button>
                 ))}
               </div>
             )}
 
             {/* Compact input in hero */}
-            <div
-              className="w-full max-w-lg rounded-2xl border px-4 py-3 flex items-end gap-2"
-              style={{
-                backgroundColor: "hsl(0 0% 100%)",
-                borderColor: "hsl(220 14% 90%)",
-              }}
-            >
+            <div className="w-full max-w-lg rounded-2xl border border-border bg-card px-4 py-3 flex items-end gap-2">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -278,8 +267,7 @@ export default function IntakeComposerV2() {
                 onKeyDown={handleKeyDown}
                 placeholder="Describe your project idea…"
                 rows={1}
-                className="flex-1 resize-none bg-transparent text-[14px] outline-none leading-[150%] min-h-[24px] max-h-[100px] placeholder:opacity-40"
-                style={{ color: "hsl(222 32% 14%)" }}
+                className="flex-1 resize-none bg-transparent text-[14px] text-foreground outline-none leading-[150%] min-h-[24px] max-h-[100px] placeholder:opacity-40"
                 onInput={(e) => {
                   const el = e.target as HTMLTextAreaElement;
                   el.style.height = "auto";
@@ -289,8 +277,7 @@ export default function IntakeComposerV2() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors disabled:opacity-30"
-                style={{ backgroundColor: "hsl(217 91% 60%)", color: "white" }}
+                className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors disabled:opacity-30 bg-status-blue text-white"
               >
                 <Send className="h-4 w-4" />
               </button>
@@ -299,16 +286,12 @@ export default function IntakeComposerV2() {
             {/* Progress + scroll hint */}
             <div className="flex items-center gap-3 mt-5">
               <Badge
-                className="text-[11px] font-mono px-2.5 h-6 border"
-                style={{
-                  backgroundColor: filledCount > 0 ? "hsl(217 91% 96%)" : "hsl(220 20% 94%)",
-                  borderColor: "hsl(220 14% 90%)",
-                  color: filledCount > 0 ? "hsl(217 91% 60%)" : "hsl(220 10% 46%)",
-                }}
+                className="text-[11px] font-mono px-2.5 h-6 border border-border"
+                variant={filledCount > 0 ? "default" : "secondary"}
               >
                 {filledCount}/8 extracted
               </Badge>
-              <button onClick={scrollToForm} className="flex items-center gap-1 text-[12px] hover:underline" style={{ color: "hsl(217 91% 60%)" }}>
+              <button onClick={scrollToForm} className="flex items-center gap-1 text-[12px] hover:underline text-status-blue">
                 <ArrowDown className="h-3 w-3" /> View structured brief
               </button>
             </div>
