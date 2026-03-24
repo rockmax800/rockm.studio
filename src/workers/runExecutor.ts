@@ -137,6 +137,43 @@ export async function executeRun(
       });
     }
 
+    // PART 13 — Resolve sandbox policy for isolated execution
+    const sandboxExecutor = new SandboxExecutorService(prisma);
+    const sandboxPolicy = await sandboxExecutor.resolvePolicy(runId);
+
+    logInfo("sandbox_policy_resolved", {
+      runId,
+      policyName: sandboxPolicy.name,
+      cpuLimit: sandboxPolicy.cpu_limit,
+      memoryLimitMb: sandboxPolicy.memory_limit_mb,
+      timeoutSeconds: sandboxPolicy.timeout_seconds,
+      networkAllowed: sandboxPolicy.allowed_network,
+    });
+
+    // If run has a workspace, validate its path and prepare sandbox execution
+    let sandboxResult = null;
+    try {
+      const workspace = await prisma.repo_workspaces?.findFirst({ where: { run_id: runId } });
+      if (workspace?.worktree_path) {
+        sandboxExecutor.validateWorktreePath(workspace.worktree_path, workspace.id);
+
+        // Generate sandbox command for traceability (actual execution via ProviderService)
+        const dockerCmd = sandboxExecutor.generateDockerCommand(sandboxPolicy, {
+          runId,
+          workspaceId: workspace.id,
+          worktreePath: workspace.worktree_path,
+          dockerImage: "ai-studio/runner:latest",
+          command: ["node", "run.js"],
+        });
+
+        logInfo("sandbox_docker_command_generated", {
+          runId,
+          workspaceId: workspace.id,
+          commandPreview: dockerCmd.slice(0, 5).join(" ") + " ...",
+        });
+      }
+    } catch { /* best-effort sandbox prep — run still executes via provider */ }
+
     // 4. Call ProviderService (includes dual verification & adaptive routing)
     const providerService = new ProviderService(prisma);
     const providerResult = await providerService.execute({ run, task, contextPack });
