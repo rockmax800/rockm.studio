@@ -1,13 +1,14 @@
 import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { useProject, useTasks, useApprovals, useArtifacts } from "@/hooks/use-data";
+import { useProject, useTasks, useApprovals, useArtifacts, useActivityEvents } from "@/hooks/use-data";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectTopBar } from "@/components/project-cockpit/ProjectTopBar";
 import { BlueprintSnapshot } from "@/components/project-cockpit/BlueprintSnapshot";
 import { TaskGraph } from "@/components/project-cockpit/TaskGraph";
 import { EvidencePanel } from "@/components/project-cockpit/EvidencePanel";
-import { DeliveryLane } from "@/components/project-cockpit/DeliveryLane";
+import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness";
+import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
 
 export default function ProjectDetail() {
@@ -16,13 +17,14 @@ export default function ProjectDetail() {
   const { data: tasks = [] } = useTasks(id);
   const { data: approvals = [] } = useApprovals(id);
   const { data: artifacts = [] } = useArtifacts(id);
+  const { data: events = [] } = useActivityEvents(id, 30);
 
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
     queryFn: async () => {
       const { data } = await supabase
         .from("deployments")
-        .select("id, environment, status, version_label")
+        .select("id, environment, status, version_label, started_at, finished_at")
         .eq("project_id", id!)
         .order("started_at", { ascending: false })
         .limit(10);
@@ -36,9 +38,23 @@ export default function ProjectDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from("domain_bindings")
-        .select("id")
+        .select("id, status, domain")
         .eq("project_id", id!)
-        .limit(1);
+        .limit(5);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: checkSuites = [] } = useQuery({
+    queryKey: ["project-ci", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("check_suites")
+        .select("id, status, summary")
+        .eq("project_id", id!)
+        .order("started_at", { ascending: false })
+        .limit(5);
       return data ?? [];
     },
     enabled: !!id,
@@ -62,18 +78,14 @@ export default function ProjectDetail() {
   if (isLoading) {
     return (
       <AppLayout title="Loading…">
-        <div className="flex items-center gap-2 p-6 text-muted-foreground text-[13px]">
-          Loading project…
-        </div>
+        <div className="flex items-center gap-2 p-6 text-muted-foreground text-[13px]">Loading project…</div>
       </AppLayout>
     );
   }
   if (!project) {
     return (
       <AppLayout title="Not found">
-        <div className="flex items-center gap-2 p-6 text-muted-foreground text-[13px]">
-          Project not found.
-        </div>
+        <div className="flex items-center gap-2 p-6 text-muted-foreground text-[13px]">Project not found.</div>
       </AppLayout>
     );
   }
@@ -97,17 +109,12 @@ export default function ProjectDetail() {
 
   const hasStagingLive = deployments.some((d: any) => d.environment === "staging" && d.status === "live");
   const hasProductionLive = deployments.some((d: any) => d.environment === "production" && d.status === "live");
-
   const hasPatches = artifacts.some((a) => (a.artifact_type as string) === "code_patch");
   const hasPRs = artifacts.some((a) => (a.artifact_type as string) === "pull_request");
-  const deliveryStages = [
-    { label: "Tasks", status: (tasks.length > 0 ? (doneCount === tasks.length && tasks.length > 0 ? "done" : "active") : "pending") as any },
-    { label: "PR", status: (hasPRs ? "done" : hasPatches ? "active" : "pending") as any },
-    { label: "CI", status: (hasPRs ? "done" : "pending") as any },
-    { label: "Staging", status: (hasStagingLive ? "done" : deployments.some((d: any) => d.environment === "staging") ? "active" : "pending") as any },
-    { label: "Approval", status: (pendingApprovals.length > 0 ? "active" : hasStagingLive ? "done" : "pending") as any },
-    { label: "Production", status: (hasProductionLive ? "done" : "pending") as any },
-  ];
+
+  // CI status
+  const ciPassed = checkSuites.some((c: any) => c.status === "passed");
+  const ciFailed = checkSuites.some((c: any) => c.status === "failed");
 
   const taskItems = tasks.map((t) => ({
     id: t.id,
@@ -115,6 +122,7 @@ export default function ProjectDetail() {
     state: t.state,
     domain: t.domain,
     roleName: (t as any).agent_roles?.name,
+    roleCode: (t as any).agent_roles?.code,
     updatedAt: t.updated_at,
     artifactCount: artifacts.filter((a) => a.task_id === t.id).length,
   }));
@@ -122,7 +130,7 @@ export default function ProjectDetail() {
   return (
     <AppLayout title={project.name} fullHeight>
       <div className="grid-content px-6 py-4 space-y-3 h-full overflow-auto">
-        {/* ── TOP HEADER ──────────────────────────────────── */}
+        {/* ── TOP HEADER ──────────────────────────────── */}
         <ProjectTopBar
           project={project}
           riskLevel={riskLevel}
@@ -130,12 +138,13 @@ export default function ProjectDetail() {
           pendingApprovalsCount={pendingApprovals.length}
           hasStagingLive={hasStagingLive}
           hasProductionLive={hasProductionLive}
+          tasksDone={doneCount}
+          tasksTotal={tasks.length}
         />
 
-        {/* ── ROW 1: Blueprint (4) + Task Graph (5) + Delivery Lane (3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3" style={{ minHeight: "calc(100vh - 320px)" }}>
-          {/* Blueprint Snapshot — 4 cols */}
-          <div className="lg:col-span-4 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+        {/* ── ROW 1: Blueprint (8) + Release Readiness (4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <div className="lg:col-span-8 ds-card p-4">
             <BlueprintSnapshot
               purpose={project.purpose}
               founderNotes={project.founder_notes}
@@ -146,47 +155,55 @@ export default function ProjectDetail() {
               riskLevel={riskLevel}
             />
           </div>
+          <div className="lg:col-span-4 ds-card p-4 bg-secondary/30">
+            <ReleaseReadiness
+              ciStatus={ciFailed ? "failed" : ciPassed ? "passed" : "pending"}
+              qaStatus={artifacts.some((a) => (a.artifact_type as string) === "test_result") ? "passed" : "pending"}
+              domainBound={domainBindings.length > 0}
+              deployEligible={hasStagingLive && ciPassed && !ciFailed}
+              hasStagingLive={hasStagingLive}
+              hasProductionLive={hasProductionLive}
+            />
+          </div>
+        </div>
 
-          {/* Task Graph — 5 cols (dominant) */}
-          <div className="lg:col-span-5 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+        {/* ── ROW 2: Task Flow (8) + Activity Timeline (4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3" style={{ minHeight: 400 }}>
+          <div className="lg:col-span-8 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <TaskGraph tasks={taskItems} projectId={id!} />
           </div>
-
-          {/* Delivery Lane — 3 cols */}
-          <div className="lg:col-span-3 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
-            <DeliveryLane stages={deliveryStages} />
+          <div className="lg:col-span-4 ds-card p-4 flex flex-col min-h-0 overflow-hidden bg-secondary/20">
+            <ActivityTimeline events={events} />
           </div>
         </div>
 
-        {/* ── ROW 2: Evidence (8) + Risk (4) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-          <div className="lg:col-span-8 ds-card p-4">
-            <EvidencePanel
-              artifacts={artifacts.map((a) => ({
-                id: a.id,
-                title: a.title,
-                artifact_type: a.artifact_type,
-                state: a.state,
-              }))}
-              deployments={deployments.map((d: any) => ({
-                id: d.id,
-                environment: d.environment,
-                status: d.status,
-                version_label: d.version_label,
-              }))}
-              hasDomainBinding={domainBindings.length > 0}
-            />
-          </div>
-          <div className="lg:col-span-4 ds-card p-4">
-            <RiskSummary
-              blockedTasks={blockedCount}
-              stalledRuns={0}
-              pendingApprovals={pendingApprovals.length}
-              escalations={escalatedCount}
-              failedRuns={failedRuns.length}
-            />
-          </div>
+        {/* ── ROW 3: Evidence & Logs (full width) */}
+        <div className="ds-card p-4">
+          <EvidencePanel
+            artifacts={artifacts.map((a) => ({
+              id: a.id,
+              title: a.title,
+              artifact_type: a.artifact_type,
+              state: a.state,
+            }))}
+            deployments={deployments.map((d: any) => ({
+              id: d.id,
+              environment: d.environment,
+              status: d.status,
+              version_label: d.version_label,
+            }))}
+            hasDomainBinding={domainBindings.length > 0}
+          />
         </div>
+
+        {/* ── ROW 4: Risk strip */}
+        <RiskSummary
+          blockedTasks={blockedCount}
+          stalledRuns={0}
+          pendingApprovals={pendingApprovals.length}
+          escalations={escalatedCount}
+          failedRuns={failedRuns.length}
+        />
       </div>
     </AppLayout>
   );
