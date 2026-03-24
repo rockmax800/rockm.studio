@@ -41,7 +41,7 @@ export default function SystemPage() {
 
   // Read query params for trace pre-filtering
   const urlTab = searchParams.get("tab");
-  const defaultTab = urlTab === "audit" ? "audit" : "health";
+  const defaultTab = urlTab === "audit" ? "audit" : urlTab === "execution" ? "execution" : "health";
   const traceInitialFilters = useMemo(() => {
     const f: Record<string, string> = {};
     const p = searchParams.get("project");
