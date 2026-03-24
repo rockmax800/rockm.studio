@@ -48,10 +48,10 @@ export function LiveFlow({ events }: LiveFlowProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-card-title text-foreground">Live Flow</h3>
-        <div className="flex items-center gap-1">
+        <h3 className="text-[14px] font-bold text-foreground tracking-tight">Live Flow</h3>
+        <div className="flex items-center gap-1.5">
           <div className="h-1.5 w-1.5 rounded-full bg-status-green animate-pulse" />
-          <span className="text-[11px] font-medium text-status-green">Live</span>
+          <span className="text-[11px] font-semibold text-status-green">Live</span>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export function LiveFlow({ events }: LiveFlowProps) {
               return (
                 <div
                   key={evt.id}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors duration-180 animate-fade-in cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-card transition-colors duration-150 animate-fade-in cursor-pointer"
                   style={{ animationDelay: `${Math.min(i * 15, 150)}ms` }}
                 >
                   <div className={`h-5 w-5 rounded-md flex items-center justify-center shrink-0 ${cfg.bg}`}>
