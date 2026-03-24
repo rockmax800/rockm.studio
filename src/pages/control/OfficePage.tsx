@@ -162,6 +162,18 @@ export default function OfficePage() {
     return [...o, ...a].sort((x, y) => new Date(y.time).getTime() - new Date(x.time).getTime()).slice(0, 60);
   }, [data]);
 
+  const teamData = data?.teams ?? [];
+  const allEmployeeCount = Object.values(teamEmployees).flat().length + unassignedEmployees.length;
+
+  useEffect(() => {
+    console.log("[Office] Office re-render triggered", {
+      rooms: teamData.length,
+      employees: allEmployeeCount,
+      unassigned: unassignedEmployees.length,
+    });
+    console.log("[Office] Capability rooms updated", teamData.map((team: any) => ({ id: team.id, name: team.name, members: (teamEmployees[team.id] ?? []).length })));
+  }, [allEmployeeCount, teamData, teamEmployees, unassignedEmployees.length]);
+
   if (isLoading) {
     return (
       <AppLayout title="Production Floor">
@@ -178,18 +190,6 @@ export default function OfficePage() {
       </AppLayout>
     );
   }
-
-  const teamData = data?.teams ?? [];
-  const allEmployeeCount = Object.values(teamEmployees).flat().length + unassignedEmployees.length;
-
-  useEffect(() => {
-    console.log("[Office] Office re-render triggered", {
-      rooms: teamData.length,
-      employees: allEmployeeCount,
-      unassigned: unassignedEmployees.length,
-    });
-    console.log("[Office] Capability rooms updated", teamData.map((team: any) => ({ id: team.id, name: team.name, members: (teamEmployees[team.id] ?? []).length })));
-  }, [allEmployeeCount, teamData, teamEmployees, unassignedEmployees.length]);
 
   return (
     <AppLayout title="Production Floor">

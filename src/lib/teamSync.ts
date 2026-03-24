@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { ROLE_OPTIONS } from "@/lib/employeeConfig";
 
 const TEAM_QUERY_KEYS = [
@@ -43,7 +44,7 @@ export async function ensureCapabilityRole(params: {
   if (existingRoleError) throw existingRoleError;
   if (existingRole?.id) return existingRole.id;
 
-  let skillProfile: Record<string, unknown> = {};
+  let skillProfile: Json = {};
 
   if (sourceRoleId) {
     const { data: sourceRole, error: sourceRoleError } = await supabase
@@ -53,7 +54,7 @@ export async function ensureCapabilityRole(params: {
       .maybeSingle();
 
     if (sourceRoleError) throw sourceRoleError;
-    skillProfile = (sourceRole?.skill_profile as Record<string, unknown> | null) ?? {};
+    skillProfile = (sourceRole?.skill_profile as Json | null) ?? {};
   }
 
   const roleLabel = ROLE_OPTIONS.find((role) => role.code === roleCode)?.label ?? roleCode;
