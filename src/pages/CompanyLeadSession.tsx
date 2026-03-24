@@ -363,7 +363,7 @@ export default function CompanyLeadSession() {
         </div>
 
         {showEstimate && (
-          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono" style={{ background: "hsl(217 91% 60% / 0.06)", color: "hsl(217 91% 60%)" }}>
+          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-status-blue">
             <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {totalDays}d</span>
           </div>
