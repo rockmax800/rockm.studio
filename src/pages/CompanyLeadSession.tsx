@@ -466,9 +466,9 @@ export default function CompanyLeadSession() {
           </div>
 
           {/* ── Composer ──────────────────────────────────── */}
-          <div className="shrink-0 px-6 py-4" style={{ borderTop: "1px solid hsl(220 14% 92%)", background: "hsl(0 0% 100% / 0.7)", backdropFilter: "blur(12px)" }}>
+          <div className="shrink-0 px-6 py-4 border-t border-border bg-card/70 backdrop-blur-xl">
             <div className="max-w-2xl mx-auto">
-              <div className="flex items-end gap-3 rounded-2xl px-4 py-2.5 transition-all" style={{ background: "hsl(0 0% 100%)", border: "1.5px solid hsl(220 14% 88%)", boxShadow: "0 2px 8px -2px hsl(220 20% 20% / 0.06)" }}>
+              <div className="flex items-end gap-3 rounded-2xl px-4 py-2.5 transition-all bg-card border border-border shadow-[var(--shadow-card)]">
                 <textarea
                   ref={inputRef}
                   value={inputValue}
@@ -476,19 +476,17 @@ export default function CompanyLeadSession() {
                   onKeyDown={handleKeyDown}
                   placeholder="Describe your requirements..."
                   rows={2}
-                  className="flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] outline-none leading-relaxed placeholder:opacity-40"
-                  style={{ color: "hsl(222 32% 14%)" }}
+                  className="flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] outline-none leading-relaxed placeholder:opacity-40 text-foreground"
                 />
                 <button
                   onClick={handleSend}
                   disabled={!inputValue.trim() || isThinking}
-                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5"
-                  style={{ background: "hsl(217 91% 60%)", color: "white" }}
+                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5 bg-status-blue text-white"
                 >
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
               </div>
-              <p className="text-[11px] mt-2 text-center" style={{ color: "hsl(220 10% 78%)" }}>
+              <p className="text-[11px] mt-2 text-center text-muted-foreground">
                 Press Enter to send · Shift+Enter for new line
               </p>
             </div>
