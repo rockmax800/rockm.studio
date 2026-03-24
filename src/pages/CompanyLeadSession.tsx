@@ -348,8 +348,8 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <h1 className="text-[16px] font-bold text-foreground">Company Lead</h1>
-                <p className="text-[11px] text-muted-foreground">Step 1 — Consultation & scope definition</p>
+                <h1 className="text-[16px] font-bold text-foreground">Project Briefing Workspace</h1>
+                <p className="text-[11px] text-muted-foreground">Company Lead · Structured scope & estimate session</p>
               </div>
             </>
           )}
