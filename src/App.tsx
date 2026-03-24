@@ -11,7 +11,6 @@ import DepartmentDetail from "./pages/DepartmentDetail";
 import PresaleDetail from "./pages/PresaleDetail";
 import IntakeComposer from "./pages/IntakeComposer";
 import ProjectsPage from "./pages/Projects";
-import ProjectsPage from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
 
