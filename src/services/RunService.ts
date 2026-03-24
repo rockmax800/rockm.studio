@@ -181,6 +181,25 @@ export class RunService {
       metadata: { use_case: "UC-03", trigger: "run started for task", run_id: run.id },
     });
 
+    // PART 10 — Create RepoWorkspace for code-producing domains
+    const CODE_DOMAINS = ["frontend_delivery", "backend_delivery", "frontend", "backend"];
+    if (task.domain && CODE_DOMAINS.includes(task.domain)) {
+      try {
+        const repo = await this.deliverySpine.findProjectRepository(task.project_id);
+        if (repo) {
+          await this.deliverySpine.createWorkspace({
+            projectId: task.project_id,
+            taskId: taskId,
+            runId: run.id,
+            repositoryId: repo.id,
+            branchName: `task/${taskId.slice(0, 8)}/run-${run.run_number}`,
+          });
+        }
+      } catch {
+        // Best-effort workspace creation — run proceeds without it
+      }
+    }
+
     // Enqueue execution
     await this.enqueueRunExecution(run.id);
 

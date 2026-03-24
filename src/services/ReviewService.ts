@@ -3,9 +3,11 @@
 // Hardened with Serializable isolation
 // Extended with RunEvaluation recording (PART 7)
 // Extended with Handoff creation on rejection (PART 9)
+// Extended with PullRequest creation on validation (PART 10)
 
 import { GuardError } from "@/guards/GuardError";
 import { HandoffService } from "@/services/HandoffService";
+import { DeliverySpineService } from "@/services/DeliverySpineService";
 
 interface PrismaTransactionClient {
   [key: string]: {
