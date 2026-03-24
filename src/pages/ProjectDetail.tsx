@@ -158,7 +158,7 @@ export default function ProjectDetail() {
           <div className="lg:col-span-4 ds-card p-4 bg-secondary/30">
             <ReleaseReadiness
               ciStatus={ciFailed ? "failed" : ciPassed ? "passed" : "pending"}
-              qaStatus={artifacts.some((a) => a.artifact_type === "test_result") ? "passed" : "pending"}
+              qaStatus={artifacts.some((a) => (a.artifact_type as string) === "test_result") ? "passed" : "pending"}
               domainBound={domainBindings.length > 0}
               deployEligible={hasStagingLive && ciPassed && !ciFailed}
               hasStagingLive={hasStagingLive}
