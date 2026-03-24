@@ -2,8 +2,10 @@
 // UC-07 Resolve Review — Reject (Rework Loop)
 // Hardened with Serializable isolation
 // Extended with RunEvaluation recording (PART 7)
+// Extended with Handoff creation on rejection (PART 9)
 
 import { GuardError } from "@/guards/GuardError";
+import { HandoffService } from "@/services/HandoffService";
 
 interface PrismaTransactionClient {
   [key: string]: {
