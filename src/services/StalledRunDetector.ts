@@ -69,6 +69,9 @@ export class StalledRunDetector {
     const results: StalledRun[] = stalledRuns.map((run: any) => {
       const lastBeat = run.heartbeat_at ?? run.started_at;
       const stalledMs = lastBeat ? now - new Date(lastBeat).getTime() : this.thresholdMs;
+      const leaseExpired = run.lease_expires_at
+        ? new Date(run.lease_expires_at).getTime() < now
+        : true;
 
       return {
         runId: run.id,
@@ -78,6 +81,8 @@ export class StalledRunDetector {
         lastHeartbeat: run.heartbeat_at,
         stalledDurationMs: stalledMs,
         correlationId: run.correlation_id,
+        leaseOwner: run.lease_owner,
+        leaseExpired,
       };
     });
 
