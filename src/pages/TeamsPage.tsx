@@ -21,7 +21,7 @@ import {
 } from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
-  ChevronDown, ChevronRight, AlertTriangle,
+  ChevronDown, ChevronRight, AlertTriangle, ShieldAlert, BarChart3,
   Zap, Activity, Plus,
   Sparkles,
 } from "lucide-react";
