@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
-  AlertTriangle, CheckCircle2, FileText,
+  AlertTriangle, CheckCircle2, FileText, ChevronRight,
+  Layers, Activity, Package,
 } from "lucide-react";
 
 const RISK_COLORS = {
@@ -26,6 +27,27 @@ const RISK_COLORS = {
   medium: "bg-status-amber/10 text-status-amber",
   high: "bg-destructive/10 text-destructive",
 };
+
+function SectionHeader({ icon: Icon, title, count }: { icon: React.ElementType; title: string; count?: number }) {
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      <Icon className="h-4 w-4 text-muted-foreground/50" strokeWidth={1.8} />
+      <h2 className="text-[16px] font-bold text-foreground tracking-tight">{title}</h2>
+      {count !== undefined && (
+        <span className="text-[11px] font-mono font-bold text-muted-foreground/40 ml-1">{count}</span>
+      )}
+    </div>
+  );
+}
+
+function MetricChip({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={cn("text-[13px] font-bold font-mono tabular-nums", alert ? "text-status-amber" : "text-foreground")}>{value}</span>
+      <span className="text-[11px] text-muted-foreground/50">{label}</span>
+    </div>
+  );
+}
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -78,8 +100,33 @@ export default function ProjectDetail() {
     enabled: tasks.length > 0,
   });
 
-  if (isLoading) return <AppLayout title="Loading…"><p className="p-8 text-[13px] text-muted-foreground">Loading…</p></AppLayout>;
-  if (!project) return <AppLayout title="Not found"><p className="p-8 text-[13px] text-muted-foreground">Not found.</p></AppLayout>;
+  /* ── Loading / Not found ── */
+  if (isLoading) return (
+    <AppLayout title="Loading…">
+      <div className="px-6 py-10 space-y-4 max-w-[1400px]">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="rounded-2xl bg-card border border-border/30 h-24 animate-pulse" />
+        ))}
+      </div>
+    </AppLayout>
+  );
+
+  if (!project) return (
+    <AppLayout title="Not found">
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+          <FileText className="h-6 w-6 text-muted-foreground/30" />
+        </div>
+        <h2 className="text-[18px] font-bold text-foreground">Project not found</h2>
+        <p className="text-[13px] text-muted-foreground mt-1">This project may have been removed or doesn't exist.</p>
+        <Link to="/projects" className="mt-5">
+          <Button variant="outline" className="rounded-xl text-[13px] h-9 gap-2">
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to Projects
+          </Button>
+        </Link>
+      </div>
+    </AppLayout>
+  );
 
   /* ── Computed ── */
   const blockedCount = tasks.filter((t) => t.state === "blocked").length;
@@ -105,7 +152,7 @@ export default function ProjectDetail() {
   }));
 
   const stageIdx = resolveStageIndex(project.state);
-  const blockedStageIdx = blockedCount > 0 ? 4 : undefined; // execution stage
+  const blockedStageIdx = blockedCount > 0 ? 4 : undefined;
 
   /* ── Next Required Action ── */
   type NextAction = { label: string; description: string; icon: React.ElementType; variant: "destructive" | "warning" | "default"; linkTo?: string };
@@ -133,47 +180,48 @@ export default function ProjectDetail() {
   }
 
   const ACTION_STYLES = {
-    destructive: "bg-destructive/5 border-destructive/20 text-destructive",
-    warning: "bg-status-amber/5 border-status-amber/20 text-status-amber",
-    default: "bg-primary/5 border-primary/20 text-primary",
+    destructive: "border-destructive/25 bg-destructive/[0.03]",
+    warning: "border-status-amber/25 bg-status-amber/[0.03]",
+    default: "border-primary/20 bg-primary/[0.03]",
+  };
+  const ACTION_ICON_STYLES = {
+    destructive: "text-destructive bg-destructive/10",
+    warning: "text-status-amber bg-status-amber/10",
+    default: "text-primary bg-primary/10",
   };
 
   return (
     <AppLayout title={project.name} fullHeight>
       <ScrollArea className="h-full">
-        <div className="px-6 py-5 space-y-5 max-w-[1400px]">
+        <div className="px-6 py-5 space-y-5 max-w-[1400px] mx-auto">
 
-          {/* ════════════════════════════════════════════════════════
-              PIPELINE BAR — Full-width 8 stages
-              ════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden px-6 py-4">
+          {/* ══ PIPELINE BAR ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden px-6 py-4">
             <PipelineBar currentStageIndex={stageIdx} blockedStageIndex={blockedStageIdx} projectId={id} />
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              TOP HEADER — Project identity + actions
-              ════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+          {/* ══ TOP HEADER ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden">
             <div className="px-6 py-5">
-              {/* Row 1 */}
-              <div className="flex items-center gap-3">
+              {/* Identity row */}
+              <div className="flex items-center gap-3 flex-wrap">
                 <Link to="/projects">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 rounded-xl">
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
                 </Link>
-                <h1 className="text-[30px] font-bold tracking-[-0.025em] text-foreground truncate leading-none">
+                <h1 className="text-[28px] font-bold tracking-[-0.025em] text-foreground truncate leading-none">
                   {project.name}
                 </h1>
                 <StatusBadge state={project.state} />
                 <span className={cn("px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider", RISK_COLORS[riskLevel])}>
                   {riskLevel} risk
                 </span>
-                <div className="flex items-center gap-2 ml-1">
-                  <span className={cn("flex items-center gap-1 text-[11px] font-mono font-bold", hasStagingLive ? "text-status-green" : "text-muted-foreground/30")}>
+                <div className="flex items-center gap-3 ml-2">
+                  <span className={cn("flex items-center gap-1.5 text-[11px] font-mono font-bold", hasStagingLive ? "text-status-green" : "text-muted-foreground/25")}>
                     <Server className="h-3 w-3" /> STG {hasStagingLive ? "●" : "○"}
                   </span>
-                  <span className={cn("flex items-center gap-1 text-[11px] font-mono font-bold", hasProductionLive ? "text-status-green" : "text-muted-foreground/30")}>
+                  <span className={cn("flex items-center gap-1.5 text-[11px] font-mono font-bold", hasProductionLive ? "text-status-green" : "text-muted-foreground/25")}>
                     <Globe className="h-3 w-3" /> PRD {hasProductionLive ? "●" : "○"}
                   </span>
                 </div>
@@ -186,7 +234,7 @@ export default function ProjectDetail() {
                       </Button>
                     </Link>
                   )}
-                  <Button variant="outline" size="sm" className="h-9 text-[13px] gap-2 px-4 rounded-xl font-semibold">
+                  <Button variant="outline" size="sm" className="h-9 text-[13px] gap-2 px-4 rounded-xl font-semibold border-border/60">
                     <Upload className="h-3.5 w-3.5" /> Deploy Staging
                   </Button>
                   <Button size="sm" className="h-9 text-[13px] gap-2 px-4 bg-foreground text-background hover:bg-foreground/90 rounded-xl font-bold" disabled={!hasStagingLive}>
@@ -206,23 +254,30 @@ export default function ProjectDetail() {
                 </div>
               </div>
 
-              {/* Row 2 — Progress + Token budget */}
-              <div className="flex items-center gap-5 mt-4 pt-4 border-t border-border/30">
-                <div className="flex items-center gap-3 flex-1 max-w-[320px]">
-                  <span className="text-[12px] font-mono text-muted-foreground shrink-0">{doneCount}/{tasks.length} tasks</span>
+              {/* Control strip */}
+              <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/20 flex-wrap">
+                <div className="flex items-center gap-3 min-w-[200px] max-w-[280px]">
+                  <span className="text-[12px] font-mono text-muted-foreground shrink-0">{doneCount}/{tasks.length}</span>
                   <Progress value={progress} className="h-2 flex-1" />
                   <span className="text-[14px] font-bold font-mono text-foreground tabular-nums">{progress}%</span>
                 </div>
-                <div className="ml-auto flex items-center gap-2 text-[12px] text-muted-foreground/50">
+                <div className="h-4 w-px bg-border/30" />
+                <MetricChip label="pending" value={pendingApprovals.length} alert={pendingApprovals.length > 0} />
+                <MetricChip label="failed" value={failedRuns.length} alert={failedRuns.length > 0} />
+                <MetricChip label="blocked" value={blockedCount} alert={blockedCount > 0} />
+                <MetricChip label="domains" value={domainBindings.length} />
+                <MetricChip label="CI" value={ciFailed ? "FAIL" : ciPassed ? "PASS" : "—"} alert={ciFailed} />
+                <div className="flex-1" />
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground/40">
                   <Zap className="h-3.5 w-3.5" />
-                  <span className="font-mono font-bold text-foreground/60">—</span>
+                  <span className="font-mono font-bold text-foreground/40">—</span>
                   <span>tokens</span>
                 </div>
               </div>
             </div>
 
             {/* Risk strip */}
-            <div className="px-6 py-2.5 border-t border-border/30 bg-secondary/10">
+            <div className="px-6 py-2.5 border-t border-border/20 bg-muted/20">
               <RiskSummary
                 blockedTasks={blockedCount}
                 stalledRuns={0}
@@ -233,40 +288,43 @@ export default function ProjectDetail() {
             </div>
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              NEXT REQUIRED ACTION
-              ════════════════════════════════════════════════════════ */}
+          {/* ══ NEXT REQUIRED ACTION ══ */}
           {nextActions.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {nextActions.slice(0, 3).map((action, i) => (
-                <div key={i} className={cn(
-                  "rounded-xl border px-5 py-4 flex items-center gap-4 transition-all hover:shadow-sm",
-                  ACTION_STYLES[action.variant],
-                )}>
-                  <div className="h-10 w-10 rounded-xl bg-card border border-border/30 flex items-center justify-center shrink-0">
-                    <action.icon className="h-5 w-5" />
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-muted-foreground/40" strokeWidth={1.8} />
+                <h2 className="text-[14px] font-bold text-foreground tracking-tight uppercase">Next Required Action</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {nextActions.slice(0, 3).map((action, i) => (
+                  <div key={i} className={cn(
+                    "rounded-2xl border px-5 py-4 flex items-center gap-4 transition-all hover:shadow-sm group cursor-default",
+                    ACTION_STYLES[action.variant],
+                  )}>
+                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", ACTION_ICON_STYLES[action.variant])}>
+                      <action.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[15px] font-bold text-foreground block leading-tight">{action.label}</span>
+                      <span className="text-[12px] text-muted-foreground block mt-0.5">{action.description}</span>
+                    </div>
+                    {action.linkTo && (
+                      <Link to={action.linkTo}>
+                        <Button size="sm" variant="outline" className="h-8 text-[11px] rounded-lg gap-1 border-border/50 opacity-70 group-hover:opacity-100 transition-opacity">
+                          Open <ChevronRight className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[15px] font-bold block leading-tight">{action.label}</span>
-                    <span className="text-[12px] opacity-70 block mt-0.5">{action.description}</span>
-                  </div>
-                  {action.linkTo && (
-                    <Link to={action.linkTo}>
-                      <Button size="sm" variant="outline" className="h-8 text-[11px] rounded-lg border-current/20">
-                        Open
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
-          {/* ════════════════════════════════════════════════════════
-              ROW 1 — BLUEPRINT (8) + RELEASE READINESS (4)
-              ════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <div className="lg:col-span-8 rounded-2xl bg-card border border-border shadow-sm p-5">
+          {/* ══ ROW 1 — BLUEPRINT + RELEASE READINESS ══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div className="lg:col-span-8 rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={FileText} title="Blueprint Summary" />
               <BlueprintSnapshot
                 purpose={project.purpose}
                 founderNotes={project.founder_notes}
@@ -277,7 +335,7 @@ export default function ProjectDetail() {
                 riskLevel={riskLevel}
               />
             </div>
-            <div className="lg:col-span-4 rounded-2xl bg-card border border-border shadow-sm p-5 bg-secondary/15">
+            <div className="lg:col-span-4 rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <ReleaseReadiness
                 ciStatus={ciFailed ? "failed" : ciPassed ? "passed" : "pending"}
                 qaStatus={artifacts.some((a) => (a.artifact_type as string) === "test_result") ? "passed" : "pending"}
@@ -289,22 +347,25 @@ export default function ProjectDetail() {
             </div>
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              ROW 2 — TASK FLOW (8) + ACTIVITY (4)
-              ════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5" style={{ minHeight: 420 }}>
-            <div className="lg:col-span-8 rounded-2xl bg-card border border-border shadow-sm p-5 flex flex-col min-h-0 overflow-hidden border-t-[3px] border-t-primary/15">
-              <TaskGraph tasks={taskItems} projectId={id!} />
+          {/* ══ ROW 2 — TASK FLOW + ACTIVITY ══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" style={{ minHeight: 420 }}>
+            <div className="lg:col-span-8 rounded-2xl bg-card border border-border/40 shadow-sm p-5 flex flex-col min-h-0 overflow-hidden">
+              <SectionHeader icon={Layers} title="Task Flow" count={tasks.length} />
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <TaskGraph tasks={taskItems} projectId={id!} />
+              </div>
             </div>
-            <div className="lg:col-span-4 rounded-2xl bg-card border border-border shadow-sm p-5 flex flex-col min-h-0 overflow-hidden bg-secondary/10">
-              <ActivityTimeline events={events} />
+            <div className="lg:col-span-4 rounded-2xl bg-card border border-border/40 shadow-sm p-5 flex flex-col min-h-0 overflow-hidden">
+              <SectionHeader icon={Activity} title="Activity" count={events.length} />
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <ActivityTimeline events={events} />
+              </div>
             </div>
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              ROW 3 — EVIDENCE & LOGS
-              ════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
+          {/* ══ ROW 3 — EVIDENCE & LOGS ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Package} title="Evidence & Deployments" count={artifacts.length + deployments.length} />
             <EvidencePanel
               artifacts={artifacts.map((a) => ({
                 id: a.id, title: a.title,
@@ -318,7 +379,7 @@ export default function ProjectDetail() {
             />
           </div>
 
-          <div className="h-6" />
+          <div className="h-8" />
         </div>
       </ScrollArea>
     </AppLayout>
