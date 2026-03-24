@@ -145,8 +145,10 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
 
       qc.invalidateQueries({ queryKey: ["departments"] });
       qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
       qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
       qc.invalidateQueries({ queryKey: ["office"] });
+      qc.invalidateQueries({ queryKey: ["office-roles-profile"] });
       toast.success(`${capName} activated with ${members.length} members`);
       onComplete();
     } catch (e: any) {
