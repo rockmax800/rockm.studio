@@ -2,16 +2,22 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { generateEmployeeName } from "@/services/EmployeeNamingService";
 import { getPersona } from "@/lib/personas";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Building2, Users, Layers, CheckCircle2, ArrowRight, ArrowLeft,
-  Plus, Trash2, Sparkles, Zap, X,
+  Building2, Users, CheckCircle2, ArrowRight, ArrowLeft,
+  Plus, Trash2, Sparkles, Zap, X, AlertTriangle, ChevronDown, ChevronRight, Info,
 } from "lucide-react";
+import {
+  ROLE_OPTIONS, STACK_OPTIONS, FOCUS_OPTIONS, SENIORITY_OPTIONS,
+  RISK_TOLERANCE_OPTIONS, MBTI_TYPES, MBTI_TRAITS, NATIONALITY_TRAITS,
+  getDefaultConfig, validateTeamBalance, riskColor,
+  type EmployeeConfig, type MbtiType, type NationalityCode, type RiskTolerance, type Seniority,
+} from "@/lib/employeeConfig";
 
 const STEPS = [
   { label: "Create Capability", icon: Building2 },
@@ -19,28 +25,9 @@ const STEPS = [
   { label: "Review & Activate", icon: CheckCircle2 },
 ];
 
-const ROLE_OPTIONS = [
-  { code: "product_strategist", label: "Product Strategist" },
-  { code: "solution_architect", label: "Solution Architect" },
-  { code: "backend_architect", label: "Backend Architect" },
-  { code: "backend_implementer", label: "Backend Implementer" },
-  { code: "frontend_builder", label: "Frontend Builder" },
-  { code: "reviewer", label: "Reviewer" },
-  { code: "qa_agent", label: "QA Agent" },
-  { code: "release_coordinator", label: "Release Coordinator" },
-];
-
-const STACK_OPTIONS = ["React", "TypeScript", "Node.js", "Supabase", "PostgreSQL", "Python", "Go", "Rust", "Swift", "Kotlin", "Flutter", "Docker", "AWS", "GCP", "Tailwind CSS"];
-const FOCUS_OPTIONS = ["Web Application", "Mobile App", "SaaS Platform", "API / Backend", "Bot / Automation", "Data Pipeline"];
-const SENIORITY_OPTIONS = ["Junior", "Middle", "Senior", "Lead"];
-
-interface NewEmployee {
+interface NewEmployee extends EmployeeConfig {
   id: string;
-  name: string;
-  roleCode: string;
-  stack: string[];
-  seniority: string;
-  mayDeploy: boolean;
+  showAdvanced?: boolean;
 }
 
 interface Props {
@@ -68,9 +55,26 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
   const addMember = useCallback(() => {
     const roleCode = ROLE_OPTIONS[members.length % ROLE_OPTIONS.length].code;
     const name = generateEmployeeName(roleCode, members.filter((m) => m.roleCode === roleCode).length);
+    const defaults = getDefaultConfig(roleCode);
     setMembers((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), name, roleCode, stack: [...capStack], seniority: "Middle", mayDeploy: false },
+      {
+        id: crypto.randomUUID(), name, roleCode,
+        seniority: "Middle" as Seniority,
+        mbtiType: (defaults.mbtiType ?? "INTJ") as MbtiType,
+        nationalityCode: (defaults.nationalityCode ?? "anglo_saxon") as NationalityCode,
+        primaryStack: [...capStack], secondaryStack: [],
+        riskTolerance: (defaults.riskTolerance ?? "medium") as RiskTolerance,
+        strictnessLevel: defaults.strictnessLevel ?? 5,
+        refactorBias: defaults.refactorBias ?? 5,
+        escalationThreshold: defaults.escalationThreshold ?? 5,
+        speedQualityWeight: defaults.speedQualityWeight ?? 5,
+        tokenEfficiency: defaults.tokenEfficiency ?? 5,
+        testCoverageBias: defaults.testCoverageBias ?? 5,
+        documentationBias: defaults.documentationBias ?? 5,
+        mayDeploy: false,
+        showAdvanced: false,
+      },
     ]);
   }, [members, capStack]);
 
@@ -78,6 +82,26 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
     setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 
   const removeMember = (id: string) => setMembers((prev) => prev.filter((m) => m.id !== id));
+
+  const changeRole = (id: string, code: string) => {
+    const defaults = getDefaultConfig(code);
+    const m = members.find((x) => x.id === id);
+    const idx = members.filter((x) => x.roleCode === code).length + Math.floor(Math.random() * 20);
+    updateMember(id, {
+      roleCode: code,
+      name: generateEmployeeName(code, idx),
+      mbtiType: defaults.mbtiType as MbtiType,
+      nationalityCode: defaults.nationalityCode as NationalityCode,
+      riskTolerance: defaults.riskTolerance as RiskTolerance,
+      strictnessLevel: defaults.strictnessLevel,
+      refactorBias: defaults.refactorBias,
+      escalationThreshold: defaults.escalationThreshold,
+      speedQualityWeight: defaults.speedQualityWeight,
+      tokenEfficiency: defaults.tokenEfficiency,
+      testCoverageBias: defaults.testCoverageBias,
+      documentationBias: defaults.documentationBias,
+    });
+  };
 
   const regenerateName = (id: string) => {
     const m = members.find((x) => x.id === id);
@@ -92,27 +116,22 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
     return true;
   };
 
+  const balanceWarnings = validateTeamBalance(members);
+
   const handleActivate = async () => {
     setSaving(true);
     try {
-      // 1. Create department
       const slug = capName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       const { data: dept, error: deptErr } = await supabase
         .from("departments")
         .insert({ name: capName, slug, description: capDesc, icon: "Building2" })
-        .select()
-        .single();
+        .select().single();
       if (deptErr) throw deptErr;
 
-      // 2. Create employees
       for (const m of members) {
-        // Find or create agent_role
         const { data: existingRole } = await supabase
-          .from("agent_roles")
-          .select("id")
-          .eq("code", m.roleCode)
-          .eq("team_id", dept.id)
-          .maybeSingle();
+          .from("agent_roles").select("id")
+          .eq("code", m.roleCode).eq("team_id", dept.id).maybeSingle();
 
         let roleId = existingRole?.id;
         if (!roleId) {
@@ -120,25 +139,27 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
           const { data: newRole } = await supabase
             .from("agent_roles")
             .insert({
-              code: m.roleCode,
-              name: roleLabel,
+              code: m.roleCode, name: roleLabel,
               description: `${roleLabel} for ${capName}`,
               team_id: dept.id,
-              skill_profile: { stack: m.stack, seniority: m.seniority },
+              skill_profile: {
+                primaryStack: m.primaryStack, secondaryStack: m.secondaryStack,
+                seniority: m.seniority, mbtiType: m.mbtiType,
+                nationalityCode: m.nationalityCode, riskTolerance: m.riskTolerance,
+                strictnessLevel: m.strictnessLevel, refactorBias: m.refactorBias,
+                escalationThreshold: m.escalationThreshold, speedQualityWeight: m.speedQualityWeight,
+                tokenEfficiency: m.tokenEfficiency, testCoverageBias: m.testCoverageBias,
+                documentationBias: m.documentationBias, mayDeploy: m.mayDeploy,
+              },
             })
-            .select("id")
-            .single();
+            .select("id").single();
           roleId = newRole?.id;
         }
 
         await supabase.from("ai_employees").insert({
-          name: m.name,
-          role_code: m.roleCode,
-          role_id: roleId ?? null,
-          team_id: dept.id,
-          status: "active",
-          model_name: "gpt-4o",
-          provider: "openai",
+          name: m.name, role_code: m.roleCode,
+          role_id: roleId ?? null, team_id: dept.id,
+          status: "active", model_name: "gpt-4o", provider: "openai",
         });
       }
 
@@ -156,7 +177,7 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
   };
 
   return (
-    <div className="max-w-[820px] mx-auto">
+    <div className="max-w-[860px] mx-auto">
       {/* Progress strip */}
       <div className="flex items-center gap-2 mb-8">
         {STEPS.map((s, i) => {
@@ -178,18 +199,17 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
         })}
       </div>
 
-      {/* Step 1 — Create Capability */}
+      {/* ═══ Step 1 — Create Capability ═══ */}
       {step === 0 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-[24px] font-bold text-foreground tracking-tight">Create Capability Pool</h2>
             <p className="text-[14px] text-muted-foreground mt-1">Define a production capability to organize your AI team.</p>
           </div>
-
           <div className="space-y-4">
             <div>
               <label className="text-[13px] font-bold text-foreground mb-1.5 block">Capability Name *</label>
-              <Input value={capName} onChange={(e) => setCapName(e.target.value)} placeholder="e.g. Mobile Studio, Web Platform, Bot Factory" className="h-11" />
+              <Input value={capName} onChange={(e) => setCapName(e.target.value)} placeholder="e.g. Mobile Studio, Web Platform" className="h-11" />
             </div>
             <div>
               <label className="text-[13px] font-bold text-foreground mb-1.5 block">Description</label>
@@ -202,9 +222,7 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
                   <button key={f} onClick={() => setCapFocus(f)}
                     className={`px-4 py-2 rounded-xl text-[13px] font-bold border transition-all ${
                       capFocus === f ? "bg-foreground text-background border-foreground" : "bg-card text-muted-foreground border-border hover:border-foreground/30"
-                    }`}>
-                    {f}
-                  </button>
+                    }`}>{f}</button>
                 ))}
               </div>
             </div>
@@ -215,9 +233,7 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
                   <button key={s} onClick={() => toggleStack(s)}
                     className={`px-3 py-1.5 rounded-lg text-[12px] font-bold border transition-all ${
                       capStack.includes(s) ? "bg-primary/10 text-primary border-primary/30" : "bg-card text-muted-foreground border-border hover:border-foreground/20"
-                    }`}>
-                    {s}
-                  </button>
+                    }`}>{s}</button>
                 ))}
               </div>
             </div>
@@ -225,20 +241,34 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
         </div>
       )}
 
-      {/* Step 2 — Add Members */}
+      {/* ═══ Step 2 — Add Members with Full Config ═══ */}
       {step === 1 && (
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-[24px] font-bold text-foreground tracking-tight">Add Team Members</h2>
               <p className="text-[14px] text-muted-foreground mt-1">
-                Create AI employees for <span className="font-bold text-foreground">{capName}</span>.
+                Configure AI employees for <span className="font-bold text-foreground">{capName}</span>.
               </p>
             </div>
             <Button onClick={addMember} className="h-10 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0">
               <Plus className="h-4 w-4" /> Add Member
             </Button>
           </div>
+
+          {/* Team balance warnings */}
+          {balanceWarnings.length > 0 && (
+            <div className="space-y-1.5">
+              {balanceWarnings.map((w, i) => (
+                <div key={i} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold ${
+                  w.type === "error" ? "bg-destructive/10 text-destructive" : "bg-status-amber/10 text-status-amber"
+                }`}>
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  {w.message}
+                </div>
+              ))}
+            </div>
+          )}
 
           {members.length === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/20 p-10 text-center">
@@ -253,87 +283,116 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
             <div className="space-y-3">
               {members.map((m) => {
                 const persona = getPersona(m.roleCode);
+                const mbtiInfo = MBTI_TRAITS[m.mbtiType];
+                const natTrait = NATIONALITY_TRAITS.find((n) => n.code === m.nationalityCode);
                 return (
                   <div key={m.id} className="rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-sm">
                     <div className="flex items-start gap-4">
-                      {/* Avatar */}
                       <div className="relative shrink-0">
                         <img src={persona.avatar} alt={m.name}
                           className={`h-14 w-14 rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
                           width={56} height={56} />
                       </div>
 
-                      {/* Fields */}
                       <div className="flex-1 min-w-0 space-y-3">
-                        {/* Name + role row */}
+                        {/* Name */}
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 min-w-0">
-                            <Input value={m.name} onChange={(e) => updateMember(m.id, { name: e.target.value })}
-                              className="h-9 text-[15px] font-bold" />
-                          </div>
-                          <button onClick={() => regenerateName(m.id)} className="text-muted-foreground hover:text-foreground transition-colors" title="Regenerate name">
+                          <Input value={m.name} onChange={(e) => updateMember(m.id, { name: e.target.value })}
+                            className="h-9 text-[15px] font-bold flex-1" />
+                          <button onClick={() => regenerateName(m.id)} className="text-muted-foreground hover:text-foreground transition-colors">
                             <Sparkles className="h-4 w-4" />
                           </button>
                         </div>
 
-                        {/* Role selector */}
+                        {/* Role */}
                         <div className="flex flex-wrap gap-1.5">
                           {ROLE_OPTIONS.map((r) => (
-                            <button key={r.code} onClick={() => {
-                              updateMember(m.id, { roleCode: r.code });
-                              regenerateName(m.id);
-                            }}
+                            <button key={r.code} onClick={() => changeRole(m.id, r.code)}
                               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${
                                 m.roleCode === r.code ? "bg-foreground text-background border-foreground" : "text-muted-foreground border-border hover:border-foreground/20"
-                              }`}>
-                              {r.label}
-                            </button>
+                              }`}>{r.label}</button>
                           ))}
                         </div>
 
-                        {/* Seniority */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-[12px] font-bold text-muted-foreground shrink-0">Seniority:</span>
+                        {/* Quick config row */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Seniority */}
                           {SENIORITY_OPTIONS.map((s) => (
-                            <button key={s} onClick={() => updateMember(m.id, { seniority: s })}
+                            <button key={s} onClick={() => updateMember(m.id, { seniority: s as Seniority })}
                               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
                                 m.seniority === s ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
-                              }`}>
-                              {s}
-                            </button>
+                              }`}>{s}</button>
                           ))}
-
-                          <span className="mx-2 w-px h-4 bg-border" />
-
-                          <label className="flex items-center gap-1.5 text-[12px] cursor-pointer">
-                            <input type="checkbox" checked={m.mayDeploy}
-                              onChange={(e) => updateMember(m.id, { mayDeploy: e.target.checked })}
-                              className="rounded border-border" />
-                            <span className="font-bold text-muted-foreground">May deploy</span>
-                          </label>
+                          <span className="w-px h-4 bg-border" />
+                          {/* MBTI quick */}
+                          <select value={m.mbtiType} onChange={(e) => updateMember(m.id, { mbtiType: e.target.value as MbtiType })}
+                            className="text-[11px] font-bold text-foreground bg-secondary border-0 rounded-lg px-2 py-1 cursor-pointer">
+                            {MBTI_TYPES.map((t) => <option key={t} value={t}>{t} — {MBTI_TRAITS[t].label}</option>)}
+                          </select>
+                          <span className="w-px h-4 bg-border" />
+                          {/* Nationality */}
+                          <select value={m.nationalityCode} onChange={(e) => {
+                            const nat = NATIONALITY_TRAITS.find((n) => n.code === e.target.value);
+                            updateMember(m.id, {
+                              nationalityCode: e.target.value as NationalityCode,
+                              ...(nat ? { strictnessLevel: nat.defaultStrictness, refactorBias: nat.defaultRefactorBias } : {}),
+                            });
+                          }}
+                            className="text-[11px] font-bold text-foreground bg-secondary border-0 rounded-lg px-2 py-1 cursor-pointer">
+                            {NATIONALITY_TRAITS.map((n) => <option key={n.code} value={n.code}>{n.label}</option>)}
+                          </select>
+                          <span className="w-px h-4 bg-border" />
+                          {/* Risk */}
+                          {RISK_TOLERANCE_OPTIONS.map((r) => (
+                            <button key={r} onClick={() => updateMember(m.id, { riskTolerance: r as RiskTolerance })}
+                              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                m.riskTolerance === r ? `${riskColor(r)} bg-current/10` : "text-muted-foreground hover:text-foreground"
+                              }`}>{r}</button>
+                          ))}
                         </div>
 
-                        {/* Stack badges */}
-                        <div className="flex flex-wrap gap-1.5">
-                          {m.stack.map((s) => (
-                            <Badge key={s} variant="secondary" className="text-[10px] font-bold gap-1 px-2 py-0.5">
-                              {s}
-                              <button onClick={() => updateMember(m.id, { stack: m.stack.filter((x) => x !== s) })}>
-                                <X className="h-2.5 w-2.5" />
-                              </button>
-                            </Badge>
-                          ))}
-                          {STACK_OPTIONS.filter((s) => !m.stack.includes(s)).length > 0 && (
-                            <select className="text-[11px] font-bold text-muted-foreground bg-secondary border-0 rounded-lg px-2 py-0.5 cursor-pointer"
-                              value="" onChange={(e) => { if (e.target.value) updateMember(m.id, { stack: [...m.stack, e.target.value] }); }}>
-                              <option value="">+ Stack</option>
-                              {STACK_OPTIONS.filter((s) => !m.stack.includes(s)).map((s) => <option key={s} value={s}>{s}</option>)}
-                            </select>
-                          )}
+                        {/* Trait summary badges */}
+                        <div className="flex flex-wrap gap-1.5 text-[10px]">
+                          <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0">{mbtiInfo.label}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0">{natTrait?.label}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0">S:{m.strictnessLevel}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0">Q:{m.speedQualityWeight}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0">T:{m.testCoverageBias}</Badge>
+                          {m.mayDeploy && <Badge className="text-[9px] bg-lifecycle-deploy/10 text-lifecycle-deploy border-0">Deploy</Badge>}
                         </div>
+
+                        {/* Expand advanced */}
+                        <button onClick={() => updateMember(m.id, { showAdvanced: !m.showAdvanced })}
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors">
+                          {m.showAdvanced ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                          Operational Biases
+                        </button>
+
+                        {m.showAdvanced && (
+                          <div className="space-y-3 pt-1">
+                            <MiniSlider label="Strictness" value={m.strictnessLevel} low="Lenient" high="Strict"
+                              onChange={(v) => updateMember(m.id, { strictnessLevel: v })} />
+                            <MiniSlider label="Refactor Bias" value={m.refactorBias} low="Keep" high="Refactor"
+                              onChange={(v) => updateMember(m.id, { refactorBias: v })} />
+                            <MiniSlider label="Escalation" value={m.escalationThreshold} low="Escalate" high="Handle"
+                              onChange={(v) => updateMember(m.id, { escalationThreshold: v })} />
+                            <MiniSlider label="Speed↔Quality" value={m.speedQualityWeight} low="Speed" high="Quality"
+                              onChange={(v) => updateMember(m.id, { speedQualityWeight: v })} />
+                            <MiniSlider label="Token Eff." value={m.tokenEfficiency} low="Verbose" high="Minimal"
+                              onChange={(v) => updateMember(m.id, { tokenEfficiency: v })} />
+                            <MiniSlider label="Test Coverage" value={m.testCoverageBias} low="Skip" high="Full"
+                              onChange={(v) => updateMember(m.id, { testCoverageBias: v })} />
+                            <MiniSlider label="Documentation" value={m.documentationBias} low="None" high="All"
+                              onChange={(v) => updateMember(m.id, { documentationBias: v })} />
+                            <label className="flex items-center gap-2 cursor-pointer pt-1">
+                              <input type="checkbox" checked={m.mayDeploy}
+                                onChange={(e) => updateMember(m.id, { mayDeploy: e.target.checked })} className="rounded border-border" />
+                              <span className="text-[12px] font-bold text-muted-foreground">May deploy</span>
+                            </label>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Remove */}
                       <button onClick={() => removeMember(m.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors shrink-0 mt-1">
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -351,13 +410,26 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
         </div>
       )}
 
-      {/* Step 3 — Review & Activate */}
+      {/* ═══ Step 3 — Review & Activate ═══ */}
       {step === 2 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-[24px] font-bold text-foreground tracking-tight">Review & Activate</h2>
             <p className="text-[14px] text-muted-foreground mt-1">Confirm your capability setup before activation.</p>
           </div>
+
+          {/* Balance warnings */}
+          {balanceWarnings.length > 0 && (
+            <div className="space-y-1.5">
+              {balanceWarnings.map((w, i) => (
+                <div key={i} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold ${
+                  w.type === "error" ? "bg-destructive/10 text-destructive" : "bg-status-amber/10 text-status-amber"
+                }`}>
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {w.message}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Capability summary */}
           <div className="rounded-2xl border border-border bg-card p-6">
@@ -385,12 +457,21 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
               {members.map((m) => {
                 const persona = getPersona(m.roleCode);
                 const roleLabel = ROLE_OPTIONS.find((r) => r.code === m.roleCode)?.label ?? m.roleCode;
+                const mbtiInfo = MBTI_TRAITS[m.mbtiType];
+                const natTrait = NATIONALITY_TRAITS.find((n) => n.code === m.nationalityCode);
                 return (
                   <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                    <img src={persona.avatar} alt={m.name} className={`h-10 w-10 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-1 ring-offset-card`} width={40} height={40} />
+                    <img src={persona.avatar} alt={m.name}
+                      className={`h-10 w-10 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-1 ring-offset-card`}
+                      width={40} height={40} />
                     <div className="flex-1 min-w-0">
                       <p className="text-[14px] font-bold text-foreground truncate">{m.name}</p>
                       <p className="text-[12px] text-muted-foreground">{roleLabel} · {m.seniority}</p>
+                      <div className="flex gap-1 mt-1">
+                        <Badge variant="outline" className="text-[9px] px-1 py-0">{mbtiInfo.label}</Badge>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0">{natTrait?.label}</Badge>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0">{m.riskTolerance} risk</Badge>
+                      </div>
                     </div>
                     {m.mayDeploy && <Badge className="text-[9px] bg-lifecycle-deploy/10 text-lifecycle-deploy border-0">Deploy</Badge>}
                   </div>
@@ -426,6 +507,18 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function MiniSlider({ label, value, low, high, onChange }: {
+  label: string; value: number; low: string; high: string; onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[11px] font-bold text-muted-foreground w-24 shrink-0">{label}</span>
+      <Slider value={[value]} onValueChange={([v]) => onChange(v)} min={1} max={10} step={1} className="flex-1" />
+      <span className="text-[10px] font-mono font-bold text-primary w-8 text-right">{value}</span>
     </div>
   );
 }
