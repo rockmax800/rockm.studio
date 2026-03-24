@@ -279,7 +279,7 @@ export default function EmployeeProfile() {
                         <div className="flex items-center gap-2 py-1 px-1.5 hover:bg-secondary/30 rounded transition-colors">
                           <TaskStateDot state={t.state} />
                           <span className="text-[11px] text-foreground/80 truncate flex-1">{t.title}</span>
-                          {t.priority === "blocker" && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
+                          {t.priority === "high" && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
                         </div>
                       </Link>
                     ))}
