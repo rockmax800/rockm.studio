@@ -126,6 +126,7 @@ Learning, improvement, and performance measurement. All operations are **advisor
 | `prompt_versions` | Versioned prompt templates |
 | `prompt_experiments` | A/B testing configurations |
 | `prompt_improvement_suggestions` | AI-generated prompt improvements |
+| `learning_proposals` | Formal improvement proposals with evidence & promotion pipeline |
 | `context_snapshots` | Reproducibility snapshots |
 | `context_packs` | Assembled execution context |
 | `model_market` | Available models registry |
@@ -145,6 +146,8 @@ Learning, improvement, and performance measurement. All operations are **advisor
 | Must NOT trigger deployments | No deployment creation |
 | May INSERT proposals and scores | Append-only advisory records |
 | Proposals require founder approval | approval gate before execution |
+| Learning proposals require ≥3 source runs | Evidence minimum enforced at creation |
+| Promotion requires statistical significance | Enforced by LearningPipelineService |
 
 ### Interaction with Delivery
 - **Reads:** run results, artifact content, review verdicts, scoring data
