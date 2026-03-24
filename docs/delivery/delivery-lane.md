@@ -90,6 +90,20 @@ Repository (GitHub)
 
 All entities traceable: `Project → Task → Run → Workspace → PR → CI → Deploy`
 
+### 4.1 — Artifact Evidence Chain (v3.0)
+
+Each delivery step produces a typed artifact for full traceability:
+
+```
+Run → implementation_patch (references workspace)
+  → Review → review_report (references review verdict)
+    → CheckSuite → qa_evidence (references CI results)
+      → Deployment → deployment_receipt (references live deployment)
+        → release_note (user-facing summary)
+```
+
+See `core/11-artifact-type-system.md` for category contracts.
+
 ---
 
 ## 5 — Repository Rules
