@@ -230,13 +230,18 @@ See `core/07-system-mode.md` and `core/08-feature-flags.md`.
 
 ## 10 — Technology Stack
 
+> **Canonical stack definition lives in `00-runtime-truth.md`.** Summary below for reference.
+
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React + Vite + Tailwind + TypeScript |
-| Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
-| ORM | Supabase client SDK |
+| Frontend | Next.js (App Router) + Tailwind + shadcn/ui + TypeScript |
+| Backend API | Next.js Route Handlers |
+| ORM | Prisma |
+| Database | PostgreSQL 16+ |
 | Validation | Zod |
-| Real-time | Supabase Realtime (WebSocket) |
+| Real-time (UI) | Supabase Realtime (WebSocket) |
+| Worker | Node.js separate process |
+| Execution | Docker sandbox |
 | CI/CD | GitHub Actions → Docker → VPS |
 
 ---

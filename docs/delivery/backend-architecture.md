@@ -72,10 +72,14 @@ Location: `src/guards/`
 
 ## 7 — Technology Stack
 
+> **Canonical stack definition lives in `docs/00-runtime-truth.md`.** Summary below.
+
 - Next.js App Router — route handlers as API layer
 - Prisma ORM — persistence
 - PostgreSQL — database
 - Zod — validation
 - Supabase Edge Functions — serverless backend functions
+- Node.js worker process — RunExecutor, provider calls
+- Docker sandbox — isolated code execution
 
-For full service interaction details, see `docs/23-backend-internal-architecture-v1.md`.
+For full service interaction details, see `docs/archive/23-backend-internal-architecture-v1.md`.
