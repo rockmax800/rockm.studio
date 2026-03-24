@@ -40,6 +40,9 @@ interface ProviderResult {
   modelId: string;
   dualVerification?: DualVerificationResult;
   adaptiveRoutingUsed?: boolean;
+  inputTokens?: number;
+  outputTokens?: number;
+  estimatedCost?: number;
 }
 
 type ProviderHealthStatus = "healthy" | "degraded" | "unavailable";
