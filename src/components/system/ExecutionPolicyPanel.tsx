@@ -112,20 +112,19 @@ export default function ExecutionPolicyPanel() {
 
   return (
     <div className="space-y-4">
-      {/* Warning box */}
-      <Card className="border-status-amber/30 bg-status-amber/5 border shadow-none">
+      {/* Context box */}
+      <Card className="border-primary/20 bg-primary/[0.02] border shadow-none">
         <CardContent className="p-4 flex items-start gap-3">
-          <AlertTriangle className="h-4 w-4 text-status-amber shrink-0 mt-0.5" />
-          <div className="text-[13px] text-foreground/80 leading-relaxed space-y-1">
-            <p>
-              <strong>Native</strong> = current built-in execution flow (runs processed by internal services).
-            </p>
-            <p>
-              <strong>Ruflo</strong> = external experimental orchestration engine. Work is delegated externally but
-              all product state (projects, tasks, runs, artifacts, reviews, approvals, deployments) remains in this app.
-            </p>
-            <p className="text-muted-foreground text-[12px] italic">
-              Ruflo integration is not yet fully connected to a backend dispatcher. Selecting it records your preference
+          <Info className="h-4 w-4 text-primary/60 shrink-0 mt-0.5" />
+          <div className="text-[13px] text-foreground/80 leading-relaxed space-y-1.5">
+            <p className="font-semibold text-foreground">Global execution default</p>
+            <p>{POLICY_SUMMARY}</p>
+            <div className="text-[12px] text-muted-foreground space-y-0.5 mt-1">
+              <p><strong>Native</strong> — {ENGINE_EXPLAINER.native.detail}</p>
+              <p><strong>Ruflo</strong> — {ENGINE_EXPLAINER.ruflo.detail}</p>
+            </div>
+            <p className="text-muted-foreground text-[11px] italic mt-1">
+              Ruflo integration is not yet fully connected. Selecting it records your preference
               but does not currently route execution externally.
             </p>
           </div>
