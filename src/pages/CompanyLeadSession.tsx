@@ -542,8 +542,8 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Risks">
                     <ul className="space-y-1">
                       {scope.risks.map((r) => (
-                        <li key={r} className="text-[11px] flex items-start gap-1.5" style={{ color: "hsl(220 10% 46%)" }}>
-                          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" style={{ color: "hsl(38 92% 50% / 0.6)" }} />
+                        <li key={r} className="text-[11px] flex items-start gap-1.5 text-muted-foreground">
+                          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5 text-status-amber/60" />
                           {r}
                         </li>
                       ))}
