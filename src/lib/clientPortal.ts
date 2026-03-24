@@ -90,7 +90,7 @@ export async function fetchClientPortalData(
     .from("artifacts")
     .select("title, summary, created_at")
     .eq("project_id", projectId)
-    .eq("artifact_type", "release_note")
+    .eq("artifact_type", "release")
     .eq("state", "accepted")
     .order("created_at", { ascending: false })
     .limit(10);
