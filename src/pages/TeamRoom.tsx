@@ -21,7 +21,7 @@ import {
   Target, Layers, ListChecks, HelpCircle, BarChart3,
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
   AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
-  Sparkles, Clock, TrendingUp, Shield,
+  Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
 }from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
