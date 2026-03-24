@@ -288,7 +288,19 @@ export default function SystemPage() {
           </TabsContent>
 
           {/* MODE */}
-          <TabsContent value="mode">
+          <TabsContent value="mode" className="space-y-4">
+            {/* Theme */}
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-5">
+                <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
+                  <Palette className="h-4 w-4" /> App Theme
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">Controls the visual appearance across the entire studio.</p>
+                <ThemeToggle />
+              </CardContent>
+            </Card>
+
+            {/* System mode */}
             <Card className="border-none shadow-sm">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4">System Mode</h3>
