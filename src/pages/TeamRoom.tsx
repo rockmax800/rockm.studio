@@ -350,6 +350,8 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
   const [meetingStatus, setMeetingStatus] = useState<"active" | "frozen" | "ended">("active");
   const [showHistory, setShowHistory] = useState(false);
   const [empStatus] = useState<"listening" | "thinking" | "responding" | "idle">("listening");
+  const { policy: globalPolicy } = useExecutionPolicy();
+  const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
   const totalTokens = transcript.reduce((s, e) => s + e.tokenCost, 0);
   const lastEntry = transcript[transcript.length - 1];
