@@ -346,7 +346,7 @@ export default function CompanyLeadSession() {
                 <span className="hidden sm:inline">{PHASE_LABELS[p]}</span>
               </div>
               {i < PHASE_ORDER.length - 1 && (
-                <div className="w-6 h-px" style={{ background: i < currentPhaseIdx ? "hsl(217 91% 60%)" : "hsl(220 14% 88%)" }} />
+                <div className="w-6 h-px bg-border" style={i < currentPhaseIdx ? { background: "hsl(217 91% 60%)" } : undefined} />
               )}
             </div>
           ))}
