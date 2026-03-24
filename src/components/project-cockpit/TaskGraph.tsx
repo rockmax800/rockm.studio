@@ -116,7 +116,7 @@ export function TaskGraph({ tasks, projectId }: TaskGraphProps) {
                           <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-medium text-foreground truncate leading-snug">{t.title}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              {t.roleName && <span className="text-[10px] text-muted-foreground">{t.roleName}</span>}
+                              {t.roleName && <span className="text-[10px] text-muted-foreground" title="Execution owned by this role">{t.roleName}</span>}
                               <span className="text-[10px] font-mono text-muted-foreground/50">{t.domain}</span>
                             </div>
                           </div>

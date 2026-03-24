@@ -289,6 +289,9 @@ export default function TeamRoom() {
               <p className="text-[14px] text-muted-foreground mt-1 max-w-[480px] mx-auto">
                 Begin a structured conversation to extract scope, architecture, and task breakdowns.
               </p>
+              <p className="text-[11px] text-muted-foreground/35 mt-1.5 italic max-w-[400px] mx-auto">
+                This is a working session participant. Downstream task execution is governed by role contracts, not individual session membership.
+              </p>
               <Button className="mt-5 h-12 px-8 gap-2.5 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"
                 onClick={() => setSessionActive(true)}>
                 <Play className="h-4 w-4" /> Begin Session

@@ -560,6 +560,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
           {emp.taskTitle && (
             <div className="pt-2 border-t border-border/30">
               <p className="text-[10px] text-muted-foreground">Current: <strong className="text-foreground">{emp.taskTitle}</strong></p>
+              <p className="text-[9px] text-muted-foreground/40 mt-0.5 italic">Owned by role contract, not individual employee</p>
             </div>
           )}
         </TooltipContent>
