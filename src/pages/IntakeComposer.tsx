@@ -335,6 +335,8 @@ export default function IntakeComposerV2() {
 
             {/* ── LEFT: Navigator Conversation (7 cols) ──────── */}
             <div className="col-span-12 lg:col-span-7 flex flex-col" style={{ minHeight: "420px" }}>
+              {/* Panel label */}
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5 px-1">Working conversation with the navigator</p>
               {/* Navigator persona */}
               <div className="flex items-center gap-3 px-6 py-4 bg-card rounded-t-[16px] border border-border border-b-0">
                 <div className="h-10 w-10 rounded-full border-2 border-foreground/20 bg-secondary flex items-center justify-center shrink-0">
