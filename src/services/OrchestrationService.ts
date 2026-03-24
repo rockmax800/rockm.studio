@@ -177,7 +177,7 @@ export class OrchestrationService {
         // Best-effort — outbox_events table may not exist yet
       }
 
-      // 7. Emit OfficeEvent for task transitions (PART 4)
+      // 8. Emit OfficeEvent for task transitions (PART 4)
       if (entityType === "task") {
         const fromZone = taskStateToZone(fromState);
         const toZone = taskStateToZone(toState);
