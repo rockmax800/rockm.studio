@@ -80,11 +80,11 @@ export function useExecutionPolicy(): {
   const { data: settings, isLoading } = useSystemMode();
 
   const policy = useMemo(() => {
-    const features = (settings as any)?.experimental_features as
-      | ExecutionPolicySettings
-      | null
-      | undefined;
-    return resolvePolicy(features);
+    // Look inside experimental_features.execution_defaults first,
+    // then fall back to top-level experimental_features for legacy shape
+    const features = (settings as any)?.experimental_features;
+    const nested = features?.execution_defaults as ExecutionPolicySettings | null | undefined;
+    return resolvePolicy(nested ?? features);
   }, [settings]);
 
   const presetId = `${policy.executionEngine}-${policy.providerFamily === "anthropic" ? "claude" : policy.providerFamily === "openai" ? "gpt" : policy.providerFamily}`;

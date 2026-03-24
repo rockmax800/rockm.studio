@@ -7,11 +7,12 @@ import { useSystemMode } from "@/hooks/use-system-mode";
 import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/use-diagnostics-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge } from "lucide-react";
+import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { lazy, Suspense, useMemo } from "react";
 
 const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
+const ExecutionPolicyPanel = lazy(() => import("@/components/system/ExecutionPolicyPanel"));
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
@@ -40,7 +41,7 @@ export default function SystemPage() {
 
   // Read query params for trace pre-filtering
   const urlTab = searchParams.get("tab");
-  const defaultTab = urlTab === "audit" ? "audit" : "health";
+  const defaultTab = urlTab === "audit" ? "audit" : urlTab === "execution" ? "execution" : "health";
   const traceInitialFilters = useMemo(() => {
     const f: Record<string, string> = {};
     const p = searchParams.get("project");
@@ -74,6 +75,9 @@ export default function SystemPage() {
             </TabsTrigger>
             <TabsTrigger value="audit" className="gap-1.5">
               <Shield className="h-3.5 w-3.5" /> Audit
+            </TabsTrigger>
+            <TabsTrigger value="execution" className="gap-1.5">
+              <Cpu className="h-3.5 w-3.5" /> Execution
             </TabsTrigger>
             <TabsTrigger value="docs" className="gap-1.5">
               <BookOpen className="h-3.5 w-3.5" /> Documentation
@@ -313,6 +317,13 @@ export default function SystemPage() {
           <TabsContent value="audit">
             <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading trace explorer…</div>}>
               <TraceExplorer initialFilters={traceInitialFilters} />
+            </Suspense>
+          </TabsContent>
+
+          {/* EXECUTION — Global Execution Defaults */}
+          <TabsContent value="execution">
+            <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading execution settings…</div>}>
+              <ExecutionPolicyPanel />
             </Suspense>
           </TabsContent>
 
