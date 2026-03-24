@@ -6,6 +6,7 @@ import { StatusStrip } from "@/components/command-center/StatusStrip";
 import { FounderInbox } from "@/components/command-center/FounderInbox";
 import { ActiveDelivery } from "@/components/command-center/ActiveDelivery";
 import { LiveFlow } from "@/components/command-center/LiveFlow";
+import { HeroComposer } from "@/components/command-center/HeroComposer";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWorkerNodes, fetchStalledEntities } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,11 +21,9 @@ export default function CommandCenter() {
   const risk = useRiskAnalytics();
   const inbox = useFounderInbox();
 
-  // Workers & stalled
   const { data: workers = [] } = useQuery({ queryKey: ["workers"], queryFn: fetchWorkerNodes, staleTime: 15_000 });
   const { data: stalled } = useQuery({ queryKey: ["stalled"], queryFn: fetchStalledEntities, staleTime: 15_000 });
 
-  // Active deploys
   const { data: activeDeploys = [] } = useQuery({
     queryKey: ["active-deploys"],
     queryFn: async () => {
@@ -37,10 +36,8 @@ export default function CommandCenter() {
   const pendingApprovals = approvals.filter((a) => a.state === "pending");
   const escalations = inbox.data?.escalations ?? [];
 
-  // Build project name map
   const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
 
-  // Founder inbox items
   const inboxItems = [
     ...pendingApprovals.map((a) => ({
       id: a.id,
@@ -51,6 +48,8 @@ export default function CommandCenter() {
       evidenceCount: 0,
       timestamp: a.created_at,
       linkTo: `/control/approvals/${a.id}`,
+      projectName: projectMap[a.project_id] ?? "—",
+      impactSummary: a.consequence_if_approved ?? undefined,
     })),
     ...escalations.map((e: any) => ({
       id: e.id,
@@ -60,6 +59,7 @@ export default function CommandCenter() {
       riskLevel: "high" as const,
       timestamp: e.updated_at,
       linkTo: `/control/tasks/${e.id}`,
+      projectName: projectMap[e.project_id] ?? "—",
     })),
   ].sort((a, b) => {
     if (a.riskLevel === "high" && b.riskLevel !== "high") return -1;
@@ -67,7 +67,6 @@ export default function CommandCenter() {
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
 
-  // Active delivery buckets
   const toDeliveryTask = (t: any) => ({
     id: t.id,
     projectName: projectMap[t.project_id] ?? "—",
@@ -75,6 +74,7 @@ export default function CommandCenter() {
     title: t.title,
     state: t.state,
     roleName: t.agent_roles?.name,
+    roleCode: t.agent_roles?.code,
     updatedAt: t.updated_at,
   });
 
@@ -86,7 +86,7 @@ export default function CommandCenter() {
 
   return (
     <AppLayout title="Command Center">
-      <div className="max-w-[1800px] mx-auto space-y-3 h-[calc(100vh-4rem)]">
+      <div className="max-w-[1800px] mx-auto space-y-2 h-[calc(100vh-4rem)] flex flex-col">
         {/* STATUS STRIP */}
         <StatusStrip
           systemMode={modeData?.mode ?? "production"}
@@ -98,15 +98,18 @@ export default function CommandCenter() {
           deploysInProgress={activeDeploys.length}
         />
 
+        {/* HERO COMPOSER */}
+        <HeroComposer />
+
         {/* 3-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3" style={{ height: "calc(100% - 3.5rem)" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-1 min-h-0">
           {/* Column 1 — Founder Inbox */}
-          <div className="border border-border/30 rounded-lg bg-card/30 p-3 flex flex-col min-h-0">
+          <div className="rounded-lg bg-surface-overlay border border-border/40 p-2.5 flex flex-col min-h-0 shadow-lg shadow-background/50">
             <FounderInbox items={inboxItems} />
           </div>
 
           {/* Column 2 — Active Delivery */}
-          <div className="border border-border/30 rounded-lg bg-card/30 p-3 flex flex-col min-h-0">
+          <div className="rounded-lg bg-surface-overlay border border-border/40 p-2.5 flex flex-col min-h-0 shadow-lg shadow-background/50">
             <ActiveDelivery
               inProgress={inProgressTasks}
               waitingReview={waitingReviewTasks}
@@ -115,7 +118,7 @@ export default function CommandCenter() {
           </div>
 
           {/* Column 3 — Live Flow */}
-          <div className="border border-border/30 rounded-lg bg-card/30 p-3 flex flex-col min-h-0">
+          <div className="rounded-lg bg-surface-overlay border-l-2 border-l-primary/30 border border-border/40 p-2.5 flex flex-col min-h-0 shadow-lg shadow-background/50">
             <LiveFlow events={events} />
           </div>
         </div>
