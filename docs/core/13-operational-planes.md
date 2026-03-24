@@ -266,9 +266,34 @@ In Production Mode, Knowledge Plane features like prompt A/B testing, model comp
 
 ---
 
-## 10 — Governance Invariants (v1.2)
+## 10 — Evolution Layer (v2.2)
+
+The Evolution Layer sits above the four planes and operates under strict constraints:
+
+| Entity | Purpose |
+|--------|---------|
+| `self_modification_proposals` | Gödel Mode — formal self-modification with constraint proofs |
+| `mutation_experiments` | Darwin Mode — controlled variation experiments |
+| `correction_proposals` | Cybernetic Loop — anomaly-triggered correction suggestions |
+| `capability_templates` | Capability cloning from high-performing teams |
+
+### Constraints
+
+| Rule | Enforcement |
+|------|------------|
+| Must NOT modify task/run/artifact state | No OrchestrationService calls |
+| Must NOT trigger deployments | No deployment creation |
+| Must NOT bypass approval | All promotions require Founder Approval |
+| Must pass Evaluation Rail | Protected scenarios must pass before promotion |
+| Must be versioned | Previous version stored for rollback |
+| Must be observable | Evolution Dashboard at `/evolution` |
+
+---
+
+## 11 — Governance Invariants (v1.2+)
 
 ### 10.1 — No Boolean Approval Flags
+### 11.1 — No Boolean Approval Flags
 
 **Invariant:** No business decision in the system may rely on a boolean `approved_by_founder` flag. All approval decisions MUST go through the canonical Approval entity for:
 
@@ -279,6 +304,7 @@ In Production Mode, Knowledge Plane features like prompt A/B testing, model comp
 Applies to: BlueprintContract, EstimateReport, Learning Promotion, and all future decision points.
 
 ### 10.2 — Knowledge Plane Isolation
+### 11.2 — Knowledge Plane Isolation
 
 **Invariant:** The Knowledge Plane may NEVER mutate:
 
@@ -292,12 +318,22 @@ Applies to: BlueprintContract, EstimateReport, Learning Promotion, and all futur
 | approvals | No creation (reads only to check promotion gates) |
 
 ### 10.3 — Evaluation Run Isolation
+### 11.3 — Evaluation Run Isolation
 
 **Invariant:** `evaluation_runs` are strictly isolated from delivery execution. They cannot produce pull requests, deployments, or modify any delivery plane entity.
 
+### 11.4 — Evolution Layer Isolation
+
+**Invariant:** The Evolution Layer may NEVER:
+- Modify task, run, or artifact state
+- Trigger deployments or create pull requests
+- Bypass the Approval entity
+- Skip evaluation rail validation
+- Perform silent mutations (all changes require audit trail in event_log)
+
 ---
 
-## 11 — Validation Checklist
+## 12 — Validation Checklist
 
 When adding new features or entities, verify:
 
@@ -308,3 +344,6 @@ When adding new features or entities, verify:
 - [ ] If Delivery Plane: does it go through OrchestrationService?
 - [ ] If Intent Plane: does it avoid execution or deployment?
 - [ ] Does the feature avoid boolean approval flags? (Use Approval entity instead)
+- [ ] If Evolution Layer: does it only propose, never directly modify?
+- [ ] If Evolution Layer: does it require Evaluation Rail + Founder Approval?
+- [ ] Is versioning and rollback supported for the changed entity?
