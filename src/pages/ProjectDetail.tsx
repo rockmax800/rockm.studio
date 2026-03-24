@@ -423,7 +423,7 @@ export default function ProjectDetail() {
             <ProjectSetupPanel
               repo={{
                 hasRepo: repositories.length > 0,
-                repoName: repositories[0]?.name,
+                repoName: repositories[0] ? `${repositories[0].repo_owner}/${repositories[0].repo_name}` : undefined,
                 provider: repositories[0]?.provider,
                 prCount: pullRequests.length,
                 ciStatus: checkSuites.some((c: any) => c.status === "failed") ? "failed"
