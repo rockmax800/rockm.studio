@@ -21,6 +21,7 @@ import SystemPage from "./pages/SystemPage";
 
 // Legacy / deep-link pages (preserved, not in nav)
 import DocsWorkspace from "./pages/DocsWorkspace";
+import SMMCapability from "./pages/SMMCapability";
 import DepartmentDetail from "./pages/DepartmentDetail";
 import ControlProjectDetail from "./pages/control/ControlProjectDetail";
 import ControlTaskDetail from "./pages/control/ControlTaskDetail";
