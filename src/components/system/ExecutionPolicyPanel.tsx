@@ -28,8 +28,8 @@ import type {
 /* ── Static data ──────────────────────────────── */
 
 const ENGINES: { value: ExecutionEngine; label: string; desc: string; icon: typeof Server }[] = [
-  { value: "native", label: "Native", desc: "Built-in execution flow", icon: Server },
-  { value: "ruflo", label: "Ruflo", desc: "External experimental engine", icon: Zap },
+  { value: "native", label: "Native", desc: ENGINE_EXPLAINER.native.short, icon: Server },
+  { value: "ruflo", label: "Ruflo", desc: ENGINE_EXPLAINER.ruflo.short, icon: Zap },
 ];
 
 const PROVIDERS: { value: ProviderFamily; label: string; models: string[] }[] = [
