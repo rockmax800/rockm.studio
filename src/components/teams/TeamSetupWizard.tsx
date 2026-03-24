@@ -114,6 +114,12 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
         .from("departments").insert({ name: capName, slug, description: capDesc, icon: "Building2" }).select().single();
       if (deptErr) throw deptErr;
 
+      // Sync to teams table so FK on ai_employees.team_id works
+      const { error: teamErr } = await supabase
+        .from("teams").insert({ id: dept.id, name: capName, focus_domain: capDesc || "mixed" });
+      if (teamErr) console.error("[TeamSetup] teams sync error:", teamErr);
+      console.log("[TeamSetup] Capability created:", dept.id, capName);
+
       for (const m of members) {
         const { data: existingRole } = await supabase.from("agent_roles").select("id").eq("code", m.roleCode).eq("team_id", dept.id).maybeSingle();
         let roleId = existingRole?.id;
@@ -139,8 +145,10 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
 
       qc.invalidateQueries({ queryKey: ["departments"] });
       qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
       qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
       qc.invalidateQueries({ queryKey: ["office"] });
+      qc.invalidateQueries({ queryKey: ["office-roles-profile"] });
       toast.success(`${capName} activated with ${members.length} members`);
       onComplete();
     } catch (e: any) {
