@@ -495,18 +495,14 @@ export default function CompanyLeadSession() {
 
         {/* ══ RIGHT — Structured extraction rail ══ */}
         <div
-          className="w-[380px] shrink-0 overflow-y-auto hidden lg:block"
-          style={{
-            borderLeft: "1px solid hsl(220 14% 92%)",
-            background: "hsl(220 20% 98% / 0.6)",
-          }}
+          className="w-[380px] shrink-0 overflow-y-auto hidden lg:block border-l border-border bg-secondary/60"
         >
           <div className="p-5 space-y-4">
 
             {/* Rail header */}
             <div className="flex items-center gap-2 px-1">
-              <Sparkles className="h-3.5 w-3.5" style={{ color: "hsl(220 10% 78%)" }} strokeWidth={1.8} />
-              <span className="text-[11px] font-semibold tracking-[0.02em]" style={{ color: "hsl(220 10% 64%)" }}>
+              <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.8} />
+              <span className="text-[11px] font-semibold tracking-[0.02em] text-muted-foreground">
                 Live Extraction
               </span>
             </div>
