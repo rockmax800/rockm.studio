@@ -8,6 +8,7 @@ import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
+  X, Maximize2,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -206,7 +207,7 @@ function generateModuleEstimates(scope: ExtractedScope): ModuleEstimate[] {
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════════ */
 
-export default function CompanyLeadSession() {
+export default function CompanyLeadSession({ embedded = false, onClose }: { embedded?: boolean; onClose?: () => void }) {
   const navigate = useNavigate();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -317,21 +318,41 @@ export default function CompanyLeadSession() {
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
 
   return (
-    <div className="lead-session-root ls-grid-bg flex flex-col min-h-screen">
+    <div className={cn(
+      "lead-session-root ls-grid-bg flex flex-col",
+      embedded ? "h-full" : "min-h-screen"
+    )}>
 
       {/* ── Top bar ──────────────────────────────────────── */}
       <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-border bg-card/85 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <h1 className="text-[16px] font-bold text-foreground">Company Lead</h1>
-            <p className="text-[11px] text-muted-foreground">Step 1 — Consultation & scope definition</p>
-          </div>
+          {embedded ? (
+            <>
+              <button
+                onClick={onClose}
+                className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Command Center /</p>
+                <h1 className="text-[15px] font-bold text-foreground">Company Lead</h1>
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/")}
+                className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h1 className="text-[16px] font-bold text-foreground">Company Lead</h1>
+                <p className="text-[11px] text-muted-foreground">Step 1 — Consultation & scope definition</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Phase stepper */}
@@ -352,22 +373,36 @@ export default function CompanyLeadSession() {
           ))}
         </div>
 
-        {/* Execution context */}
+        {/* Right side: execution badge + expand */}
         <div className="flex items-center gap-2">
-          <ExecutionPolicyBadge
-            label="How should the team execute this work?"
-            policyOverride={execOverride.enabled ? execOverride.policy : null}
-            isOverride={execOverride.enabled}
-          />
-          <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
-        </div>
+          {!embedded && (
+            <>
+              <ExecutionPolicyBadge
+                label="How should the team execute this work?"
+                policyOverride={execOverride.enabled ? execOverride.policy : null}
+                isOverride={execOverride.enabled}
+              />
+              <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
+            </>
+          )}
 
-        {showEstimate && (
-          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-status-blue">
-            <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>
-            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {totalDays}d</span>
-          </div>
-        )}
+          {embedded && (
+            <button
+              onClick={() => { onClose?.(); navigate("/lead"); }}
+              className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+              title="Open full workspace"
+            >
+              <Maximize2 className="h-3.5 w-3.5" /> Expand
+            </button>
+          )}
+
+          {showEstimate && (
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-status-blue">
+              <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>
+              <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {totalDays}d</span>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* ── Main content ─────────────────────────────────── */}
@@ -653,6 +688,21 @@ export default function CompanyLeadSession() {
           </div>
         </div>
       </div>
+
+      {/* ── Embedded footer ─────────────────────────────── */}
+      {embedded && (
+        <div className="shrink-0 flex items-center justify-between px-6 py-2 border-t border-border bg-card/60 backdrop-blur-xl">
+          <span className="text-[11px] text-muted-foreground">
+            Session active · {messages.filter(m => m.role === "user").length} messages
+          </span>
+          <button
+            onClick={() => { onClose?.(); navigate("/lead"); }}
+            className="text-[11px] font-medium text-status-blue hover:underline flex items-center gap-1"
+          >
+            Open full workspace <Maximize2 className="h-3 w-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
