@@ -125,13 +125,13 @@ export class TaskService {
         }
       }
 
-      if (task.state === "approved") {
+      if (task.state === "validated") {
         if (!task.requested_outcome || task.requested_outcome.trim().length === 0) {
           throw new GuardError({
-            message: "Approved task requires requested_outcome before reassignment",
+            message: "Validated task requires requested_outcome before reassignment",
             entityType: "task",
             entityId: taskId,
-            fromState: "approved",
+            fromState: "validated",
             toState: "assigned",
           });
         }
