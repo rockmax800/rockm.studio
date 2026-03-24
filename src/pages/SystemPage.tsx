@@ -9,6 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge } from "lucide-react";
 import { Link } from "react-router-dom";
+import { lazy, Suspense } from "react";
+
+const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
