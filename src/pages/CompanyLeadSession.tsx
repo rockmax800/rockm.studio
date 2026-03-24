@@ -688,6 +688,21 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
           </div>
         </div>
       </div>
+
+      {/* ── Embedded footer ─────────────────────────────── */}
+      {embedded && (
+        <div className="shrink-0 flex items-center justify-between px-6 py-2 border-t border-border bg-card/60 backdrop-blur-xl">
+          <span className="text-[11px] text-muted-foreground">
+            Session active · {messages.filter(m => m.role === "user").length} messages
+          </span>
+          <button
+            onClick={() => { onClose?.(); navigate("/lead"); }}
+            className="text-[11px] font-medium text-status-blue hover:underline flex items-center gap-1"
+          >
+            Open full workspace <Maximize2 className="h-3 w-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
