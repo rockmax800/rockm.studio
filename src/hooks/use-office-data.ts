@@ -190,6 +190,7 @@ export function useOfficeData() {
         officeEvents: (officeEventsRes.data ?? []) as OfficeEvent[],
         leanMode: isLeanMode,
         roles,
+        rolesById,
         teams: teamsWithLoad,
         teamsById,
         pendingInboxCount: (inboxApprovalsRes.data ?? []).length,
@@ -199,6 +200,8 @@ export function useOfficeData() {
         companySettings,
         hasDraftBlog,
         hasApprovedBlog,
+        employees,
+        employeesByRoleId,
         systemMode: systemMode as "production" | "experimental",
         experimentalFeatures,
       };
