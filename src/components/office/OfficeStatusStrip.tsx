@@ -1,11 +1,10 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Server,
   Activity,
   Zap,
   Stamp,
   FolderKanban,
+  AlertTriangle,
   Filter,
 } from "lucide-react";
 import {
@@ -22,6 +21,7 @@ interface OfficeStatusStripProps {
   activeTasks: number;
   runningRuns: number;
   pendingApprovals: number;
+  blockedCount: number;
   projects: { id: string; name: string }[];
   roles: { id: string; name: string; code: string }[];
   selectedProjectId: string | null;
@@ -33,8 +33,8 @@ interface OfficeStatusStripProps {
 }
 
 const MODE_STYLES: Record<string, string> = {
-  production: "bg-status-green/15 text-status-green border-status-green/30",
-  experimental: "bg-status-amber/15 text-status-amber border-status-amber/30",
+  production: "bg-status-green/10 text-status-green border-status-green/30",
+  experimental: "bg-status-amber/10 text-status-amber border-status-amber/30",
 };
 
 const LIFECYCLE_OPTIONS = [
@@ -54,6 +54,7 @@ export function OfficeStatusStrip({
   activeTasks,
   runningRuns,
   pendingApprovals,
+  blockedCount,
   projects,
   roles,
   selectedProjectId,
@@ -64,47 +65,42 @@ export function OfficeStatusStrip({
   onLifecycleChange,
 }: OfficeStatusStripProps) {
   return (
-    <div className="flex items-center gap-1.5 flex-wrap bg-surface-sunken border border-border/40 rounded-lg px-3 py-1.5">
-      {/* Left — Status */}
-      <Badge
-        variant="outline"
-        className={`text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 border ${MODE_STYLES[systemMode] ?? MODE_STYLES.production}`}
-      >
-        {systemMode}
-      </Badge>
+    <div className="flex items-center gap-2 h-12 bg-secondary rounded-[12px] border border-border px-4">
+      {/* Left — Mode + Metrics */}
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-card border border-border">
+        <div className="h-1.5 w-1.5 rounded-full bg-status-green" />
+        <span className="text-[12px] font-semibold text-foreground uppercase tracking-wider">
+          {systemMode}
+        </span>
+      </div>
 
-      <Stat icon={<FolderKanban className="h-3 w-3" />} value={activeProjects} label="Projects" />
-      <Stat icon={<Activity className="h-3 w-3" />} value={activeTasks} label="Tasks" />
-      <Stat
-        icon={<Zap className="h-3 w-3" />}
-        value={runningRuns}
-        label="Runs"
-        color={runningRuns > 0 ? "text-status-cyan" : undefined}
-      />
-      <Stat
-        icon={<Stamp className="h-3 w-3" />}
-        value={pendingApprovals}
-        label="Approvals"
-        color={pendingApprovals > 0 ? "text-status-amber" : undefined}
-      />
+      <Sep />
+
+      <Metric icon={FolderKanban} value={activeProjects} label="Projects" />
+      <Metric icon={Activity} value={activeTasks} label="Tasks" />
+      <Metric icon={Zap} value={runningRuns} label="Runs" color={runningRuns > 0 ? "text-status-cyan" : undefined} />
+      <Metric icon={Stamp} value={pendingApprovals} label="Approvals" color={pendingApprovals > 0 ? "text-status-amber" : undefined} />
+      {blockedCount > 0 && (
+        <Metric icon={AlertTriangle} value={blockedCount} label="Blocked" color="text-status-red" />
+      )}
 
       <div className="flex-1" />
 
       {/* Right — Filters */}
-      <div className="flex items-center gap-1.5">
-        <Filter className="h-3 w-3 text-muted-foreground" />
+      <div className="flex items-center gap-2">
+        <Filter className="h-3.5 w-3.5 text-muted-foreground" />
 
         <Select
           value={selectedProjectId ?? "__all__"}
           onValueChange={(v) => onProjectChange(v === "__all__" ? null : v)}
         >
-          <SelectTrigger className="h-6 w-[120px] text-[9px] bg-transparent border-border/40">
+          <SelectTrigger className="h-7 w-[130px] text-[12px] bg-card border-border rounded-lg">
             <SelectValue placeholder="Project" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__" className="text-[10px]">All Projects</SelectItem>
+            <SelectItem value="__all__" className="text-[12px]">All Projects</SelectItem>
             {projects.map((p) => (
-              <SelectItem key={p.id} value={p.id} className="text-[10px]">{p.name}</SelectItem>
+              <SelectItem key={p.id} value={p.id} className="text-[12px]">{p.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -113,13 +109,13 @@ export function OfficeStatusStrip({
           value={selectedRoleId ?? "__all__"}
           onValueChange={(v) => onRoleChange(v === "__all__" ? null : v)}
         >
-          <SelectTrigger className="h-6 w-[110px] text-[9px] bg-transparent border-border/40">
+          <SelectTrigger className="h-7 w-[120px] text-[12px] bg-card border-border rounded-lg">
             <SelectValue placeholder="Role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__" className="text-[10px]">All Roles</SelectItem>
+            <SelectItem value="__all__" className="text-[12px]">All Roles</SelectItem>
             {roles.map((r) => (
-              <SelectItem key={r.id} value={r.id} className="text-[10px]">{r.name}</SelectItem>
+              <SelectItem key={r.id} value={r.id} className="text-[12px]">{r.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -128,13 +124,13 @@ export function OfficeStatusStrip({
           value={selectedLifecycle ?? "__all__"}
           onValueChange={(v) => onLifecycleChange(v === "__all__" ? null : v)}
         >
-          <SelectTrigger className="h-6 w-[100px] text-[9px] bg-transparent border-border/40">
+          <SelectTrigger className="h-7 w-[110px] text-[12px] bg-card border-border rounded-lg">
             <SelectValue placeholder="State" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__" className="text-[10px]">All States</SelectItem>
+            <SelectItem value="__all__" className="text-[12px]">All States</SelectItem>
             {LIFECYCLE_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value} className="text-[10px]">{o.label}</SelectItem>
+              <SelectItem key={o.value} value={o.value} className="text-[12px]">{o.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -143,22 +139,26 @@ export function OfficeStatusStrip({
   );
 }
 
-function Stat({
-  icon,
+function Sep() {
+  return <div className="h-5 w-px bg-border-strong/40 mx-0.5" />;
+}
+
+function Metric({
+  icon: Icon,
   value,
   label,
   color,
 }: {
-  icon: React.ReactNode;
+  icon: any;
   value: number;
   label: string;
   color?: string;
 }) {
   return (
-    <div className={`flex items-center gap-1 px-1.5 py-0.5 ${color ?? "text-muted-foreground"}`}>
-      {icon}
-      <span className="text-xs font-bold font-mono leading-none">{value}</span>
-      <span className="text-[8px] opacity-60 hidden xl:inline">{label}</span>
+    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${color ?? "text-muted-foreground"}`}>
+      <Icon className="h-3 w-3" />
+      <span className="text-[13px] font-bold font-mono tabular-nums">{value}</span>
+      <span className="text-[11px] font-medium hidden xl:inline">{label}</span>
     </div>
   );
 }

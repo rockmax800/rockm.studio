@@ -13,12 +13,12 @@ const ROOM_BORDER_COLORS: Record<string, string> = {
   assigned: "border-t-lifecycle-ready",
   in_progress: "border-t-lifecycle-in-progress",
   waiting_review: "border-t-lifecycle-review",
-  rework: "border-t-status-amber",
+  rework: "border-t-lifecycle-rework",
   blocked: "border-t-lifecycle-blocked",
   escalated: "border-t-lifecycle-escalated",
   validated: "border-t-lifecycle-validated",
   done: "border-t-lifecycle-done",
-  release: "border-t-lifecycle-running",
+  release: "border-t-lifecycle-deploying",
 };
 
 const ROOM_HEADER_COLORS: Record<string, string> = {
@@ -26,28 +26,26 @@ const ROOM_HEADER_COLORS: Record<string, string> = {
   assigned: "text-lifecycle-ready",
   in_progress: "text-lifecycle-in-progress",
   waiting_review: "text-lifecycle-review",
-  rework: "text-status-amber",
+  rework: "text-lifecycle-rework",
   blocked: "text-lifecycle-blocked",
   escalated: "text-lifecycle-escalated",
   validated: "text-lifecycle-validated",
   done: "text-lifecycle-done",
-  release: "text-lifecycle-running",
+  release: "text-lifecycle-deploying",
 };
 
 export function LifecycleRoom({ label, stateKey, tasks, onTaskClick }: LifecycleRoomProps) {
-  const borderColor = ROOM_BORDER_COLORS[stateKey] ?? "border-t-muted-foreground";
+  const borderColor = ROOM_BORDER_COLORS[stateKey] ?? "border-t-muted";
   const headerColor = ROOM_HEADER_COLORS[stateKey] ?? "text-muted-foreground";
 
   return (
-    <div className={`flex flex-col border border-border/20 border-t-2 ${borderColor} rounded-lg bg-card/20 min-h-0 h-full`}>
+    <div className={`flex flex-col border border-border border-t-2 ${borderColor} rounded-[12px] bg-card min-h-0 h-full`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-b border-border/15">
-        <div className="flex items-center gap-1.5">
-          <span className={`text-[9px] font-semibold uppercase tracking-wider ${headerColor}`}>
-            {label}
-          </span>
-        </div>
-        <span className={`text-[10px] font-mono font-bold ${headerColor}`}>
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+        <span className={`text-[13px] font-semibold ${headerColor}`}>
+          {label}
+        </span>
+        <span className={`text-[13px] font-mono font-bold ${tasks.length > 0 ? headerColor : "text-muted-foreground/30"}`}>
           {tasks.length}
         </span>
       </div>
@@ -55,11 +53,11 @@ export function LifecycleRoom({ label, stateKey, tasks, onTaskClick }: Lifecycle
       {/* Task list */}
       {tasks.length === 0 ? (
         <div className="flex-1 flex items-center justify-center p-2">
-          <span className="text-[8px] text-muted-foreground/30 font-mono">—</span>
+          <span className="text-[11px] text-muted-foreground/30">—</span>
         </div>
       ) : (
-        <ScrollArea className="flex-1 p-1">
-          <div className="space-y-0.5">
+        <ScrollArea className="flex-1 p-1.5">
+          <div className="space-y-1">
             {tasks.map((t) => (
               <OfficeTaskCard
                 key={t.id}
