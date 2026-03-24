@@ -21,6 +21,7 @@ import SystemPage from "./pages/SystemPage";
 
 // Legacy / deep-link pages (preserved, not in nav)
 import DocsWorkspace from "./pages/DocsWorkspace";
+import SMMCapability from "./pages/SMMCapability";
 import DepartmentDetail from "./pages/DepartmentDetail";
 import ControlProjectDetail from "./pages/control/ControlProjectDetail";
 import ControlTaskDetail from "./pages/control/ControlTaskDetail";
@@ -55,6 +56,7 @@ const App = () => (
 
           {/* LEGACY DEEP LINKS (preserved for backward compat) */}
           <Route path="/docs" element={<DocsWorkspace />} />
+          <Route path="/smm" element={<SMMCapability />} />
           <Route path="/departments/:slug" element={<DepartmentDetail />} />
           <Route path="/departments/:slug/presales/:id" element={<PresaleDetail />} />
           <Route path="/control/projects/:id" element={<ControlProjectDetail />} />
@@ -72,7 +74,7 @@ const App = () => (
           <Route path="/control/office" element={<Navigate to="/office" replace />} />
           <Route path="/control/hr" element={<Navigate to="/teams" replace />} />
           <Route path="/control/hiring-market" element={<Navigate to="/teams" replace />} />
-          <Route path="/control/blog" element={<Navigate to="/teams" replace />} />
+          <Route path="/control/blog" element={<Navigate to="/smm" replace />} />
           <Route path="/control/providers" element={<Navigate to="/system" replace />} />
           <Route path="/providers" element={<Navigate to="/system" replace />} />
           <Route path="/runs" element={<Navigate to="/projects" replace />} />

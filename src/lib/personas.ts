@@ -25,6 +25,9 @@ export const ROLE_PERSONAS: Record<string, RolePersona> = {
   reviewer:            { avatar: avatarReviewer,     accent: "#10b981", ringClass: "ring-emerald-500", tag: "Quality Guardian",     bgTint: "bg-emerald-50/40" },
   qa_agent:            { avatar: avatarQa,          accent: "#ef4444", ringClass: "ring-rose-500",    tag: "Defect Hunter",        bgTint: "bg-rose-50/40" },
   release_coordinator: { avatar: avatarRelease,     accent: "#f97316", ringClass: "ring-orange-500",  tag: "Ship Captain",         bgTint: "bg-orange-50/40" },
+  content_lead:        { avatar: avatarStrategist,  accent: "#ec4899", ringClass: "ring-pink-500",    tag: "Content Lead",         bgTint: "bg-pink-50/40" },
+  technical_writer:    { avatar: avatarReviewer,     accent: "#14b8a6", ringClass: "ring-teal-500",    tag: "Technical Writer",     bgTint: "bg-teal-50/40" },
+  growth_editor:       { avatar: avatarFrontend,    accent: "#a855f7", ringClass: "ring-purple-500",  tag: "Growth Editor",        bgTint: "bg-purple-50/40" },
 };
 
 export const DEFAULT_PERSONA: RolePersona = {
