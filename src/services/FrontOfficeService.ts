@@ -1,8 +1,9 @@
 // Front Office Service
 // Manages IntakeRequest → BlueprintContract → EstimateReport → LaunchDecision pipeline
-// Project creation guard: all three must be approved before project creation is allowed.
+// All approvals go through the canonical Approval entity — no boolean flags.
 
 import { GuardError } from "@/guards/GuardError";
+import { writeEventLog } from "@/lib/eventLogWriter";
 
 interface PrismaLike {
   $transaction: <T>(fn: (tx: any) => Promise<T>, options?: any) => Promise<T>;
@@ -46,7 +47,7 @@ export class FrontOfficeService {
 
   /**
    * Create a BlueprintContract from an IntakeRequest.
-   * IntakeRequest must exist and be in "discussed" status.
+   * IntakeRequest must exist and not be cancelled.
    */
   async createBlueprintContract(params: {
     intakeRequestId: string;
@@ -95,7 +96,7 @@ export class FrontOfficeService {
 
   /**
    * Create an EstimateReport from a BlueprintContract.
-   * Blueprint must be founder-approved.
+   * Blueprint must have an approved Approval entity record.
    */
   async createEstimateReport(params: {
     blueprintContractId: string;
@@ -109,13 +110,17 @@ export class FrontOfficeService {
     riskNotesJson?: unknown[];
   }) {
     return this.prisma.$transaction(async (tx: any) => {
-      const blueprint = await tx.blueprint_contracts.findUniqueOrThrow({
+      await tx.blueprint_contracts.findUniqueOrThrow({
         where: { id: params.blueprintContractId },
       });
 
-      if (!blueprint.approved_by_founder) {
+      // Check for approved Approval entity instead of boolean flag
+      const blueprintApproval = await this.findApprovedApproval(
+        tx, "blueprint_contract", params.blueprintContractId,
+      );
+      if (!blueprintApproval) {
         throw new GuardError({
-          message: "Blueprint must be founder-approved before creating estimate",
+          message: "Blueprint must have an approved Approval record before creating estimate",
           entityType: "project",
           entityId: params.blueprintContractId,
           fromState: "unapproved",
@@ -140,7 +145,7 @@ export class FrontOfficeService {
   }
 
   /**
-   * Record a LaunchDecision. Estimate must be founder-approved.
+   * Record a LaunchDecision. Estimate must have an approved Approval record.
    */
   async createLaunchDecision(params: {
     estimateReportId: string;
@@ -148,13 +153,17 @@ export class FrontOfficeService {
     founderNote?: string;
   }) {
     return this.prisma.$transaction(async (tx: any) => {
-      const estimate = await tx.estimate_reports.findUniqueOrThrow({
+      await tx.estimate_reports.findUniqueOrThrow({
         where: { id: params.estimateReportId },
       });
 
-      if (!estimate.approved_by_founder) {
+      // Check for approved Approval entity instead of boolean flag
+      const estimateApproval = await this.findApprovedApproval(
+        tx, "estimate_report", params.estimateReportId,
+      );
+      if (!estimateApproval) {
         throw new GuardError({
-          message: "Estimate must be founder-approved before launch decision",
+          message: "Estimate must have an approved Approval record before launch decision",
           entityType: "project",
           entityId: params.estimateReportId,
           fromState: "unapproved",
@@ -174,8 +183,7 @@ export class FrontOfficeService {
 
   /**
    * Validate that Front Office pipeline is complete and approved.
-   * Called by ProjectService before project creation.
-   * Returns the validated chain of IDs.
+   * All approvals checked via Approval entity — no boolean flags.
    */
   async validateProjectCreationGuard(params: {
     intakeRequestId: string;
@@ -202,7 +210,7 @@ export class FrontOfficeService {
         });
       }
 
-      // 2. Validate BlueprintContract
+      // 2. Validate BlueprintContract + Approval
       const blueprint = await tx.blueprint_contracts.findUniqueOrThrow({
         where: { id: params.blueprintContractId },
       });
@@ -215,9 +223,12 @@ export class FrontOfficeService {
           toState: "created",
         });
       }
-      if (!blueprint.approved_by_founder) {
+      const blueprintApproval = await this.findApprovedApproval(
+        tx, "blueprint_contract", params.blueprintContractId,
+      );
+      if (!blueprintApproval) {
         throw new GuardError({
-          message: "BlueprintContract must be founder-approved before project creation",
+          message: "BlueprintContract must have an approved Approval record before project creation",
           entityType: "project",
           entityId: params.blueprintContractId,
           fromState: "unapproved",
@@ -225,7 +236,7 @@ export class FrontOfficeService {
         });
       }
 
-      // 3. Validate EstimateReport
+      // 3. Validate EstimateReport + Approval
       const estimate = await tx.estimate_reports.findUniqueOrThrow({
         where: { id: params.estimateReportId },
       });
@@ -238,9 +249,12 @@ export class FrontOfficeService {
           toState: "created",
         });
       }
-      if (!estimate.approved_by_founder) {
+      const estimateApproval = await this.findApprovedApproval(
+        tx, "estimate_report", params.estimateReportId,
+      );
+      if (!estimateApproval) {
         throw new GuardError({
-          message: "EstimateReport must be founder-approved before project creation",
+          message: "EstimateReport must have an approved Approval record before project creation",
           entityType: "project",
           entityId: params.estimateReportId,
           fromState: "unapproved",
@@ -268,5 +282,25 @@ export class FrontOfficeService {
 
       return { intakeRequest: intake, blueprint, estimate, launchDecision };
     }, { isolationLevel: "Serializable" });
+  }
+
+  /**
+   * Helper: find an approved Approval entity for a given target.
+   * Returns the approval record or null if none found.
+   */
+  private async findApprovedApproval(
+    tx: any,
+    targetType: string,
+    targetId: string,
+  ): Promise<any | null> {
+    return tx.approvals.findFirst({
+      where: {
+        target_type: targetType,
+        target_id: targetId,
+        decision: "approved",
+        state: { in: ["decided", "closed"] },
+      },
+      orderBy: { created_at: "desc" },
+    });
   }
 }

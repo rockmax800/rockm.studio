@@ -28,14 +28,28 @@ Generates token, cost, and timeline estimates from an approved BlueprintContract
 | worst_case_cost_estimate | numeric | Worst case cost |
 | timeline_days_estimate | integer | Calendar days |
 | risk_notes_json | jsonb | Estimation risks |
-| approved_by_founder | boolean | Default false |
-| approved_at | timestamp | Nullable |
 | created_at | timestamp | |
 
 ---
 
-## 3 — Rules
+## 3 — Approval Gate
 
-- Requires an approved BlueprintContract.
-- Founder must approve before a LaunchDecision can be made.
+Estimate approval is managed through the canonical **Approval entity**:
+
+- `target_type = estimate_report`
+- `target_id = estimate_report.id`
+- `approval_type = estimate_approval`
+
+A LaunchDecision can only be created when an Approval record with `decision = approved` and `state ∈ {decided, closed}` exists for the estimate.
+
+**Governance invariant:** No boolean `approved_by_founder` flag. All approval decisions go through the Approval entity.
+
+> **Migration note (v1.2):** The `approved_by_founder` and `approved_at` boolean fields have been removed. Existing approved records were migrated to Approval entity records.
+
+---
+
+## 4 — Rules
+
+- Requires an approved BlueprintContract (via Approval entity).
+- Founder must approve estimate (via Approval entity) before a LaunchDecision can be made.
 - Estimates are informational — actual costs may vary.

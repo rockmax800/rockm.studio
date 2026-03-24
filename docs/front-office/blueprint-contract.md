@@ -10,7 +10,7 @@ enabled_in_production: yes
 
 ## 1 — Purpose
 
-Transforms a discussed IntakeRequest into a structured scope contract with acceptance criteria, key decisions, and risk identification. Requires founder approval before estimation.
+Transforms a discussed IntakeRequest into a structured scope contract with acceptance criteria, key decisions, and risk identification. Requires founder approval via the canonical Approval entity before estimation.
 
 ---
 
@@ -26,20 +26,28 @@ Transforms a discussed IntakeRequest into a structured scope contract with accep
 | key_decisions_json | jsonb | Architecture and design decisions |
 | critical_risks_json | jsonb | Identified risks |
 | effort_band | string | small / medium / large / xlarge |
-| approved_by_founder | boolean | Default false |
-| approved_at | timestamp | Nullable |
 | created_at | timestamp | |
 
 ---
 
 ## 3 — Approval Gate
 
-Blueprint must be approved by founder before an EstimateReport can be generated. This prevents premature cost estimation on unclear scope.
+Blueprint approval is managed through the canonical **Approval entity**:
+
+- `target_type = blueprint_contract`
+- `target_id = blueprint_contract.id`
+- `approval_type = blueprint_approval`
+
+An EstimateReport can only be created when an Approval record with `decision = approved` and `state ∈ {decided, closed}` exists for the blueprint.
+
+**Governance invariant:** No boolean `approved_by_founder` flag. All approval decisions go through the Approval entity for auditability and lifecycle tracking.
+
+> **Migration note (v1.2):** The `approved_by_founder` and `approved_at` boolean fields have been removed. Existing approved records were migrated to Approval entity records with `decision=approved, state=closed`.
 
 ---
 
 ## 4 — Rules
 
 - One IntakeRequest can produce multiple BlueprintContract iterations.
-- Only the approved version proceeds to estimation.
-- Scope changes after approval require a new blueprint version.
+- Only the blueprint with an approved Approval record proceeds to estimation.
+- Scope changes after approval require a new blueprint version and new Approval.
