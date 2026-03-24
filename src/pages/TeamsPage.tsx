@@ -53,17 +53,6 @@ export default function TeamsPage() {
     },
   });
 
-  const { data: learningProposals = [] } = useQuery({
-    queryKey: ["learning-proposals-teams"],
-    queryFn: async () => {
-      const { data } = await supabase.from("learning_proposals")
-        .select("id, proposal_type, status, hypothesis, created_at")
-        .in("status", ["candidate", "approved"])
-        .order("created_at", { ascending: false }).limit(10);
-      return data ?? [];
-    },
-  });
-
   const removeEmployee = useMutation({
     mutationFn: async (empId: string) => {
       const { error } = await supabase.from("ai_employees").update({ status: "terminated" }).eq("id", empId);
