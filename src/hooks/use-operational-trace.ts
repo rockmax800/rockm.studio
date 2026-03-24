@@ -143,7 +143,7 @@ async function fetchOperationalTrace(filters: TraceFilters): Promise<TraceItem[]
   if (!filters.entityType || filters.entityType === "review") {
     let rvQ = supabase
       .from("reviews")
-      .select("id, project_id, task_id, lifecycle_state, verdict, reviewer_role_id, created_at, updated_at")
+      .select("id, project_id, task_id, state, verdict, reviewer_role_id, created_at, updated_at")
       .order("updated_at", { ascending: false })
       .limit(50);
     if (filters.projectId) rvQ = rvQ.eq("project_id", filters.projectId);
@@ -158,10 +158,10 @@ async function fetchOperationalTrace(filters: TraceFilters): Promise<TraceItem[]
         entity_type: "review",
         entity_id: rv.id,
         project_id: rv.project_id,
-        event_type: `${rv.lifecycle_state}${rv.verdict ? `/${rv.verdict}` : ""}`,
+        event_type: `${rv.state}${rv.verdict ? `/${rv.verdict}` : ""}`,
         actor_type: "agent",
         actor_ref: rv.reviewer_role_id,
-        summary: `Review ${rv.lifecycle_state}${rv.verdict ? ` → ${rv.verdict}` : ""}`,
+        summary: `Review ${rv.state}${rv.verdict ? ` → ${rv.verdict}` : ""}`,
         raw: rv as any,
       });
     }
