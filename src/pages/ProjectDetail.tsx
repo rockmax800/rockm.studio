@@ -104,6 +104,26 @@ export default function ProjectDetail() {
     enabled: tasks.length > 0,
   });
 
+  const { data: repositories = [] } = useQuery({
+    queryKey: ["project-repos", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("repositories").select("id, name, provider, clone_url, status")
+        .eq("project_id", id!).limit(5);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: pullRequests = [] } = useQuery({
+    queryKey: ["project-prs", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("pull_requests").select("id, status")
+        .eq("project_id", id!).limit(50);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
   /* ── Loading / Not found ── */
   if (isLoading) return (
     <AppLayout title="Loading…">
