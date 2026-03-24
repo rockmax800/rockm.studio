@@ -183,7 +183,7 @@ export function useOfficeData() {
         teamLoadMap[role.team_id].max += role.max_parallel_tasks;
       }
 
-      const teamsWithLoad = mergedTeams.map(t => {
+      const teamsWithLoad = operationalTeams.map(t => {
         const load = teamLoadMap[t.id] ?? { active: 0, max: 1 };
         const ratio = load.max > 0 ? load.active / load.max : 0;
         return {
