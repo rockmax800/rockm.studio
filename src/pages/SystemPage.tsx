@@ -14,6 +14,7 @@ import { lazy, Suspense, useMemo } from "react";
 const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 const ExecutionPolicyPanel = lazy(() => import("@/components/system/ExecutionPolicyPanel"));
 import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
