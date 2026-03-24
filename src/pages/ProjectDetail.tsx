@@ -356,6 +356,27 @@ export default function ProjectDetail() {
             </div>
           </div>
 
+          {/* ══ DELIVERY BOARD ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Columns3} title="Delivery Board" count={tasks.length} />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Task movement across delivery states — the canonical view of what's moving, stuck, or done.
+            </p>
+            <DeliveryBoard
+              tasks={tasks.map((t) => ({
+                id: t.id,
+                title: t.title,
+                state: t.state,
+                domain: t.domain,
+                priority: t.priority,
+                updated_at: t.updated_at,
+                owner_role_name: (t as any).agent_roles?.name,
+                owner_role_code: (t as any).agent_roles?.code,
+              }))}
+              projectId={id!}
+            />
+          </div>
+
           {/* ══ ROW 2 — TASK FLOW + ACTIVITY ══ */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" style={{ minHeight: 420 }}>
             <div className="lg:col-span-8 rounded-2xl bg-card border border-border/40 shadow-sm p-5 flex flex-col min-h-0 overflow-hidden">

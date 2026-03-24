@@ -219,7 +219,7 @@ export default function OfficePage() {
                 </div>
               </div>
               <p className="text-[13px] text-muted-foreground/60 mt-1">
-                Live projection of delivery activity — tasks, runs, reviews, approvals
+                Capability rooms and live team activity. For per-project task movement, open a <Link to="/projects" className="underline underline-offset-2 hover:text-foreground transition-colors font-medium">project delivery board</Link>.
               </p>
             </div>
             <div className="flex items-center gap-2">
