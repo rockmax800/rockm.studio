@@ -73,7 +73,8 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | T13 | **validated** → assigned | Next stage defined | No next stage |
 | T14 | any non-terminal → cancelled | Actor=founder; cancellation reason | Not founder; no reason |
 
-> **Note:** T7 checks `review.verdict == approved`, not `review.state`. T8 checks `review.verdict == rejected`.
+> **Note:** T7 checks `review.verdict ∈ {approved, approved_with_notes}`, not `review.state`. T8 checks `review.verdict == rejected`.
+> **Follow-up:** When verdict = `approved_with_notes`, a follow-up task (requested_outcome=clarification) is auto-created in `ready` state. It does NOT auto-start.
 
 ---
 
