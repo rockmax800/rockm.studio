@@ -142,7 +142,10 @@ export default function TeamRoom() {
           <div>
             <h1 className="text-[28px] font-bold text-foreground tracking-tight">{deptName}</h1>
             <p className="text-[14px] text-muted-foreground mt-1">
-              Select a specialist to begin a structured working session
+              Select a specialist to begin a structured working session.
+              <span className="text-muted-foreground/40 block text-[12px] mt-0.5">
+                Session participant ≠ task owner. Execution is governed by role contracts.
+              </span>
             </p>
           </div>
 
@@ -285,6 +288,9 @@ export default function TeamRoom() {
               <p className="text-[13px] text-muted-foreground/50 italic">{getPersona(selectedEmp.role_code).specialty}</p>
               <p className="text-[14px] text-muted-foreground mt-1 max-w-[480px] mx-auto">
                 Begin a structured conversation to extract scope, architecture, and task breakdowns.
+              </p>
+              <p className="text-[11px] text-muted-foreground/35 mt-1.5 italic max-w-[400px] mx-auto">
+                This is a working session participant. Downstream task execution is governed by role contracts, not individual session membership.
               </p>
               <Button className="mt-5 h-12 px-8 gap-2.5 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"
                 onClick={() => setSessionActive(true)}>
