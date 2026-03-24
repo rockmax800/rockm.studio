@@ -336,7 +336,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </button>
               <div>
                 <p className="text-[11px] text-muted-foreground">Command Center /</p>
-                <h1 className="text-[15px] font-bold text-foreground">Company Lead</h1>
+                <h1 className="text-[15px] font-bold text-foreground">Project Briefing</h1>
               </div>
             </>
           ) : (
