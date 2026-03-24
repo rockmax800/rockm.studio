@@ -161,8 +161,7 @@ export default function TeamRoom() {
                       <img
                         src={getPersona(selectedEmp.role_code).avatar}
                         alt={selectedEmp.name}
-                        className={cn("h-24 w-24 rounded-2xl object-cover ring-2 ring-offset-[3px] shadow-lg", getPersona(selectedEmp.role_code).ringClass)}
-                        style={{ ringOffsetColor: "hsl(220 20% 97%)" }}
+                        className={cn("h-24 w-24 rounded-2xl object-cover ring-2 ring-offset-[3px] shadow-lg ring-offset-[hsl(220_20%_97%)]", getPersona(selectedEmp.role_code).ringClass)}
                         width={96} height={96}
                       />
                       <span className={cn("absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[3px]", getStatusMeta(selectedEmp.status).dot)} style={{ borderColor: "hsl(220 20% 97%)" }} />
