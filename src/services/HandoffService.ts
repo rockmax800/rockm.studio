@@ -10,6 +10,7 @@ interface PrismaTransactionClient {
     findFirst: (args: any) => Promise<any>;
     findMany: (args: any) => Promise<any>;
     update: (args: any) => Promise<any>;
+    updateMany: (args: any) => Promise<{ count: number }>;
     create: (args: any) => Promise<any>;
     count: (args: any) => Promise<number>;
   };
