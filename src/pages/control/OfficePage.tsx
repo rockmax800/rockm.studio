@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { getPersona } from "@/lib/personas";
+import { PIPELINE_STAGES, STAGE_COLORS, resolveStageIndex } from "@/components/PipelineBar";
+import { cn } from "@/lib/utils";
 import {
   Building2, Users, Activity, Zap, Stamp, FolderKanban,
   AlertTriangle, ChevronRight, ChevronDown,
   Shield, Play, Eye, Plus,
-  Smartphone, Bot, Globe, Cpu,
+  Smartphone, Bot, Globe, Cpu, Filter,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = {
@@ -40,6 +42,7 @@ export default function OfficePage() {
   const navigate = useNavigate();
   const { data: departments = [] } = useDepartments();
   const [expandedDeptId, setExpandedDeptId] = useState<string | null>(null);
+  const [stageFilter, setStageFilter] = useState<string | null>(null);
 
   const stats = useMemo(() => {
     if (!data) return { projects: 0, tasks: 0, runs: 0, approvals: 0, blocked: 0 };
@@ -81,25 +84,57 @@ export default function OfficePage() {
     return map;
   }, [data]);
 
+  /* ── Pipeline stage counts for filter bar ── */
+  const stageCounts = useMemo(() => {
+    if (!data) return {};
+    const counts: Record<string, number> = {};
+    for (const p of data.projects) {
+      const idx = resolveStageIndex(p.state);
+      if (idx >= 0) {
+        const key = PIPELINE_STAGES[idx].key;
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [data]);
+
+  /* ── Filtered projects by stage ── */
+  const filteredProjects = useMemo(() => {
+    if (!data) return [];
+    if (!stageFilter) return data.projects;
+    return data.projects.filter((p: any) => {
+      const idx = resolveStageIndex(p.state);
+      return idx >= 0 && PIPELINE_STAGES[idx].key === stageFilter;
+    });
+  }, [data, stageFilter]);
+
   const deptTasks = useMemo(() => {
     if (!data || !expandedDeptId) return [];
     const team = data.teams.find((t: any) => t.id === expandedDeptId);
     if (!team) return [];
     const roleIds = new Set(team.roles.map((r: any) => r.id));
     const projectMap = Object.fromEntries(data.projects.map((p: any) => [p.id, p.name]));
-    return data.allTasks
-      .filter((t: any) => t.owner_role_id && roleIds.has(t.owner_role_id) && !["done", "cancelled"].includes(t.state))
-      .map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        state: t.state,
-        projectName: projectMap[t.project_id] ?? "—",
-        roleCode: t.role_code,
-        employeeName: t.employee_name,
-        latestRunState: t.latest_run_state,
-        hasPendingReview: t.has_pending_review,
-      }));
-  }, [data, expandedDeptId]);
+
+    let tasks = data.allTasks
+      .filter((t: any) => t.owner_role_id && roleIds.has(t.owner_role_id) && !["done", "cancelled"].includes(t.state));
+
+    // Apply stage filter to tasks by their project
+    if (stageFilter) {
+      const filteredProjectIds = new Set(filteredProjects.map((p: any) => p.id));
+      tasks = tasks.filter((t: any) => filteredProjectIds.has(t.project_id));
+    }
+
+    return tasks.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      state: t.state,
+      projectName: projectMap[t.project_id] ?? "—",
+      roleCode: t.role_code,
+      employeeName: t.employee_name,
+      latestRunState: t.latest_run_state,
+      hasPendingReview: t.has_pending_review,
+    }));
+  }, [data, expandedDeptId, stageFilter, filteredProjects]);
 
   if (isLoading) {
     return (
@@ -121,6 +156,47 @@ export default function OfficePage() {
   return (
     <AppLayout title="Production Floor">
       <div className="grid-content space-y-5 pb-8">
+
+        {/* ═══ PIPELINE STAGE FILTER BAR ═══════════════════════════ */}
+        <div className="rounded-2xl bg-card border border-border shadow-sm px-5 py-3.5">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <Filter className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+            <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 mr-1">Stage</span>
+            <button
+              onClick={() => setStageFilter(null)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all shrink-0",
+                !stageFilter ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary",
+              )}
+            >
+              All
+              <span className="font-mono text-[11px]">{data.projects.length}</span>
+            </button>
+            {PIPELINE_STAGES.map((stage) => {
+              const count = stageCounts[stage.key] ?? 0;
+              const isActive = stageFilter === stage.key;
+              const colors = STAGE_COLORS[stage.key];
+              const Icon = stage.icon;
+              if (count === 0 && !isActive) return null;
+              return (
+                <button
+                  key={stage.key}
+                  onClick={() => setStageFilter(isActive ? null : stage.key)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all shrink-0 border",
+                    isActive
+                      ? `${colors.activeBg} ${colors.border} ${colors.active}`
+                      : "border-transparent text-muted-foreground hover:bg-secondary",
+                  )}
+                >
+                  <Icon className={cn("h-3.5 w-3.5", isActive ? colors.active : "text-muted-foreground/40")} />
+                  {stage.label}
+                  <span className={cn("font-mono text-[11px]", isActive ? colors.active : "text-muted-foreground/50")}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* ═══ TOP BAR ═══════════════════════════════════════════ */}
         <div className="flex items-center gap-5 px-1 text-[13px]">
@@ -198,7 +274,7 @@ export default function OfficePage() {
                     </div>
                   </button>
 
-                  {/* ═══ EXPANDED ROOM ═══════════════════════════ */}
+                  {/* Expanded room */}
                   {isExpanded && (
                     <div className="border-t border-border/30">
                       <div className="px-6 py-5">
@@ -207,7 +283,7 @@ export default function OfficePage() {
                           <Link to="/presale/new">
                             <Button size="sm" className="h-8 text-[12px] font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg">
                               <Plus className="h-3 w-3" />
-                              Start New Project in This Capability
+                              Start New Project
                             </Button>
                           </Link>
                         </div>

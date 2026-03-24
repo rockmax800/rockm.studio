@@ -10,49 +10,22 @@ import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness"
 import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
-  Upload, Clock, Server, Globe, Shield, ChevronRight,
-  FileText, Layers, Activity, CheckCircle2, AlertTriangle, Zap,
+  Upload, Clock, Server, Globe, Shield, Zap,
+  AlertTriangle, CheckCircle2, FileText,
 } from "lucide-react";
-
-/* ═══════════════════════════════════════════════════════════════
-   PIPELINE STAGES — matches Command Center
-   ═══════════════════════════════════════════════════════════════ */
-const PIPELINE = [
-  { key: "intake",    label: "Intake",    states: ["draft"],     icon: FileText },
-  { key: "blueprint", label: "Blueprint", states: ["scoped"],    icon: Layers },
-  { key: "kickoff",   label: "Kickoff",   states: [],            icon: Rocket },
-  { key: "delivery",  label: "Delivery",  states: ["active", "blocked"], icon: Activity },
-  { key: "review",    label: "Review",    states: ["in_review"], icon: Shield },
-  { key: "release",   label: "Release",   states: ["completed", "archived", "paused"], icon: CheckCircle2 },
-] as const;
-
-function resolveStageIndex(state?: string): number {
-  if (!state) return -1;
-  return PIPELINE.findIndex((s) => (s.states as readonly string[]).includes(state));
-}
-
-const STAGE_COLORS: Record<string, { active: string; activeBg: string; done: string; border: string }> = {
-  intake:    { active: "text-status-blue",       activeBg: "bg-status-blue/8",      done: "text-status-blue/40",       border: "border-status-blue" },
-  blueprint: { active: "text-lifecycle-review",  activeBg: "bg-lifecycle-review/8",  done: "text-lifecycle-review/40",  border: "border-lifecycle-review" },
-  kickoff:   { active: "text-status-cyan",       activeBg: "bg-status-cyan/8",      done: "text-status-cyan/40",       border: "border-status-cyan" },
-  delivery:  { active: "text-status-amber",      activeBg: "bg-status-amber/8",     done: "text-status-amber/40",      border: "border-status-amber" },
-  review:    { active: "text-lifecycle-rework",   activeBg: "bg-lifecycle-rework/8",  done: "text-lifecycle-rework/40",  border: "border-lifecycle-rework" },
-  release:   { active: "text-status-green",      activeBg: "bg-status-green/8",     done: "text-status-green/40",      border: "border-status-green" },
-};
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
   medium: "bg-status-amber/10 text-status-amber",
   high: "bg-destructive/10 text-destructive",
 };
-
-/* ═══════════════════════════════════════════════════════════════ */
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -119,11 +92,6 @@ export default function ProjectDetail() {
     blockedCount > 0 || escalatedCount > 0 || failedRuns.length >= 3 ? "high"
       : pendingApprovals.length > 0 || failedRuns.length > 0 ? "medium" : "low";
 
-  let nextAction: string | null = null;
-  if (pendingApprovals.length > 0) nextAction = `${pendingApprovals.length} approval(s) pending`;
-  else if (blockedCount > 0) nextAction = `${blockedCount} task(s) blocked`;
-  else if (failedRuns.length > 0) nextAction = `${failedRuns.length} failed run(s)`;
-
   const hasStagingLive = deployments.some((d: any) => d.environment === "staging" && d.status === "live");
   const hasProductionLive = deployments.some((d: any) => d.environment === "production" && d.status === "live");
   const ciPassed = checkSuites.some((c: any) => c.status === "passed");
@@ -137,6 +105,38 @@ export default function ProjectDetail() {
   }));
 
   const stageIdx = resolveStageIndex(project.state);
+  const blockedStageIdx = blockedCount > 0 ? 4 : undefined; // execution stage
+
+  /* ── Next Required Action ── */
+  type NextAction = { label: string; description: string; icon: React.ElementType; variant: "destructive" | "warning" | "default"; linkTo?: string };
+  const nextActions: NextAction[] = [];
+
+  if (pendingApprovals.length > 0) {
+    nextActions.push({ label: "Approve", description: `${pendingApprovals.length} approval(s) pending`, icon: Shield, variant: "warning", linkTo: "/founder" });
+  }
+  if (blockedCount > 0) {
+    nextActions.push({ label: "Unblock", description: `${blockedCount} task(s) blocked`, icon: AlertTriangle, variant: "destructive" });
+  }
+  if (failedRuns.length > 0) {
+    nextActions.push({ label: "Fix Failures", description: `${failedRuns.length} failed run(s)`, icon: AlertTriangle, variant: "destructive" });
+  }
+  if (ciPassed && !ciFailed && hasStagingLive) {
+    nextActions.push({ label: "Deploy to Production", description: "All checks passed, staging live", icon: Rocket, variant: "default" });
+  } else if (ciPassed && !hasStagingLive) {
+    nextActions.push({ label: "Deploy to Staging", description: "CI passed, ready to stage", icon: Upload, variant: "default" });
+  }
+  if (nextActions.length === 0 && progress < 100) {
+    nextActions.push({ label: "Continue Execution", description: `${progress}% complete`, icon: Zap, variant: "default" });
+  }
+  if (progress === 100 && !hasProductionLive) {
+    nextActions.push({ label: "Finalize Release", description: "All tasks done", icon: CheckCircle2, variant: "default" });
+  }
+
+  const ACTION_STYLES = {
+    destructive: "bg-destructive/5 border-destructive/20 text-destructive",
+    warning: "bg-status-amber/5 border-status-amber/20 text-status-amber",
+    default: "bg-primary/5 border-primary/20 text-primary",
+  };
 
   return (
     <AppLayout title={project.name} fullHeight>
@@ -144,56 +144,10 @@ export default function ProjectDetail() {
         <div className="px-6 py-5 space-y-5 max-w-[1400px]">
 
           {/* ════════════════════════════════════════════════════════
-              PIPELINE BAR — Inline horizontal flow
+              PIPELINE BAR — Full-width 8 stages
               ════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
-            <div className="px-6 py-4">
-              <div className="flex items-center gap-0">
-                {PIPELINE.map((stage, i) => {
-                  const isCurrent = i === stageIdx;
-                  const isDone = stageIdx > i && stageIdx >= 0;
-                  const colors = STAGE_COLORS[stage.key];
-                  const Icon = stage.icon;
-
-                  return (
-                    <div key={stage.key} className="flex items-center flex-1 min-w-0">
-                      <div className={cn(
-                        "relative rounded-xl px-4 py-3 transition-all flex-1 border-2",
-                        isCurrent
-                          ? `${colors.activeBg} ${colors.border} shadow-sm`
-                          : isDone
-                            ? "border-transparent bg-secondary/20"
-                            : "border-transparent",
-                      )}>
-                        {isCurrent && (
-                          <span className="absolute top-2.5 right-2.5 flex h-2 w-2">
-                            <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-50", colors.active.replace("text-", "bg-"))} />
-                            <span className={cn("relative inline-flex rounded-full h-2 w-2", colors.active.replace("text-", "bg-"))} />
-                          </span>
-                        )}
-                        <div className="flex items-center gap-2.5">
-                          <div className={cn(
-                            "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
-                            isCurrent ? `${colors.activeBg} border ${colors.border}` : "bg-secondary/40",
-                          )}>
-                            <Icon className={cn("h-4 w-4", isCurrent ? colors.active : isDone ? colors.done : "text-muted-foreground/20")} />
-                          </div>
-                          <span className={cn(
-                            "text-[14px] font-bold leading-tight truncate",
-                            isCurrent ? colors.active : isDone ? "text-foreground/50" : "text-muted-foreground/25",
-                          )}>
-                            {stage.label}
-                          </span>
-                        </div>
-                      </div>
-                      {i < PIPELINE.length - 1 && (
-                        <ChevronRight className={cn("h-4 w-4 mx-0.5 shrink-0", isDone ? "text-muted-foreground/25" : "text-muted-foreground/10")} />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden px-6 py-4">
+            <PipelineBar currentStageIndex={stageIdx} blockedStageIndex={blockedStageIdx} projectId={id} />
           </div>
 
           {/* ════════════════════════════════════════════════════════
@@ -201,25 +155,20 @@ export default function ProjectDetail() {
               ════════════════════════════════════════════════════════ */}
           <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
             <div className="px-6 py-5">
-              {/* Row 1 — Name + badges + actions */}
+              {/* Row 1 */}
               <div className="flex items-center gap-3">
                 <Link to="/projects">
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0">
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
                 </Link>
-
                 <h1 className="text-[30px] font-bold tracking-[-0.025em] text-foreground truncate leading-none">
                   {project.name}
                 </h1>
-
                 <StatusBadge state={project.state} />
-
                 <span className={cn("px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider", RISK_COLORS[riskLevel])}>
                   {riskLevel} risk
                 </span>
-
-                {/* Env badges */}
                 <div className="flex items-center gap-2 ml-1">
                   <span className={cn("flex items-center gap-1 text-[11px] font-mono font-bold", hasStagingLive ? "text-status-green" : "text-muted-foreground/30")}>
                     <Server className="h-3 w-3" /> STG {hasStagingLive ? "●" : "○"}
@@ -228,10 +177,7 @@ export default function ProjectDetail() {
                     <Globe className="h-3 w-3" /> PRD {hasProductionLive ? "●" : "○"}
                   </span>
                 </div>
-
                 <div className="flex-1" />
-
-                {/* Actions */}
                 <div className="flex items-center gap-2">
                   {pendingApprovals.length > 0 && (
                     <Link to="/founder">
@@ -260,22 +206,13 @@ export default function ProjectDetail() {
                 </div>
               </div>
 
-              {/* Row 2 — Progress + Next Action + Token budget */}
+              {/* Row 2 — Progress + Token budget */}
               <div className="flex items-center gap-5 mt-4 pt-4 border-t border-border/30">
                 <div className="flex items-center gap-3 flex-1 max-w-[320px]">
                   <span className="text-[12px] font-mono text-muted-foreground shrink-0">{doneCount}/{tasks.length} tasks</span>
                   <Progress value={progress} className="h-2 flex-1" />
                   <span className="text-[14px] font-bold font-mono text-foreground tabular-nums">{progress}%</span>
                 </div>
-
-                {nextAction && (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-status-amber/5 border border-status-amber/15">
-                    <Clock className="h-3.5 w-3.5 text-status-amber shrink-0" />
-                    <span className="text-[13px] text-status-amber font-bold">{nextAction}</span>
-                  </div>
-                )}
-
-                {/* Token/budget placeholder */}
                 <div className="ml-auto flex items-center gap-2 text-[12px] text-muted-foreground/50">
                   <Zap className="h-3.5 w-3.5" />
                   <span className="font-mono font-bold text-foreground/60">—</span>
@@ -284,7 +221,7 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            {/* Risk strip — inside header card */}
+            {/* Risk strip */}
             <div className="px-6 py-2.5 border-t border-border/30 bg-secondary/10">
               <RiskSummary
                 blockedTasks={blockedCount}
@@ -295,6 +232,35 @@ export default function ProjectDetail() {
               />
             </div>
           </div>
+
+          {/* ════════════════════════════════════════════════════════
+              NEXT REQUIRED ACTION
+              ════════════════════════════════════════════════════════ */}
+          {nextActions.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {nextActions.slice(0, 3).map((action, i) => (
+                <div key={i} className={cn(
+                  "rounded-xl border px-5 py-4 flex items-center gap-4 transition-all hover:shadow-sm",
+                  ACTION_STYLES[action.variant],
+                )}>
+                  <div className="h-10 w-10 rounded-xl bg-card border border-border/30 flex items-center justify-center shrink-0">
+                    <action.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[15px] font-bold block leading-tight">{action.label}</span>
+                    <span className="text-[12px] opacity-70 block mt-0.5">{action.description}</span>
+                  </div>
+                  {action.linkTo && (
+                    <Link to={action.linkTo}>
+                      <Button size="sm" variant="outline" className="h-8 text-[11px] rounded-lg border-current/20">
+                        Open
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* ════════════════════════════════════════════════════════
               ROW 1 — BLUEPRINT (8) + RELEASE READINESS (4)
@@ -336,7 +302,7 @@ export default function ProjectDetail() {
           </div>
 
           {/* ════════════════════════════════════════════════════════
-              ROW 3 — EVIDENCE & LOGS (Full Width)
+              ROW 3 — EVIDENCE & LOGS
               ════════════════════════════════════════════════════════ */}
           <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
             <EvidencePanel

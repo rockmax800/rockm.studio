@@ -6,6 +6,7 @@ import { FounderInbox } from "@/components/command-center/FounderInbox";
 import { ActiveDelivery } from "@/components/command-center/ActiveDelivery";
 import { LiveFlow } from "@/components/command-center/LiveFlow";
 import { RiskHealth } from "@/components/command-center/RiskHealth";
+import { PipelineBar, MiniPipeline, resolveStageIndex, STAGE_COLORS } from "@/components/PipelineBar";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWorkerNodes, fetchStalledEntities } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,38 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  FileText, FolderOpen, ArrowRight, Zap, ChevronRight,
-  Layers, Activity, AlertTriangle, Rocket, CheckCircle2,
-  Clock, Shield,
+  FileText, FolderOpen, ArrowRight, Zap,
+  Layers, Activity, AlertTriangle, Shield, Clock,
 } from "lucide-react";
-
-/* ═══════════════════════════════════════════════════════════════
-   PIPELINE STAGES
-   ═══════════════════════════════════════════════════════════════ */
-const PIPELINE = [
-  { key: "intake",    label: "Intake",    states: ["draft"],     href: "/presale/new",  icon: FileText },
-  { key: "blueprint", label: "Blueprint", states: ["scoped"],    href: "/projects",     icon: Layers },
-  { key: "kickoff",   label: "Kickoff",   states: [],            href: "/projects",     icon: Rocket },
-  { key: "delivery",  label: "Delivery",  states: ["active", "blocked"], href: "/tasks", icon: Activity },
-  { key: "review",    label: "Review",    states: ["in_review"], href: "/founder",      icon: Shield },
-  { key: "release",   label: "Release",   states: ["completed", "archived", "paused"], href: "/projects", icon: CheckCircle2 },
-] as const;
-
-function resolveStageIndex(projectState?: string): number {
-  if (!projectState) return -1;
-  return PIPELINE.findIndex((s) => (s.states as readonly string[]).includes(projectState));
-}
-
-const STAGE_COLORS: Record<string, { active: string; activeBg: string; done: string; border: string }> = {
-  intake:    { active: "text-status-blue",       activeBg: "bg-status-blue/8",    done: "text-status-blue/40",       border: "border-status-blue" },
-  blueprint: { active: "text-lifecycle-review",  activeBg: "bg-lifecycle-review/8", done: "text-lifecycle-review/40", border: "border-lifecycle-review" },
-  kickoff:   { active: "text-status-cyan",       activeBg: "bg-status-cyan/8",    done: "text-status-cyan/40",       border: "border-status-cyan" },
-  delivery:  { active: "text-status-amber",      activeBg: "bg-status-amber/8",   done: "text-status-amber/40",      border: "border-status-amber" },
-  review:    { active: "text-lifecycle-rework",   activeBg: "bg-lifecycle-rework/8", done: "text-lifecycle-rework/40", border: "border-lifecycle-rework" },
-  release:   { active: "text-status-green",      activeBg: "bg-status-green/8",   done: "text-status-green/40",      border: "border-status-green" },
-};
-
-/* ═══════════════════════════════════════════════════════════════ */
 
 export default function CommandCenter() {
   const { data: projects = [] } = useProjects();
@@ -113,7 +85,7 @@ export default function CommandCenter() {
     updatedAt: t.updated_at,
   });
 
-  const activeProjects = projects.filter((p) => p.state === "active" || p.state === "in_review");
+  const activeProjects = projects.filter((p) => p.state === "active" || p.state === "in_review" || p.state === "blocked");
   const inProgressTasks = tasks.filter((t) => t.state === "in_progress").map(toDeliveryTask);
   const waitingReviewTasks = tasks.filter((t) => t.state === "waiting_review").map(toDeliveryTask);
   const blockedTasks = tasks.filter((t) => t.state === "blocked").map(toDeliveryTask);
@@ -122,9 +94,8 @@ export default function CommandCenter() {
   const escalatedCount = escalations.length;
 
   /* Pipeline — find the "most advanced" active project stage */
-  const activeProjectStates = activeProjects.map((p) => p.state);
-  const maxStageIdx = activeProjectStates.reduce((max, state) => {
-    const idx = resolveStageIndex(state);
+  const maxStageIdx = activeProjects.reduce((max, p) => {
+    const idx = resolveStageIndex(p.state);
     return idx > max ? idx : max;
   }, -1);
 
@@ -162,76 +133,9 @@ export default function CommandCenter() {
             ))}
           </div>
 
-          {/* Pipeline stages */}
+          {/* Pipeline stages — 8 stages */}
           <div className="px-6 py-5">
-            <div className="flex items-center gap-0">
-              {PIPELINE.map((stage, i) => {
-                const isCurrent = i === maxStageIdx;
-                const isDone = maxStageIdx > i && maxStageIdx >= 0;
-                const colors = STAGE_COLORS[stage.key];
-                const Icon = stage.icon;
-
-                return (
-                  <div key={stage.key} className="flex items-center flex-1 min-w-0">
-                    <Link to={stage.href} className="flex-1 min-w-0">
-                      <div className={cn(
-                        "relative rounded-xl px-5 py-4 transition-all cursor-pointer border-2",
-                        isCurrent
-                          ? `${colors.activeBg} ${colors.border} shadow-sm`
-                          : isDone
-                            ? "border-transparent bg-secondary/20 hover:bg-secondary/40"
-                            : "border-transparent hover:bg-secondary/20",
-                      )}>
-                        {/* Active pulse */}
-                        {isCurrent && (
-                          <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
-                            <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-50", colors.active.replace("text-", "bg-"))} />
-                            <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", colors.active.replace("text-", "bg-"))} />
-                          </span>
-                        )}
-
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
-                            isCurrent ? `${colors.activeBg} border ${colors.border}` : "bg-secondary/40",
-                          )}>
-                            <Icon className={cn(
-                              "h-5 w-5",
-                              isCurrent ? colors.active : isDone ? colors.done : "text-muted-foreground/25",
-                            )} />
-                          </div>
-                          <div className="min-w-0">
-                            <span className={cn(
-                              "text-[16px] font-bold block leading-tight",
-                              isCurrent ? colors.active : isDone ? "text-foreground/50" : "text-muted-foreground/30",
-                            )}>
-                              {stage.label}
-                            </span>
-                            {isCurrent && (
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5 block">
-                                Current Stage
-                              </span>
-                            )}
-                            {isDone && (
-                              <span className="text-[11px] text-muted-foreground/30 mt-0.5 block">Complete</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-
-                    {i < PIPELINE.length - 1 && (
-                      <div className="flex items-center px-1 shrink-0">
-                        <ChevronRight className={cn(
-                          "h-5 w-5",
-                          isDone ? "text-muted-foreground/25" : "text-muted-foreground/10",
-                        )} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <PipelineBar currentStageIndex={maxStageIdx} />
           </div>
         </div>
 
@@ -240,23 +144,21 @@ export default function CommandCenter() {
             ════════════════════════════════════════════════════════════ */}
         <div className="rounded-2xl bg-card border border-border px-10 py-10 shadow-sm relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.015] via-transparent to-status-blue/[0.01] pointer-events-none" />
-          <div className="relative flex items-end justify-between gap-10">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2.5 mb-3">
-                <Zap className="h-5 w-5 text-primary/30" />
-                <span className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.14em]">
-                  Launch Pad
-                </span>
-              </div>
-              <h1 className="text-[40px] font-bold tracking-[-0.03em] text-foreground leading-[1.05]">
-                What are we building?
-              </h1>
-              <p className="text-[16px] text-muted-foreground mt-3 leading-relaxed max-w-[480px]">
-                Start with structured intake or pick up where you left off on an active project.
-              </p>
+          <div className="relative text-center max-w-[600px] mx-auto">
+            <div className="flex items-center gap-2.5 justify-center mb-4">
+              <Zap className="h-5 w-5 text-primary/30" />
+              <span className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.14em]">
+                Launch Pad
+              </span>
             </div>
+            <h1 className="text-[38px] font-bold tracking-[-0.03em] text-foreground leading-[1.05]">
+              Start a New Production Flow
+            </h1>
+            <p className="text-[15px] text-muted-foreground mt-3 leading-relaxed">
+              Begin with structured intake or pick up where you left off on an active project.
+            </p>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-3 justify-center mt-6">
               <Link to="/presale/new">
                 <Button
                   size="lg"
@@ -264,17 +166,17 @@ export default function CommandCenter() {
                 >
                   <FileText className="h-5 w-5" />
                   Start Structured Intake
-                  <ArrowRight className="h-4.5 w-4.5 ml-1" />
+                  <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
               <Link to="/projects">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="h-14 px-7 gap-2.5 text-[16px] font-bold border-border-strong text-foreground hover:bg-secondary rounded-xl"
+                  className="h-14 px-7 gap-2.5 text-[16px] font-bold border-border text-foreground hover:bg-secondary rounded-xl"
                 >
                   <FolderOpen className="h-5 w-5" />
-                  Resume Project
+                  Resume Existing Project
                 </Button>
               </Link>
             </div>
@@ -282,9 +184,38 @@ export default function CommandCenter() {
         </div>
 
         {/* ════════════════════════════════════════════════════════════
+            SECTION 2.5 — ACTIVE PROJECT PIPELINES
+            ════════════════════════════════════════════════════════════ */}
+        {activeProjects.length > 0 && (
+          <div className="rounded-2xl bg-card border border-border shadow-sm px-6 py-5">
+            <h2 className="text-[14px] font-bold text-foreground tracking-tight mb-4 flex items-center gap-2">
+              <Activity className="h-4 w-4 text-muted-foreground/50" />
+              Active Project Pipelines
+              <span className="text-[11px] font-mono text-muted-foreground ml-auto">{activeProjects.length} project{activeProjects.length > 1 ? "s" : ""}</span>
+            </h2>
+            <div className="space-y-3">
+              {activeProjects.slice(0, 6).map((p) => {
+                const idx = resolveStageIndex(p.state);
+                const isBlocked = p.state === "blocked";
+                return (
+                  <Link key={p.id} to={`/projects/${p.id}`} className="block">
+                    <div className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-secondary/30 transition-colors group">
+                      <span className="text-[14px] font-bold text-foreground w-[180px] truncate shrink-0 group-hover:text-primary transition-colors">
+                        {p.name}
+                      </span>
+                      <MiniPipeline currentStageIndex={idx} blocked={isBlocked} className="flex-1" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════
             SECTION 3 + 4 — ASYMMETRIC 7/5 GRID
             ════════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5" style={{ minHeight: "calc(100vh - 480px)" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5" style={{ minHeight: "calc(100vh - 580px)" }}>
 
           {/* ── LEFT 7 — FOUNDER DECISION BOARD ── */}
           <div className="lg:col-span-7 flex flex-col gap-5 min-h-0">
@@ -298,8 +229,6 @@ export default function CommandCenter() {
 
           {/* ── RIGHT 5 — DELIVERY SNAPSHOT ── */}
           <div className="lg:col-span-5 flex flex-col gap-4 min-h-0">
-
-            {/* Active projects + delivery */}
             <div
               className="rounded-2xl bg-card border border-border px-4 py-4 overflow-hidden flex flex-col shadow-sm"
               style={{ minHeight: 220 }}
@@ -312,7 +241,6 @@ export default function CommandCenter() {
               />
             </div>
 
-            {/* Risk & health */}
             <RiskHealth
               blocked={counts?.blockedTasks ?? 0}
               escalated={escalatedCount}
@@ -321,7 +249,6 @@ export default function CommandCenter() {
               stalledRuns={stalled?.stalled_runs?.length ?? 0}
             />
 
-            {/* Live events */}
             <div className="rounded-2xl bg-secondary/20 border border-border/50 px-4 py-4 flex-1 min-h-0 overflow-hidden flex flex-col">
               <LiveFlow events={events} />
             </div>
