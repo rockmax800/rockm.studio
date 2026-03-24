@@ -166,9 +166,6 @@ export function ExecutionOverrideSheet({ override, onChange, triggerLabel = "Ove
                     <button
                       key={p.value}
                       onClick={() => handleProviderChange(p.value)}
-                    <button
-                      key={p.value}
-                      onClick={() => handleProviderChange(p.value)}
                       className={cn(
                         "rounded-md border px-2.5 py-1.5 text-left transition-all",
                         current.providerFamily === p.value
