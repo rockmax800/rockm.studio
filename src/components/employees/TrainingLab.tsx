@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -6,18 +6,19 @@ import { toast } from "sonner";
 import {
   Send, Plus, RotateCcw, Save, Clock, FileText,
   MessageSquare, BookOpen, Shield, Brain, Zap, AlertTriangle,
-  Ban, Sparkles, ChevronDown, ChevronRight, Download, Copy, Trash2, Check,
+  Ban, Sparkles, ChevronDown, ChevronRight, Download, Copy, Check,
+  BadgeCheck, History, Loader2,
 } from "lucide-react";
 import {
-  useTrainingDraft, EMPTY_DRAFT,
-  type TrainingMessage, type MaterialBlock, type PromptDraft,
-} from "@/hooks/use-training-draft";
+  useTrainingLab, EMPTY_SECTIONS,
+  type PromptSections,
+} from "@/hooks/use-training-lab";
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
    ═══════════════════════════════════════════════════════════ */
 
-const DRAFT_SECTIONS: { key: keyof PromptDraft; label: string; icon: React.ReactNode; placeholder: string }[] = [
+const DRAFT_SECTIONS: { key: keyof PromptSections; label: string; icon: React.ReactNode; placeholder: string }[] = [
   { key: "roleMission", label: "Role Mission", icon: <Zap className="h-3.5 w-3.5" />, placeholder: "Define the core purpose and mission of this role…" },
   { key: "hardBoundaries", label: "Hard Boundaries", icon: <Shield className="h-3.5 w-3.5" />, placeholder: "What must this agent never do? Strict constraints…" },
   { key: "preferredBehavior", label: "Preferred Behavior", icon: <Brain className="h-3.5 w-3.5" />, placeholder: "How should this agent approach work? Preferred patterns…" },
@@ -29,11 +30,11 @@ const DRAFT_SECTIONS: { key: keyof PromptDraft; label: string; icon: React.React
 ];
 
 const MATERIAL_CATEGORIES = [
-  { value: "preference" as const, label: "Preference", color: "bg-status-blue/15 text-status-blue" },
-  { value: "example" as const, label: "Example", color: "bg-status-green/15 text-status-green" },
-  { value: "anti-pattern" as const, label: "Anti-pattern", color: "bg-destructive/15 text-destructive" },
-  { value: "expectation" as const, label: "Expectation", color: "bg-status-amber/15 text-status-amber" },
-  { value: "note" as const, label: "Note", color: "bg-secondary text-muted-foreground" },
+  { value: "note", label: "Note", color: "bg-secondary text-muted-foreground" },
+  { value: "example", label: "Example", color: "bg-status-green/15 text-status-green" },
+  { value: "rule", label: "Rule", color: "bg-status-blue/15 text-status-blue" },
+  { value: "anti_pattern", label: "Anti-pattern", color: "bg-destructive/15 text-destructive" },
+  { value: "reference", label: "Reference", color: "bg-status-amber/15 text-status-amber" },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -49,36 +50,35 @@ interface TrainingLabProps {
 export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const {
-    messages, materials, draft, history, lastUpdated, saveStatus,
-    addMessage, addMaterial, updateDraft, updateDraftSection,
-    addHistory, resetAll, exportAsMarkdown, copySynthesizedPrompt,
-  } = useTrainingDraft(employeeId, employeeName, roleName);
+    messages, materials, drafts, events, sections, loading,
+    publishedDraft, setSections,
+    addMessage, addMaterial, saveDraft, publishDraft, synthesizeDraft,
+    exportAsMarkdown,
+  } = useTrainingLab(employeeId);
 
   const [inputValue, setInputValue] = useState("");
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [materialTitle, setMaterialTitle] = useState("");
   const [materialContent, setMaterialContent] = useState("");
-  const [materialCategory, setMaterialCategory] = useState<MaterialBlock["category"]>("preference");
+  const [materialCategory, setMaterialCategory] = useState("note");
   const [showAddMaterial, setShowAddMaterial] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const text = inputValue.trim();
     if (!text) return;
-    addMessage({ id: `f-${Date.now()}`, role: "founder", content: text, timestamp: new Date().toISOString() });
     setInputValue("");
-    addHistory("Founder note added");
+    await addMessage(text, "founder");
 
-    setTimeout(() => {
-      addMessage({
-        id: `s-${Date.now()}`,
-        role: "system",
-        content: "Noted. This instruction has been captured. Add it as a material block or regenerate the draft to incorporate it.",
-        timestamp: new Date().toISOString(),
-      });
+    setTimeout(async () => {
+      await addMessage(
+        "Noted. This instruction has been captured. Add it as a material block or regenerate the draft to incorporate it.",
+        "system"
+      );
     }, 400);
   };
 
@@ -86,48 +86,44 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }
   };
 
-  const handleAddMaterial = () => {
+  const handleAddMaterial = async () => {
     if (!materialContent.trim()) return;
-    addMaterial({
-      id: `m-${Date.now()}`,
-      title: materialTitle.trim() || `${materialCategory} note`,
-      content: materialContent.trim(),
-      category: materialCategory,
-      timestamp: new Date().toISOString(),
-    });
+    await addMaterial(
+      materialTitle.trim() || `${materialCategory} note`,
+      materialContent.trim(),
+      materialCategory
+    );
     setMaterialTitle("");
     setMaterialContent("");
     setShowAddMaterial(false);
-    addHistory(`Material added: ${materialCategory}`);
   };
 
-  const handleRegenerateDraft = () => {
-    const founderMessages = messages.filter((m) => m.role === "founder").map((m) => m.content);
-    updateDraft({
-      roleMission: founderMessages.length > 0
-        ? `${employeeName} serves as ${roleName}. ${founderMessages[0] ? `Primary directive: ${founderMessages[0].slice(0, 120)}` : "Awaiting founder directives."}`
-        : "",
-      hardBoundaries: materials.filter((m) => m.category === "anti-pattern").map((m) => `- ${m.content}`).join("\n") || "No hard boundaries defined yet.",
-      preferredBehavior: materials.filter((m) => m.category === "preference").map((m) => `- ${m.content}`).join("\n") || "No preferences captured yet.",
-      domainKnowledge: "Inherited from role contract and project context.",
-      communicationStyle: "Default: concise, operational, structured output.",
-      escalationRules: "Escalate when confidence < 70% or when scope is ambiguous.",
-      antiPatterns: materials.filter((m) => m.category === "anti-pattern").map((m) => `- ${m.content}`).join("\n") || "None defined.",
-      exampleResponses: materials.filter((m) => m.category === "example").map((m) => `### ${m.title}\n${m.content}`).join("\n\n") || "No examples provided yet.",
-    });
-    addHistory("Draft regenerated");
+  const handleRegenerateDraft = async () => {
+    setSaving(true);
+    await synthesizeDraft(employeeName, roleName);
+    setSaving(false);
+  };
+
+  const handleSaveDraft = async () => {
+    setSaving(true);
+    await saveDraft(sections, false);
+    setSaving(false);
+  };
+
+  const handlePublishLatest = async () => {
+    if (drafts.length === 0) return;
+    await publishDraft(drafts[0].id);
   };
 
   const toggleSection = (key: string) =>
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const handleDraftSectionEdit = (key: keyof PromptDraft, value: string) => {
-    updateDraftSection(key, value);
-    addHistory(`Draft manually edited: ${key}`);
+  const handleDraftSectionEdit = (key: keyof PromptSections, value: string) => {
+    setSections((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleExport = () => {
-    const md = exportAsMarkdown();
+    const md = exportAsMarkdown(employeeName, roleName);
     const blob = new Blob([md], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -135,45 +131,46 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
     a.download = `training-draft-${employeeName.toLowerCase().replace(/\s+/g, "-")}.md`;
     a.click();
     URL.revokeObjectURL(url);
-    addHistory("Draft exported as markdown");
     toast.success("Draft exported as markdown");
   };
 
   const handleCopyPrompt = () => {
-    const text = copySynthesizedPrompt();
+    const text = Object.entries(sections)
+      .filter(([, v]) => v.length > 0)
+      .map(([k, v]) => `## ${k.replace(/([A-Z])/g, " $1").trim()}\n${v}`)
+      .join("\n\n");
     navigator.clipboard.writeText(text);
-    addHistory("Synthesized prompt copied to clipboard");
     toast.success("Prompt copied to clipboard");
   };
 
-  const handleReset = () => {
-    if (!confirm("Reset all training data for this employee? This cannot be undone.")) return;
-    resetAll();
-    toast.info("Training draft reset");
-  };
+  const hasDraftContent = Object.values(sections).some((v) => v.length > 0);
 
-  const hasDraftContent = Object.values(draft).some((v) => v.length > 0);
-  const lastSavedLabel = lastUpdated
-    ? `Saved locally · ${new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-    : null;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[400px] gap-2 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span className="text-sm">Loading training data…</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
       {/* Status bar */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
-            {saveStatus === "saved" ? (
-              <><Check className="h-3 w-3 text-status-green" /> Saved locally</>
-            ) : lastSavedLabel ? (
-              <><Clock className="h-3 w-3" /> {lastSavedLabel}</>
-            ) : (
-              <><Clock className="h-3 w-3" /> Not yet saved</>
-            )}
-          </span>
+          {publishedDraft ? (
+            <span className="text-[10px] text-status-green flex items-center gap-1 font-medium">
+              <BadgeCheck className="h-3 w-3" /> Active prompt: v{publishedDraft.version_number}
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
+              <Clock className="h-3 w-3" /> No published prompt yet
+            </span>
+          )}
           <span className="text-[9px] text-muted-foreground/30">•</span>
-          <span className="text-[9px] text-status-amber/60 font-medium">
-            Local draft only — not yet published to canonical team memory
+          <span className="text-[9px] text-muted-foreground/50">
+            {drafts.length} draft{drafts.length !== 1 ? "s" : ""} · {messages.length} messages · {materials.length} materials
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -182,9 +179,6 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
           </Button>
           <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground" onClick={handleCopyPrompt} disabled={!hasDraftContent} title="Copy synthesized prompt">
             <Copy className="h-3 w-3" /> Copy prompt
-          </Button>
-          <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-destructive/60 hover:text-destructive" onClick={handleReset} title="Reset all training data">
-            <Trash2 className="h-3 w-3" /> Reset
           </Button>
         </div>
       </div>
@@ -206,22 +200,27 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
 
           <ScrollArea className="flex-1">
             <div className="px-4 py-4 space-y-3">
+              {messages.length === 0 && (
+                <div className="rounded-xl bg-muted text-foreground mr-6 px-3.5 py-2.5 text-[13px] leading-relaxed">
+                  <p>Training Lab for {employeeName} ({roleName}). Write instructions below — they will be captured as training material.</p>
+                </div>
+              )}
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={cn(
                     "rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed",
-                    msg.role === "founder"
-                      ? "bg-status-blue text-white ml-6"
+                    msg.author_type === "founder"
+                      ? "bg-primary text-primary-foreground ml-6"
                       : "bg-muted text-foreground mr-6"
                   )}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                   <span className={cn(
                     "text-[9px] block mt-1.5",
-                    msg.role === "founder" ? "text-white/40" : "text-muted-foreground/40"
+                    msg.author_type === "founder" ? "text-primary-foreground/40" : "text-muted-foreground/40"
                   )}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               ))}
@@ -242,7 +241,7 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
               <button
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim()}
-                className="h-8 w-8 rounded-lg bg-status-blue text-white flex items-center justify-center disabled:opacity-30 shrink-0"
+                className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-30 shrink-0"
               >
                 <Send className="h-3.5 w-3.5" />
               </button>
@@ -259,7 +258,7 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
                 Source Materials
               </h3>
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                Preferences, examples, anti-patterns
+                Notes, examples, rules, anti-patterns
               </p>
             </div>
             <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 px-2.5 font-semibold" onClick={() => setShowAddMaterial(true)}>
@@ -270,7 +269,7 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-3">
               {showAddMaterial && (
-                <div className="rounded-xl border border-status-amber/30 bg-status-amber/5 p-3.5 space-y-2.5">
+                <div className="rounded-xl border border-accent/30 bg-accent/5 p-3.5 space-y-2.5">
                   <input
                     value={materialTitle}
                     onChange={(e) => setMaterialTitle(e.target.value)}
@@ -287,7 +286,7 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
                   <div className="flex items-center gap-2">
                     <select
                       value={materialCategory}
-                      onChange={(e) => setMaterialCategory(e.target.value as MaterialBlock["category"])}
+                      onChange={(e) => setMaterialCategory(e.target.value)}
                       className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground"
                     >
                       {MATERIAL_CATEGORIES.map((c) => (
@@ -308,22 +307,22 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
                 <div className="rounded-xl border border-dashed border-border p-6 text-center">
                   <FileText className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
                   <p className="text-[12px] text-muted-foreground">
-                    No materials yet. Add preferences, examples, or anti-patterns.
+                    No materials yet. Add notes, examples, or anti-patterns.
                   </p>
                 </div>
               )}
 
               {materials.map((mat) => {
-                const cat = MATERIAL_CATEGORIES.find((c) => c.value === mat.category);
+                const cat = MATERIAL_CATEGORIES.find((c) => c.value === mat.material_type);
                 return (
                   <div key={mat.id} className="rounded-xl border border-border bg-background p-3.5">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-md", cat?.color)}>
-                        {cat?.label}
+                        {cat?.label ?? mat.material_type}
                       </span>
                       <span className="text-[12px] font-semibold text-foreground truncate flex-1">{mat.title}</span>
                       <span className="text-[9px] text-muted-foreground/40 font-mono">
-                        {new Date(mat.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(mat.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed whitespace-pre-wrap">{mat.content}</p>
@@ -333,22 +332,22 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
             </div>
           </ScrollArea>
 
-          {/* History footer */}
+          {/* Event log footer */}
           <div className="shrink-0 border-t border-border/50">
             <div className="px-4 py-2.5">
               <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-1.5 flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Training History
+                <History className="h-3 w-3" /> Training Event Log
               </h4>
               <div className="space-y-0.5 max-h-[80px] overflow-y-auto">
-                {history.length === 0 ? (
+                {events.length === 0 ? (
                   <p className="text-[10px] text-muted-foreground/40">No activity yet</p>
                 ) : (
-                  history.slice(0, 8).map((h) => (
-                    <div key={h.id} className="flex items-center gap-2 text-[10px]">
+                  events.slice(0, 8).map((ev) => (
+                    <div key={ev.id} className="flex items-center gap-2 text-[10px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 shrink-0" />
-                      <span className="text-muted-foreground truncate flex-1">{h.action}</span>
+                      <span className="text-muted-foreground truncate flex-1">{ev.event_type.replace(/_/g, " ")}</span>
                       <span className="text-muted-foreground/30 font-mono shrink-0">
-                        {new Date(h.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(ev.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                   ))
@@ -367,30 +366,45 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
                 Synthesized Prompt Draft
               </h3>
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                Structured output — local draft only
+                {drafts.length > 0 ? `v${drafts[0].version_number} — ${drafts[0].synthesized_from_session ? "auto-synthesized" : "manual"}` : "No drafts yet"}
               </p>
             </div>
-            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 px-2.5 font-semibold" onClick={handleRegenerateDraft}>
-              <RotateCcw className="h-3 w-3" /> Regenerate
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 px-2.5 font-semibold" onClick={handleRegenerateDraft} disabled={saving}>
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />} Regenerate
             </Button>
           </div>
 
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-2">
+              {/* Published prompt indicator */}
+              {publishedDraft && (
+                <div className="rounded-xl border border-status-green/30 bg-status-green/5 px-3.5 py-2.5 mb-2">
+                  <div className="flex items-center gap-2">
+                    <BadgeCheck className="h-4 w-4 text-status-green shrink-0" />
+                    <div>
+                      <p className="text-[11px] font-bold text-status-green">Current active training prompt</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        v{publishedDraft.version_number} · published {new Date(publishedDraft.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {!hasDraftContent ? (
                 <div className="rounded-xl border border-dashed border-border p-6 text-center">
                   <Sparkles className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
                   <p className="text-[12px] text-muted-foreground mb-3">
                     Add training notes and materials, then click "Regenerate" to synthesize a structured prompt draft.
                   </p>
-                  <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 font-semibold" onClick={handleRegenerateDraft}>
+                  <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 font-semibold" onClick={handleRegenerateDraft} disabled={saving}>
                     <RotateCcw className="h-3.5 w-3.5" /> Generate Draft
                   </Button>
                 </div>
               ) : (
                 DRAFT_SECTIONS.map((section) => {
                   const isExpanded = expandedSections[section.key] ?? true;
-                  const value = draft[section.key];
+                  const value = sections[section.key];
                   return (
                     <div key={section.key} className="rounded-xl border border-border bg-background overflow-hidden">
                       <button
@@ -421,24 +435,56 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
                   );
                 })
               )}
+
+              {/* Revision history */}
+              {drafts.length > 1 && (
+                <div className="mt-4 rounded-xl border border-border bg-background p-3.5">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-2 flex items-center gap-1">
+                    <History className="h-3 w-3" /> Revision History
+                  </h4>
+                  <div className="space-y-1">
+                    {drafts.slice(0, 10).map((d) => (
+                      <div key={d.id} className="flex items-center gap-2 text-[10px]">
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full shrink-0",
+                          d.is_published ? "bg-status-green" : "bg-muted-foreground/30"
+                        )} />
+                        <span className="text-muted-foreground flex-1">
+                          v{d.version_number} — {d.synthesized_from_session ? "synthesized" : "manual"}
+                          {d.is_published && " · published"}
+                        </span>
+                        <span className="text-muted-foreground/30 font-mono shrink-0">
+                          {new Date(d.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
 
           {/* Footer */}
           <div className="shrink-0 p-3 border-t border-border/50 space-y-2">
-            <Button
-              className="w-full h-9 text-[12px] font-bold gap-2"
-              disabled={!hasDraftContent}
-              title="No backend persistence layer exists yet — this saves to UI state only"
-              onClick={() => {
-                addHistory("Draft saved (UI draft only)");
-                toast.success("Draft saved locally");
-              }}
-            >
-              <Save className="h-3.5 w-3.5" /> Save Draft Locally
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 h-9 text-[12px] font-bold gap-2"
+                disabled={!hasDraftContent || saving}
+                onClick={handleSaveDraft}
+              >
+                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save Draft
+              </Button>
+              <Button
+                variant="outline"
+                className="h-9 text-[12px] font-bold gap-2 px-4"
+                disabled={!hasDraftContent || drafts.length === 0}
+                onClick={handlePublishLatest}
+              >
+                <BadgeCheck className="h-3.5 w-3.5" /> Publish
+              </Button>
+            </div>
             <p className="text-[9px] text-muted-foreground/50 text-center leading-snug">
-              Local draft only — not yet published to canonical team memory
+              Persisted to database · Unpublished drafts are not applied to delivery
             </p>
           </div>
         </div>
