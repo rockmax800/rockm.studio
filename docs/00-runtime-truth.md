@@ -144,3 +144,21 @@ This document is the **canonical runtime truth**. If any other document referenc
 | `delivery/runtime-and-secret-governance.md` | Complements — security detail |
 | `product/constraints.md` | Defers to this file for infrastructure |
 | `00-transition-status.md` | Tracks migration from current → target |
+| `integrations/01-ruflo-execution-engine.md` | Optional external execution engine — does not change this app's role |
+
+---
+
+## 5 — External Execution Engines
+
+The current branch may integrate with external orchestration/execution engines
+(e.g. Ruflo) without changing the app's canonical control-plane role.
+
+**Key boundary:** External engines execute work. This app owns all product
+state — projects, tasks, runs, artifacts, reviews, approvals, and deployments.
+
+> **Do not confuse the orchestration engine with the source of truth.**
+> See `docs/integrations/01-ruflo-execution-engine.md` for the full
+> architecture decision record.
+
+External engine integration is experimental and feature-gated. The app must
+function fully without any external engine connected.
