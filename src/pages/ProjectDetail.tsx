@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
+import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
@@ -385,6 +386,9 @@ export default function ProjectDetail() {
               hasDomainBinding={domainBindings.length > 0}
             />
           </div>
+
+          {/* ══ ROW 4 — EXECUTION TELEMETRY ══ */}
+          <RunTraceMetaCard trace={null} title="Latest Run Execution Telemetry" />
 
           <div className="h-8" />
         </div>

@@ -13,6 +13,7 @@ import { lazy, Suspense, useMemo } from "react";
 
 const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 const ExecutionPolicyPanel = lazy(() => import("@/components/system/ExecutionPolicyPanel"));
+import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
@@ -314,10 +315,11 @@ export default function SystemPage() {
           </TabsContent>
 
           {/* AUDIT — Operational Trace Explorer */}
-          <TabsContent value="audit">
+          <TabsContent value="audit" className="space-y-4">
             <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading trace explorer…</div>}>
               <TraceExplorer initialFilters={traceInitialFilters} />
             </Suspense>
+            <RunTraceMetaCard trace={null} title="Run Execution Trace (latest)" />
           </TabsContent>
 
           {/* EXECUTION — Global Execution Defaults */}
