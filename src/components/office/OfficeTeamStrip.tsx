@@ -41,9 +41,8 @@ export function OfficeTeamStrip({ agents }: OfficeTeamStripProps) {
   if (agents.length === 0) return null;
 
   return (
-    <div className="bg-secondary rounded-[12px] border border-border px-3 py-2">
-      <ScrollArea orientation="horizontal" className="w-full">
-        <div className="flex items-center gap-3">
+    <div className="bg-secondary rounded-[12px] border border-border px-3 py-2 overflow-x-auto">
+      <div className="flex items-center gap-3">
           {agents.map((agent) => (
             <div
               key={agent.id}
