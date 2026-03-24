@@ -21,6 +21,10 @@ export type ApprovalLifecycleState = "pending" | "decided" | "expired" | "closed
 export type ApprovalState = ApprovalLifecycleState;
 export type ApprovalDecision = "approved" | "rejected" | "deferred" | null;
 
+// Handoff: collaboration contract between roles
+export type HandoffOutcome = "implementation" | "review" | "clarification" | "approval_prep" | "qa" | "release";
+export type HandoffStatus = "created" | "acknowledged" | "completed" | "cancelled";
+
 export type EntityState = ProjectState | TaskState | RunState | ArtifactState | ReviewLifecycleState | ApprovalLifecycleState;
 
 export type AgentRole = "Product Strategist" | "Solution Architect" | "Frontend Builder" | "Backend Architect" | "Backend Implementer" | "Reviewer" | "QA Agent" | "Release Coordinator";

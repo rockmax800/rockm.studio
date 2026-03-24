@@ -300,6 +300,25 @@ export class ReviewService {
         projectId,
         metadata: { use_case: "UC-07", trigger: "rework required after rejection", review_id: reviewId, reason },
       });
+
+      // PART 9 — Create rework handoff: reviewer → implementer
+      if (task.owner_role_id) {
+        try {
+          await this.handoffService.createHandoff({
+            projectId,
+            taskId: task.id,
+            sourceRoleId: review.reviewer_role_id,
+            targetRoleId: task.owner_role_id,
+            requestedOutcome: "implementation",
+            acceptanceCriteria: blockingIssues ?? [reason],
+            constraints: [{ type: "rework", rejection_reason: reason }],
+            openQuestions: [],
+            createdFromReviewId: reviewId,
+          });
+        } catch {
+          // Best-effort handoff creation — rejection still valid without it
+        }
+      }
     }
 
     // PART 7 — Record RunEvaluation (rejected → quality_score = 0)
