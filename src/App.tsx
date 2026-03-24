@@ -18,11 +18,10 @@ import TeamsPage from "./pages/TeamsPage";
 // Management pages
 import FounderPage from "./pages/FounderPage";
 import SystemPage from "./pages/SystemPage";
-
-// Legacy / deep-link pages (preserved, not in nav)
-import DocsWorkspace from "./pages/DocsWorkspace";
 import SMMCapability from "./pages/SMMCapability";
-import DepartmentDetail from "./pages/DepartmentDetail";
+
+// Deep-link pages (preserved for backward compat)
+import DocsWorkspace from "./pages/DocsWorkspace";
 import ControlProjectDetail from "./pages/control/ControlProjectDetail";
 import ControlTaskDetail from "./pages/control/ControlTaskDetail";
 import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
@@ -49,15 +48,14 @@ const App = () => (
           <Route path="/team-room" element={<TeamRoom />} />
           <Route path="/employees/:id" element={<EmployeeProfile />} />
           <Route path="/presale/new" element={<IntakeComposer />} />
+          <Route path="/smm" element={<SMMCapability />} />
 
           {/* MANAGEMENT */}
           <Route path="/founder" element={<FounderPage />} />
           <Route path="/system" element={<SystemPage />} />
 
-          {/* LEGACY DEEP LINKS (preserved for backward compat) */}
+          {/* DEEP LINKS (backward compat) */}
           <Route path="/docs" element={<DocsWorkspace />} />
-          <Route path="/smm" element={<SMMCapability />} />
-          <Route path="/departments/:slug" element={<DepartmentDetail />} />
           <Route path="/departments/:slug/presales/:id" element={<PresaleDetail />} />
           <Route path="/control/projects/:id" element={<ControlProjectDetail />} />
           <Route path="/control/tasks/:id" element={<ControlTaskDetail />} />
@@ -65,8 +63,9 @@ const App = () => (
           <Route path="/control/runs/:id" element={<ControlRunDetail />} />
           <Route path="/control/providers/:id" element={<ControlProviderDetail />} />
 
-          {/* REDIRECTS — old surfaces → new locations */}
+          {/* REDIRECTS — all legacy paths → canonical locations */}
           <Route path="/departments" element={<Navigate to="/teams" replace />} />
+          <Route path="/departments/:slug" element={<Navigate to="/teams" replace />} />
           <Route path="/company" element={<Navigate to="/teams" replace />} />
           <Route path="/tasks" element={<Navigate to="/projects" replace />} />
           <Route path="/control" element={<Navigate to="/founder" replace />} />
@@ -84,7 +83,7 @@ const App = () => (
           <Route path="/agents" element={<Navigate to="/teams" replace />} />
           <Route path="/settings" element={<Navigate to="/system" replace />} />
 
-          {/* CLIENT PORTAL (standalone, no layout) */}
+          {/* CLIENT PORTAL (standalone) */}
           <Route path="/client/:token" element={<ClientPortal />} />
 
           <Route path="*" element={<NotFound />} />
