@@ -138,6 +138,9 @@ Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBi
 
 All evolution requires evaluation rail pass + founder approval. No silent mutations.
 
+### Experimental: External Execution Engines
+The system may optionally delegate run execution to external orchestration engines (e.g. Ruflo). External engines execute work but do not own product state — projects, tasks, runs, artifacts, reviews, approvals, and deployments remain the source of truth in this app. See `docs/integrations/01-ruflo-execution-engine.md` for the architecture decision record.
+
 ### Hard Enforcement Layer
 - Role contract boundary enforcement (path-level restrictions)
 - Mandatory artifact gates (Implementation Patch, Review Report, QA Evidence)
