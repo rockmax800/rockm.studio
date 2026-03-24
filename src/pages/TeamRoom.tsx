@@ -22,7 +22,8 @@ import {
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
   AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
   Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
-}from "lucide-react";
+  GraduationCap,
+} from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
@@ -531,6 +532,10 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                       <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
                       <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
                     </div>
+                    <span className="text-[11px] text-muted-foreground/30">·</span>
+                    <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1 bg-secondary/50 px-2 py-0.5 rounded-md border border-border/20">
+                      <GraduationCap className="h-3 w-3" /> This session can produce training guidance
+                    </span>
                     <span className="text-[11px] text-muted-foreground/30">·</span>
                     <span className="text-[12px] text-muted-foreground/50 italic">{persona.nickname}</span>
                     {persona.chips.slice(0, 2).map((chip) => (

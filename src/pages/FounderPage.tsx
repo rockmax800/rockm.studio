@@ -11,6 +11,7 @@ import { FounderStatusStrip } from "@/components/founder/FounderStatusStrip";
 import { DecisionCard, type DecisionItem } from "@/components/founder/DecisionCard";
 import { ContextPreview } from "@/components/founder/ContextPreview";
 import { RiskPanel } from "@/components/founder/RiskPanel";
+import { CalibrationSummary } from "@/components/founder/CalibrationSummary";
 import { PipelineBar, resolveStageIndex, PIPELINE_STAGES, STAGE_COLORS } from "@/components/PipelineBar";
 import {
   Select,
@@ -20,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight, History } from "lucide-react";
+import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight, History, GraduationCap } from "lucide-react";
 
 export default function FounderPage() {
   const navigate = useNavigate();
@@ -309,14 +310,26 @@ export default function FounderPage() {
           </div>
         </div>
 
-        {/* Bottom — System Risk Overview */}
-        <RiskPanel
-          highRiskTasks={allItems.filter((i) => i.riskLevel === "critical").map((i) => ({ id: i.id, title: i.title, linkTo: i.linkTo }))}
-          escalatedItems={escalatedItems}
-          stalledRuns={stalledRunCount}
-          retryLoops={retryLoops}
-          onNavigate={navigate}
-        />
+        {/* Bottom — System Risk Overview + Calibration */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <div className="lg:col-span-7">
+            <RiskPanel
+              highRiskTasks={allItems.filter((i) => i.riskLevel === "critical").map((i) => ({ id: i.id, title: i.title, linkTo: i.linkTo }))}
+              escalatedItems={escalatedItems}
+              stalledRuns={stalledRunCount}
+              retryLoops={retryLoops}
+              onNavigate={navigate}
+            />
+          </div>
+          <div className="lg:col-span-5">
+            <div className="rounded-[14px] border border-border/40 bg-card p-4">
+              <h3 className="text-[13px] font-bold text-foreground tracking-tight mb-3 flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-muted-foreground/40" /> Team Calibration
+              </h3>
+              <CalibrationSummary />
+            </div>
+          </div>
+        </div>
       </div>
     </AppLayout>
   );
