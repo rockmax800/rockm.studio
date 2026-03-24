@@ -197,7 +197,7 @@ export class TaskService {
           message: `Task has ${openReviews} non-closed review(s). All reviews must be closed before completing task.`,
           entityType: "task",
           entityId: taskId,
-          fromState: "approved",
+          fromState: "validated",
           toState: "done",
         });
       }
