@@ -1,8 +1,10 @@
 // UC-01 Activate Project
 // UC-12 Complete Project Milestone
+// Front Office guard: project creation requires approved pipeline
 // Hardened with Serializable isolation
 
 import { GuardError } from "@/guards/GuardError";
+import { FrontOfficeService } from "@/services/FrontOfficeService";
 
 interface PrismaTransactionClient {
   [key: string]: {
