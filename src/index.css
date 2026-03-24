@@ -5,87 +5,138 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ═══════════════════════════════════════════════════════════
-   AI PRODUCTION STUDIO — DESIGN SYSTEM v3.0
-   Light-first · Graphite #111827 · Brockmann 12-col · 8px scale
-   Premium density · Swiss precision · 2026 production aesthetic
+   AI PRODUCTION STUDIO — DESIGN SYSTEM v4.0
+   Dark-first · Premium workspace · Brockmann 12-col · 8px scale
+   3-level elevation · Swiss precision · 2026 production aesthetic
    ═══════════════════════════════════════════════════════════ */
 
 @layer base {
 
   :root {
-    /* ── Backgrounds ─────────────────────────────────────── */
-    --background: 220 16% 96%;          /* #F3F4F7 — warmer, less sterile */
-    --foreground: 221 39% 11%;          /* #111827 */
+    /* ── Backgrounds — Level 1 (page shell) ────────────── */
+    --background: 228 18% 6%;             /* #0C0E14 — deep graphite-blue */
+    --foreground: 220 20% 93%;            /* #ECF0F5 — bright, high-contrast */
 
-    /* ── Surfaces ────────────────────────────────────────── */
-    --card: 0 0% 100%;                  /* #FFFFFF */
-    --card-foreground: 221 39% 11%;
+    /* ── Surfaces — Level 2 (cards, panels) ─────────────── */
+    --card: 226 16% 11%;                  /* #161A24 */
+    --card-foreground: 220 20% 93%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 221 39% 11%;
+    --popover: 226 18% 13%;
+    --popover-foreground: 220 20% 93%;
 
-    /* ── Primary — Graphite ──────────────────────────────── */
-    --primary: 221 39% 11%;             /* #111827 */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 26% 18%;       /* #1F2937 */
+    /* ── Primary — Soft bright ──────────────────────────── */
+    --primary: 220 14% 88%;              /* #DDE2EA */
+    --primary-foreground: 228 18% 6%;
+    --primary-hover: 220 14% 78%;
 
-    /* ── Secondary — Surface 2 ───────────────────────────── */
-    --secondary: 220 16% 96%;           /* #F1F3F6 */
-    --secondary-foreground: 221 39% 11%;
+    /* ── Secondary — Level 2 surface alt ─────────────────── */
+    --secondary: 226 14% 14%;            /* #1C2130 */
+    --secondary-foreground: 220 20% 93%;
 
-    /* ── Muted — Surface 3 ───────────────────────────────── */
-    --muted: 220 14% 92%;              /* #E7E9EE */
-    --muted-foreground: 218 11% 40%;   /* #4B5563 — slightly darker for readability */
+    /* ── Muted — subdued elements ────────────────────────── */
+    --muted: 226 14% 12%;
+    --muted-foreground: 220 10% 52%;     /* #7A8290 — readable, not washed */
 
     /* ── Accent ──────────────────────────────────────────── */
-    --accent: 220 16% 96%;
-    --accent-foreground: 221 39% 11%;
+    --accent: 226 14% 16%;
+    --accent-foreground: 220 20% 93%;
 
     /* ── Destructive ─────────────────────────────────────── */
-    --destructive: 0 72% 51%;           /* #DC2626 */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* ── Borders ─────────────────────────────────────────── */
-    --border: 220 13% 91%;              /* #E5E7EB */
-    --border-strong: 220 12% 80%;       /* #C9CDD4 — stronger */
-    --input: 220 13% 91%;
-    --ring: 221 39% 11%;
+    /* ── Borders — subtle, layered ───────────────────────── */
+    --border: 226 12% 17%;               /* barely visible seam */
+    --border-strong: 226 10% 26%;        /* for emphasis */
+    --input: 226 14% 16%;
+    --ring: 220 14% 70%;
 
     /* ── Radius ──────────────────────────────────────────── */
-    --radius: 0.5rem;
-    --radius-card: 1rem;
+    --radius: 0.625rem;                  /* 10px — slightly larger */
+    --radius-card: 1rem;                 /* 16px */
 
     /* ── Lifecycle states ────────────────────────────────── */
-    --lifecycle-draft: 220 10% 60%;
-    --lifecycle-ready: 221 83% 53%;     /* #2563EB */
-    --lifecycle-in-progress: 38 92% 50%; /* #F59E0B */
-    --lifecycle-review: 258 60% 59%;    /* #8B5CF6 */
-    --lifecycle-rework: 25 95% 53%;     /* #F97316 */
-    --lifecycle-blocked: 0 72% 51%;     /* #DC2626 */
-    --lifecycle-escalated: 335 78% 42%; /* #BE185D */
-    --lifecycle-validated: 160 84% 39%; /* #059669 */
-    --lifecycle-done: 142 71% 45%;      /* #16A34A */
-    --lifecycle-deploying: 245 58% 51%; /* #4F46E5 */
+    --lifecycle-draft: 220 10% 52%;
+    --lifecycle-ready: 217 91% 60%;      /* #3B82F6 */
+    --lifecycle-in-progress: 38 92% 50%;
+    --lifecycle-review: 258 60% 59%;
+    --lifecycle-rework: 25 95% 53%;
+    --lifecycle-blocked: 0 72% 51%;
+    --lifecycle-escalated: 335 78% 42%;
+    --lifecycle-validated: 160 84% 39%;
+    --lifecycle-done: 142 71% 45%;
+    --lifecycle-deploying: 245 58% 51%;
     --lifecycle-running: 160 84% 39%;
     --lifecycle-failed: 0 72% 51%;
 
     /* ── Status system ───────────────────────────────────── */
-    --status-neutral: 220 9% 46%;
-    --status-blue: 221 83% 53%;         /* #2563EB */
-    --status-cyan: 187 72% 42%;
-    --status-amber: 38 92% 50%;         /* #F59E0B */
-    --status-green: 142 71% 45%;        /* #16A34A */
-    --status-red: 0 72% 51%;            /* #DC2626 */
-    --status-muted: 220 9% 60%;
+    --status-neutral: 220 9% 50%;
+    --status-blue: 217 91% 60%;
+    --status-cyan: 187 72% 46%;
+    --status-amber: 38 92% 50%;
+    --status-green: 142 71% 45%;
+    --status-red: 0 72% 51%;
+    --status-muted: 220 9% 45%;
 
-    /* ── Surfaces ────────────────────────────────────────── */
+    /* ── Elevation surfaces ──────────────────────────────── */
+    --surface-raised: 226 16% 13%;       /* Level 2 panels */
+    --surface-overlay: 226 18% 9%;
+    --surface-sunken: 228 20% 5%;        /* Level 0 — inset inputs */
+    --surface-glass: 226 14% 16%;        /* Level 2.5 — glass accent */
+    --surface-elevated: 226 14% 17%;     /* Level 3 — sticky bars, dialogs */
+
+    /* ── Sidebar — darker than content ──────────────────── */
+    --sidebar-background: 228 22% 4%;    /* #080A10 — deepest layer */
+    --sidebar-foreground: 220 10% 56%;
+    --sidebar-primary: 220 14% 88%;
+    --sidebar-primary-foreground: 228 18% 6%;
+    --sidebar-accent: 226 16% 11%;
+    --sidebar-accent-foreground: 220 20% 93%;
+    --sidebar-border: 228 14% 10%;
+    --sidebar-ring: 220 14% 70%;
+    --sidebar-muted: 220 9% 38%;
+
+    /* ── Fonts ────────────────────────────────────────────── */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    /* ── Shadows — deep, layered, cinematic ──────────────── */
+    --shadow-card: 0 1px 3px 0 hsl(228 20% 2% / 0.45), 0 1px 2px -1px hsl(228 20% 2% / 0.35);
+    --shadow-elevated: 0 4px 16px -3px hsl(228 20% 2% / 0.55), 0 2px 6px -2px hsl(228 20% 2% / 0.4);
+    --shadow-heavy: 0 12px 40px -8px hsl(228 20% 2% / 0.65), 0 6px 16px -6px hsl(228 20% 2% / 0.45);
+    --shadow-glow: 0 0 16px 2px hsl(var(--primary) / 0.08);
+    --shadow-inset: inset 0 1px 3px 0 hsl(228 20% 2% / 0.3);
+  }
+
+  /* ── LIGHT THEME ──────────────────────────────────────── */
+  .light {
+    --background: 220 16% 96%;
+    --foreground: 221 39% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 221 39% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 221 39% 11%;
+    --primary: 221 39% 11%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 220 26% 18%;
+    --secondary: 220 16% 96%;
+    --secondary-foreground: 221 39% 11%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 218 11% 40%;
+    --accent: 220 16% 96%;
+    --accent-foreground: 221 39% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --border-strong: 220 12% 80%;
+    --input: 220 13% 91%;
+    --ring: 221 39% 11%;
     --surface-raised: 0 0% 100%;
     --surface-overlay: 220 16% 96%;
     --surface-sunken: 220 14% 92%;
     --surface-glass: 220 16% 98%;
-
-    /* ── Sidebar ─────────────────────────────────────────── */
-    --sidebar-background: 0 0% 100%;    /* White sidebar — premium */
+    --surface-elevated: 0 0% 100%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 218 11% 40%;
     --sidebar-primary: 221 39% 11%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -94,64 +145,17 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 221 39% 11%;
     --sidebar-muted: 220 9% 60%;
-
-    /* ── Fonts ────────────────────────────────────────────── */
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-    /* ── Shadows — refined, layered ──────────────────────── */
     --shadow-card: 0 1px 3px 0 hsl(220 20% 20% / 0.04), 0 1px 2px -1px hsl(220 20% 20% / 0.03);
     --shadow-elevated: 0 4px 16px -3px hsl(220 20% 20% / 0.10), 0 2px 6px -2px hsl(220 20% 20% / 0.05);
     --shadow-heavy: 0 8px 30px -5px hsl(220 20% 20% / 0.12), 0 4px 10px -4px hsl(220 20% 20% / 0.06);
     --shadow-glow: 0 0 0 1px hsl(var(--primary) / 0.05);
-  }
-
-  /* ── DARK THEME ────────────────────────────────────────── */
-  .dark {
-    --background: 225 20% 7%;
-    --foreground: 220 13% 91%;
-    --card: 225 18% 11%;
-    --card-foreground: 220 13% 91%;
-    --popover: 225 18% 11%;
-    --popover-foreground: 220 13% 91%;
-    --primary: 220 10% 85%;
-    --primary-foreground: 225 20% 7%;
-    --primary-hover: 220 10% 75%;
-    --secondary: 225 16% 15%;
-    --secondary-foreground: 220 13% 91%;
-    --muted: 225 16% 13%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 225 16% 15%;
-    --accent-foreground: 220 13% 91%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 225 14% 18%;
-    --border-strong: 225 12% 26%;
-    --input: 225 14% 18%;
-    --ring: 220 10% 85%;
-    --surface-raised: 225 18% 13%;
-    --surface-overlay: 225 18% 10%;
-    --surface-sunken: 225 20% 6%;
-    --surface-glass: 225 16% 15%;
-    --sidebar-background: 225 22% 5%;
-    --sidebar-foreground: 220 9% 60%;
-    --sidebar-primary: 220 10% 85%;
-    --sidebar-primary-foreground: 225 20% 7%;
-    --sidebar-accent: 225 18% 12%;
-    --sidebar-accent-foreground: 220 13% 91%;
-    --sidebar-border: 225 14% 12%;
-    --sidebar-ring: 220 10% 85%;
-    --sidebar-muted: 220 9% 36%;
-    --shadow-card: 0 1px 3px 0 hsl(225 20% 4% / 0.5), 0 1px 2px -1px hsl(225 20% 4% / 0.5);
-    --shadow-elevated: 0 4px 12px -2px hsl(225 20% 4% / 0.6), 0 2px 4px -2px hsl(225 20% 4% / 0.4);
-    --shadow-heavy: 0 12px 40px -8px hsl(225 20% 4% / 0.7), 0 6px 16px -6px hsl(225 20% 4% / 0.5);
-    --shadow-glow: 0 0 12px 2px hsl(var(--primary) / 0.15);
+    --shadow-inset: inset 0 1px 2px 0 hsl(220 20% 20% / 0.06);
   }
 }
 
 /* ═══════════════════════════════════════════════════════════
    BASE LAYER — Typography + Reset
-   Premium Swiss typography with strong hierarchy
+   Premium workspace typography with strong readable hierarchy
    ═══════════════════════════════════════════════════════════ */
 
 @layer base {
@@ -168,12 +172,12 @@
     letter-spacing: -0.011em;
   }
 
-  /* Strong hierarchy — no ambiguity */
+  /* Strong hierarchy — readable on dark */
   h1 { @apply text-[32px] leading-[120%] font-bold tracking-[-0.025em] text-foreground; }
   h2 { @apply text-[20px] leading-[120%] font-bold tracking-[-0.015em] text-foreground; }
   h3 { @apply text-[16px] leading-[130%] font-semibold text-foreground; }
   h4 { @apply text-[14px] leading-[140%] font-semibold text-foreground; }
-  p  { @apply text-[15px] leading-[160%] text-foreground; }
+  p  { @apply text-[15px] leading-[160%] text-foreground/85; }
   small { @apply text-[13px] leading-[150%] text-muted-foreground; }
 }
 
@@ -213,6 +217,24 @@
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
   .shadow-heavy { box-shadow: var(--shadow-heavy); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-inset { box-shadow: var(--shadow-inset); }
+
+  /* ── Surface levels — semantic elevation ──────────────── */
+  .surface-level-1 {
+    background-color: hsl(var(--background));
+  }
+  .surface-level-2 {
+    background-color: hsl(var(--surface-raised));
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  .surface-level-3 {
+    background-color: hsl(var(--surface-elevated));
+    border: 1px solid hsl(var(--border-strong) / 0.4);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-elevated);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -220,43 +242,136 @@
    ═══════════════════════════════════════════════════════════ */
 
 @layer components {
+  /* ── Premium card — 3 tiers ─────────────────────────────── */
   .ds-card {
-    @apply rounded-[16px] border border-border/60 bg-card;
+    @apply rounded-[16px] border bg-card;
+    border-color: hsl(var(--border) / 0.5);
     box-shadow: var(--shadow-card);
-    transition: box-shadow 200ms ease-out, border-color 200ms ease-out;
+    transition: box-shadow 220ms ease-out, border-color 220ms ease-out, transform 220ms ease-out;
   }
 
   .ds-card:hover {
     box-shadow: var(--shadow-elevated);
-    border-color: hsl(var(--border-strong));
+    border-color: hsl(var(--border-strong) / 0.5);
+    transform: translateY(-1px);
   }
 
   .ds-card-flat {
-    @apply rounded-[16px] bg-card border border-border/40;
+    @apply rounded-[16px] bg-card border;
+    border-color: hsl(var(--border) / 0.35);
   }
 
+  .ds-card-elevated {
+    @apply rounded-[16px] border;
+    background-color: hsl(var(--surface-elevated));
+    border-color: hsl(var(--border-strong) / 0.3);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* ── Badge — premium pill ────────────────────────────────── */
   .ds-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold leading-none;
   }
 
+  /* ── Section divider ────────────────────────────────────── */
   .ds-section {
-    @apply py-5;
+    @apply py-6;
   }
 
   .ds-section + .ds-section {
-    @apply border-t border-border/50;
+    @apply border-t;
+    border-color: hsl(var(--border) / 0.4);
   }
 
-  /* Premium button base */
+  /* ── Premium buttons ─────────────────────────────────────── */
   .ds-btn-primary {
-    @apply bg-foreground text-background font-semibold rounded-xl;
-    @apply hover:bg-foreground/90;
-    @apply shadow-sm hover:shadow-md;
+    @apply font-semibold rounded-xl px-5 py-2.5;
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--background));
+    box-shadow: var(--shadow-card), 0 0 0 1px hsl(var(--foreground) / 0.1);
     transition: all 200ms ease-out;
   }
 
+  .ds-btn-primary:hover {
+    opacity: 0.92;
+    box-shadow: var(--shadow-elevated), 0 0 0 1px hsl(var(--foreground) / 0.15);
+    transform: translateY(-1px);
+  }
+
   .ds-btn-primary:active {
-    transform: translateY(1px);
+    transform: translateY(0px);
+  }
+
+  /* ── Premium input ───────────────────────────────────────── */
+  .ds-input {
+    @apply rounded-xl px-4 py-2.5 text-[14px];
+    background-color: hsl(var(--surface-sunken));
+    border: 1px solid hsl(var(--border) / 0.5);
+    color: hsl(var(--foreground));
+    box-shadow: var(--shadow-inset);
+    transition: border-color 180ms ease-out, box-shadow 180ms ease-out;
+  }
+
+  .ds-input:focus {
+    border-color: hsl(var(--ring) / 0.6);
+    box-shadow: var(--shadow-inset), 0 0 0 3px hsl(var(--ring) / 0.1);
+    outline: none;
+  }
+
+  .ds-input::placeholder {
+    color: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  /* ── Page wrapper — consistent spacing ───────────────────── */
+  .ds-page {
+    @apply px-8 py-8;
+    max-width: 1440px;
+  }
+
+  .ds-page-header {
+    @apply mb-8;
+  }
+
+  .ds-page-header h1 {
+    @apply text-[32px] leading-[120%] font-bold tracking-[-0.025em] text-foreground;
+  }
+
+  .ds-page-header p {
+    @apply text-[15px] text-muted-foreground mt-1;
+  }
+
+  /* ── Stat card ──────────────────────────────────────────── */
+  .ds-stat {
+    @apply rounded-[16px] p-5 border;
+    background-color: hsl(var(--surface-raised));
+    border-color: hsl(var(--border) / 0.4);
+  }
+
+  .ds-stat-value {
+    @apply text-[28px] font-bold tracking-tight text-foreground;
+  }
+
+  .ds-stat-label {
+    @apply text-[12px] font-semibold text-muted-foreground tracking-wide uppercase mt-1;
+  }
+
+  /* ── Empty state ─────────────────────────────────────────── */
+  .ds-empty-state {
+    @apply flex flex-col items-center justify-center py-16 text-center rounded-[16px];
+    background: linear-gradient(
+      180deg,
+      hsl(var(--surface-raised)) 0%,
+      hsl(var(--background)) 100%
+    );
+    border: 1px dashed hsl(var(--border-strong) / 0.3);
+  }
+
+  .ds-empty-state h3 {
+    @apply text-[16px] font-semibold text-foreground/70 mt-4;
+  }
+
+  .ds-empty-state p {
+    @apply text-[13px] text-muted-foreground mt-1.5 max-w-sm;
   }
 }
 
@@ -281,12 +396,17 @@
 
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 4px 0 hsl(var(--primary) / 0.06); }
-  50% { box-shadow: 0 0 12px 2px hsl(var(--primary) / 0.10); }
+  50% { box-shadow: 0 0 16px 3px hsl(var(--primary) / 0.12); }
 }
 
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes shimmer-bg {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 
 .animate-run-pulse {
@@ -307,6 +427,17 @@
   animation: glow-pulse 2s ease-in-out infinite;
 }
 
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--surface-raised)) 0%,
+    hsl(var(--surface-glass)) 50%,
+    hsl(var(--surface-raised)) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer-bg 1.8s ease-in-out infinite;
+}
+
 /* ═══════════════════════════════════════════════════════════
    SCROLLBAR — refined, minimal
    ═══════════════════════════════════════════════════════════ */
@@ -321,7 +452,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border-strong));
+  background: hsl(var(--border-strong) / 0.5);
   border-radius: 3px;
 }
 
@@ -334,6 +465,22 @@
    ═══════════════════════════════════════════════════════════ */
 
 :focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 2px solid hsl(var(--ring) / 0.5);
   outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL POLISH
+   ═══════════════════════════════════════════════════════════ */
+
+/* Subtle noise texture overlay on page background */
+html {
+  background-color: hsl(var(--background));
+  min-height: 100vh;
+}
+
+/* Selection color */
+::selection {
+  background-color: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
 }
