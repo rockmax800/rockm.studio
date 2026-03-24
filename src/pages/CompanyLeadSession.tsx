@@ -401,12 +401,12 @@ export default function CompanyLeadSession() {
                         className="rounded-2xl"
                         style={{ imageRendering: "auto" }}
                       />
-                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "hsl(152 60% 42%)" }}>
+                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center bg-status-green">
                         <CheckCircle2 className="h-3 w-3 text-white" />
                       </div>
                     </div>
-                    <span className="mt-2 text-[14px] font-bold" style={{ color: "hsl(222 32% 14%)" }}>Company Lead</span>
-                    <span className="text-[11px] font-medium" style={{ color: "hsl(220 10% 64%)" }}>AI Delivery Director</span>
+                    <span className="mt-2 text-[14px] font-bold text-foreground">Company Lead</span>
+                    <span className="text-[11px] font-medium text-muted-foreground">AI Delivery Director</span>
                   </div>
                 </div>
               )}
