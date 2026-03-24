@@ -217,8 +217,9 @@ See `core/07-system-mode.md` and `core/08-feature-flags.md`.
 
 ## 9 — Documentation Index
 
-| Folder | Plane | Contents |
-|--------|-------|----------|
+| Document | Plane | Contents |
+|----------|-------|----------|
+| `00-runtime-truth.md` | Cross-cutting | **Canonical runtime stack** — single source of truth |
 | `core/` | Delivery | State machines, guards, data model, orchestration, event log, planes |
 | `front-office/` | Intent | Intake, blueprints, estimates, launch decisions, client portal |
 | `delivery/` | Delivery | Backend architecture, providers, delivery lane, sandbox, diagnostics |
