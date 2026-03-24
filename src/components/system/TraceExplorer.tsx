@@ -117,6 +117,37 @@ export default function TraceExplorer({ initialFilters }: TraceExplorerProps = {
           </SelectContent>
         </Select>
 
+        {/* Engine filter — placeholder, disabled until run records carry metadata */}
+        <Select disabled value="all">
+          <SelectTrigger className="w-[140px] h-8 text-xs opacity-50">
+            <div className="flex items-center gap-1.5">
+              <Cpu className="h-3 w-3" />
+              <SelectValue placeholder="All engines" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All engines</SelectItem>
+            <SelectItem value="native">Native</SelectItem>
+            <SelectItem value="ruflo">Ruflo</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Provider filter — placeholder, disabled until run records carry metadata */}
+        <Select disabled value="all">
+          <SelectTrigger className="w-[150px] h-8 text-xs opacity-50">
+            <div className="flex items-center gap-1.5">
+              <Bot className="h-3 w-3" />
+              <SelectValue placeholder="All providers" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All providers</SelectItem>
+            <SelectItem value="anthropic">Claude</SelectItem>
+            <SelectItem value="openai">GPT</SelectItem>
+            <SelectItem value="google">Gemini</SelectItem>
+            <SelectItem value="local">Local</SelectItem>
+          </SelectContent>
+
         <div className="relative flex-1 min-w-[160px] max-w-[280px]">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
