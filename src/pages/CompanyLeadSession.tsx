@@ -320,7 +320,7 @@ export default function CompanyLeadSession() {
     <div className="lead-session-root ls-grid-bg flex flex-col min-h-screen">
 
       {/* ── Top bar ──────────────────────────────────────── */}
-      <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: "hsl(220 14% 90%)", background: "hsl(0 0% 100% / 0.85)", backdropFilter: "blur(12px)" }}>
+      <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-border bg-card/85 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
