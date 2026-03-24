@@ -77,18 +77,22 @@ export function useOfficeData() {
       const rolesById = Object.fromEntries(roles.map(r => [r.id, r]));
       const predictions = (predictionsRes.data ?? []) as BottleneckPrediction[];
       const teams = (teamsRes.data ?? []) as TeamInfo[];
+
+      // Legacy compatibility: departments table is the original org unit.
+      // Teams table is the canonical source. We merge departments that have
+      // no matching team record so existing data keeps working.
       const departments = (departmentsRes.data ?? []) as Array<{ id: string; name: string; description: string }>;
-      const mergedTeams = [
+      const operationalTeams: TeamInfo[] = [
         ...teams,
         ...departments
-          .filter((department) => !teams.some((team) => team.id === department.id))
-          .map((department) => ({
-            id: department.id,
-            name: department.name,
-            focus_domain: department.description ?? "",
+          .filter((dept) => !teams.some((team) => team.id === dept.id))
+          .map((dept) => ({
+            id: dept.id,
+            name: dept.name,
+            focus_domain: dept.description ?? "",
           })),
       ];
-      const teamsById = Object.fromEntries(mergedTeams.map(t => [t.id, t]));
+      const teamsById = Object.fromEntries(operationalTeams.map(t => [t.id, t]));
       const employees = employeesRes.data ?? [];
       const employeesByRoleId = Object.fromEntries(employees.map((e: any) => [e.role_id, e]));
       const companySettings = (companyRes.data ?? [])[0] ?? null;
