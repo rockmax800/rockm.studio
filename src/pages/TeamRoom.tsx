@@ -142,7 +142,10 @@ export default function TeamRoom() {
           <div>
             <h1 className="text-[28px] font-bold text-foreground tracking-tight">{deptName}</h1>
             <p className="text-[14px] text-muted-foreground mt-1">
-              Select a specialist to begin a structured working session
+              Select a specialist to begin a structured working session.
+              <span className="text-muted-foreground/40 block text-[12px] mt-0.5">
+                Session participant ≠ task owner. Execution is governed by role contracts.
+              </span>
             </p>
           </div>
 
