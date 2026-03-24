@@ -101,8 +101,8 @@ export default function ProjectDetail() {
   const hasProductionLive = deployments.some((d: any) => d.environment === "production" && d.status === "live");
 
   // Delivery lane stages
-  const hasPatches = artifacts.some((a) => a.artifact_type === "code_patch");
-  const hasPRs = artifacts.some((a) => a.artifact_type === "pull_request");
+  const hasPatches = artifacts.some((a) => (a.artifact_type as string) === "code_patch");
+  const hasPRs = artifacts.some((a) => (a.artifact_type as string) === "pull_request");
   const hasCIPassed = true; // Inferred from deployments existing
   const deliveryStages = [
     { label: "Tasks", status: (tasks.length > 0 ? (doneCount === tasks.length && tasks.length > 0 ? "done" : "active") : "pending") as any },
