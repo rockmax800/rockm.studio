@@ -148,7 +148,24 @@ export class HandoffService {
         data: { current_handoff_id: handoff.id, updated_at: now },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "handoff.created",
+        aggregateType: "handoff",
+        aggregateId: handoff.id,
+        payload: {
+          task_id: params.taskId,
+          source_role_id: params.sourceRoleId,
+          target_role_id: params.targetRoleId,
+          requested_outcome: params.requestedOutcome,
+          urgency: params.urgency ?? "normal",
+        },
+        actorType: "system",
+        actorRef: params.sourceRoleId,
+        idempotencyKey: `handoff:${handoff.id}:created`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
