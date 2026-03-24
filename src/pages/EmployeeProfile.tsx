@@ -254,7 +254,7 @@ export default function EmployeeProfile() {
               >
                 {trainingMode ? <><Lock className="h-3.5 w-3.5" /> Exit Training</> : <><GraduationCap className="h-3.5 w-3.5" /> Train</>}
               </Button>
-              <Link to="/control/tasks">
+              <Link to={`/employees/${id}/tasks`}>
                 <Button size="sm" variant="ghost" className="h-8 text-[11px] gap-1.5 px-3">
                   <Eye className="h-3.5 w-3.5" /> Tasks
                 </Button>

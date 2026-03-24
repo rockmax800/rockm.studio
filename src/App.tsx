@@ -14,6 +14,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
 import TeamRoom from "./pages/TeamRoom";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import EmployeeTasksPage from "./pages/EmployeeTasksPage";
 import TeamsPage from "./pages/TeamsPage";
 
 // Management pages
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/team-room" element={<TeamRoom />} />
             <Route path="/employees/:id" element={<EmployeeProfile />} />
+            <Route path="/employees/:id/tasks" element={<EmployeeTasksPage />} />
             <Route path="/presale/new" element={<IntakeComposer />} />
             <Route path="/lead" element={<CompanyLeadSession />} />
             <Route path="/evolution" element={<EvolutionDashboard />} />
