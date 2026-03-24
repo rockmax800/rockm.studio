@@ -7,13 +7,14 @@ import { useSystemMode } from "@/hooks/use-system-mode";
 import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/use-diagnostics-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu } from "lucide-react";
+import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { lazy, Suspense, useMemo } from "react";
 
 const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 const ExecutionPolicyPanel = lazy(() => import("@/components/system/ExecutionPolicyPanel"));
 import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
@@ -287,7 +288,19 @@ export default function SystemPage() {
           </TabsContent>
 
           {/* MODE */}
-          <TabsContent value="mode">
+          <TabsContent value="mode" className="space-y-4">
+            {/* Theme */}
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-5">
+                <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
+                  <Palette className="h-4 w-4" /> App Theme
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">Controls the visual appearance across the entire studio.</p>
+                <ThemeToggle />
+              </CardContent>
+            </Card>
+
+            {/* System mode */}
             <Card className="border-none shadow-sm">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4">System Mode</h3>

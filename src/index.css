@@ -12,7 +12,8 @@
 
 @layer base {
 
-  :root {
+  :root,
+  .dark {
     /* ── Backgrounds — Level 1 (page shell) ────────────── */
     --background: 228 18% 6%;             /* #0C0E14 — deep graphite-blue */
     --foreground: 220 20% 93%;            /* #ECF0F5 — bright, high-contrast */
@@ -486,26 +487,25 @@ html {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   COMPANY LEAD SESSION — Light onboarding island
-   Scoped entirely to .lead-session-root so it does NOT affect
-   any other page. Uses its own local color palette.
+   COMPANY LEAD SESSION — Theme-aware tokens
+   Uses CSS custom properties that adapt to dark/light theme.
    ═══════════════════════════════════════════════════════════ */
 
 .lead-session-root {
-  --ls-bg: 220 20% 97%;
-  --ls-surface: 0 0% 100%;
-  --ls-border: 220 14% 90%;
-  --ls-text: 222 32% 14%;
-  --ls-text-muted: 220 10% 46%;
-  --ls-text-faint: 220 10% 64%;
+  --ls-bg: var(--background);
+  --ls-surface: var(--card);
+  --ls-border: var(--border);
+  --ls-text: var(--foreground);
+  --ls-text-muted: var(--muted-foreground);
+  --ls-text-faint: var(--muted-foreground);
   --ls-accent: 217 91% 60%;
-  --ls-accent-soft: 217 91% 96%;
+  --ls-accent-soft: var(--accent);
   --ls-green: 152 60% 42%;
   --ls-amber: 38 92% 50%;
   --ls-red: 0 72% 51%;
 
-  background-color: hsl(var(--ls-bg));
-  color: hsl(var(--ls-text));
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   min-height: 100vh;
   font-family: var(--font-sans);
 }
@@ -514,11 +514,11 @@ html {
   background-color: hsl(var(--ls-accent) / 0.15);
 }
 
-/* Soft blue grid background */
+/* Soft grid background — adapts to theme */
 .ls-grid-bg {
   background-image:
-    linear-gradient(hsl(217 60% 85% / 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(217 60% 85% / 0.18) 1px, transparent 1px);
+    linear-gradient(hsl(var(--border) / 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.25) 1px, transparent 1px);
   background-size: 40px 40px;
   background-position: center center;
 }
@@ -534,7 +534,7 @@ html {
   height: 0;
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
-  border-top: 12px solid hsl(var(--ls-surface));
+  border-top: 12px solid hsl(var(--card));
 }
 
 /* Bubble thinking dots */
@@ -568,44 +568,32 @@ html {
   box-shadow: 0 0 0 4px hsl(var(--ls-accent) / 0.15);
 }
 .ls-step-upcoming {
-  background-color: hsl(var(--ls-border));
-  color: hsl(var(--ls-text-faint));
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 /* ═══════════════════════════════════════════════════════════
-   INTAKE COMPOSER — Light hero island
-   Scoped to .intake-hero-root
+   INTAKE COMPOSER — Theme-aware hero island
    ═══════════════════════════════════════════════════════════ */
 
 .intake-hero-root {
-  --ih-bg: 220 20% 97%;
-  --ih-surface: 0 0% 100%;
-  --ih-border: 220 14% 90%;
-  --ih-text: 222 32% 14%;
-  --ih-text-muted: 220 10% 46%;
-  --ih-accent: 217 91% 60%;
-  --ih-accent-soft: 217 91% 96%;
-  --ih-green: 152 60% 42%;
-}
-
-.intake-hero-root {
-  background-color: hsl(var(--ih-bg));
-  color: hsl(var(--ih-text));
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 .ih-grid-bg {
   background-image:
-    linear-gradient(hsl(217 60% 85% / 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(217 60% 85% / 0.15) 1px, transparent 1px);
+    linear-gradient(hsl(var(--border) / 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.2) 1px, transparent 1px);
   background-size: 36px 36px;
 }
 
 .ih-speech-bubble {
   position: relative;
-  background: hsl(var(--ih-surface));
-  border: 1px solid hsl(var(--ih-border));
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-radius: 20px;
-  box-shadow: 0 4px 24px -4px hsl(220 20% 10% / 0.06);
+  box-shadow: var(--shadow-card);
 }
 
 .ih-speech-bubble::after {
@@ -616,8 +604,8 @@ html {
   transform: translateX(-50%);
   border-left: 11px solid transparent;
   border-right: 11px solid transparent;
-  border-top: 11px solid hsl(var(--ih-surface));
-  filter: drop-shadow(0 1px 0 hsl(var(--ih-border)));
+  border-top: 11px solid hsl(var(--card));
+  filter: drop-shadow(0 1px 0 hsl(var(--border)));
 }
 
 @keyframes ih-float {

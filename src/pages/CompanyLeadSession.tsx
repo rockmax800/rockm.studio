@@ -320,18 +320,17 @@ export default function CompanyLeadSession() {
     <div className="lead-session-root ls-grid-bg flex flex-col min-h-screen">
 
       {/* ── Top bar ──────────────────────────────────────── */}
-      <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: "hsl(220 14% 90%)", background: "hsl(0 0% 100% / 0.85)", backdropFilter: "blur(12px)" }}>
+      <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-border bg-card/85 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
-            className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors"
-            style={{ color: "hsl(220 10% 46%)" }}
+            className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-[16px] font-bold" style={{ color: "hsl(222 32% 14%)" }}>Company Lead</h1>
-            <p className="text-[11px]" style={{ color: "hsl(220 10% 64%)" }}>Step 1 — Consultation & scope definition</p>
+            <h1 className="text-[16px] font-bold text-foreground">Company Lead</h1>
+            <p className="text-[11px] text-muted-foreground">Step 1 — Consultation & scope definition</p>
           </div>
         </div>
 
@@ -347,7 +346,7 @@ export default function CompanyLeadSession() {
                 <span className="hidden sm:inline">{PHASE_LABELS[p]}</span>
               </div>
               {i < PHASE_ORDER.length - 1 && (
-                <div className="w-6 h-px" style={{ background: i < currentPhaseIdx ? "hsl(217 91% 60%)" : "hsl(220 14% 88%)" }} />
+                <div className="w-6 h-px bg-border" style={i < currentPhaseIdx ? { background: "hsl(217 91% 60%)" } : undefined} />
               )}
             </div>
           ))}
@@ -364,7 +363,7 @@ export default function CompanyLeadSession() {
         </div>
 
         {showEstimate && (
-          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono" style={{ background: "hsl(217 91% 60% / 0.06)", color: "hsl(217 91% 60%)" }}>
+          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-status-blue">
             <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {totalDays}d</span>
           </div>
@@ -385,8 +384,8 @@ export default function CompanyLeadSession() {
               {isEarlyPhase && (
                 <div className="flex flex-col items-center pt-4 mb-4 animate-slide-up">
                   {/* Speech bubble */}
-                  <div className="ls-speech-bubble relative rounded-2xl px-7 py-5 max-w-xl text-center mb-4" style={{ background: "hsl(0 0% 100%)", boxShadow: "0 2px 16px -4px hsl(220 20% 20% / 0.08), 0 1px 4px -1px hsl(220 20% 20% / 0.04)" }}>
-                    <p className="text-[15px] leading-[1.7]" style={{ color: "hsl(222 32% 14%)" }}>
+                  <div className="ls-speech-bubble relative rounded-2xl px-7 py-5 max-w-xl text-center mb-4 bg-card shadow-[var(--shadow-card)]">
+                    <p className="text-[15px] leading-[1.7] text-foreground">
                       {latestLeadMessage?.content}
                     </p>
                   </div>
@@ -402,12 +401,12 @@ export default function CompanyLeadSession() {
                         className="rounded-2xl"
                         style={{ imageRendering: "auto" }}
                       />
-                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "hsl(152 60% 42%)" }}>
+                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center bg-status-green">
                         <CheckCircle2 className="h-3 w-3 text-white" />
                       </div>
                     </div>
-                    <span className="mt-2 text-[14px] font-bold" style={{ color: "hsl(222 32% 14%)" }}>Company Lead</span>
-                    <span className="text-[11px] font-medium" style={{ color: "hsl(220 10% 64%)" }}>AI Delivery Director</span>
+                    <span className="mt-2 text-[14px] font-bold text-foreground">Company Lead</span>
+                    <span className="text-[11px] font-medium text-muted-foreground">AI Delivery Director</span>
                   </div>
                 </div>
               )}
@@ -447,24 +446,16 @@ export default function CompanyLeadSession() {
                           inputRef.current?.focus();
                         }
                       }}
-                      className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-                      style={{
-                        background: "hsl(0 0% 100%)",
-                        border: "1px solid hsl(220 14% 90%)",
-                        boxShadow: "0 1px 4px -1px hsl(220 20% 20% / 0.05)",
-                      }}
+                      className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99] bg-card border border-border shadow-[var(--shadow-card)]"
                     >
-                      <div
-                        className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-                        style={{ background: "hsl(217 91% 96%)", color: "hsl(217 91% 60%)" }}
-                      >
+                      <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-accent text-status-blue">
                         <opt.icon className="h-5 w-5" strokeWidth={1.8} />
                       </div>
                       <div>
-                        <span className="text-[14px] font-semibold block" style={{ color: "hsl(222 32% 14%)" }}>{opt.label}</span>
-                        <span className="text-[12px]" style={{ color: "hsl(220 10% 64%)" }}>{opt.desc}</span>
+                        <span className="text-[14px] font-semibold block text-foreground">{opt.label}</span>
+                        <span className="text-[12px] text-muted-foreground">{opt.desc}</span>
                       </div>
-                      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "hsl(220 10% 46%)" }} />
+                      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-60 transition-opacity text-muted-foreground" />
                     </button>
                   ))}
                 </div>
@@ -475,9 +466,9 @@ export default function CompanyLeadSession() {
           </div>
 
           {/* ── Composer ──────────────────────────────────── */}
-          <div className="shrink-0 px-6 py-4" style={{ borderTop: "1px solid hsl(220 14% 92%)", background: "hsl(0 0% 100% / 0.7)", backdropFilter: "blur(12px)" }}>
+          <div className="shrink-0 px-6 py-4 border-t border-border bg-card/70 backdrop-blur-xl">
             <div className="max-w-2xl mx-auto">
-              <div className="flex items-end gap-3 rounded-2xl px-4 py-2.5 transition-all" style={{ background: "hsl(0 0% 100%)", border: "1.5px solid hsl(220 14% 88%)", boxShadow: "0 2px 8px -2px hsl(220 20% 20% / 0.06)" }}>
+              <div className="flex items-end gap-3 rounded-2xl px-4 py-2.5 transition-all bg-card border border-border shadow-[var(--shadow-card)]">
                 <textarea
                   ref={inputRef}
                   value={inputValue}
@@ -485,19 +476,17 @@ export default function CompanyLeadSession() {
                   onKeyDown={handleKeyDown}
                   placeholder="Describe your requirements..."
                   rows={2}
-                  className="flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] outline-none leading-relaxed placeholder:opacity-40"
-                  style={{ color: "hsl(222 32% 14%)" }}
+                  className="flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] outline-none leading-relaxed placeholder:opacity-40 text-foreground"
                 />
                 <button
                   onClick={handleSend}
                   disabled={!inputValue.trim() || isThinking}
-                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5"
-                  style={{ background: "hsl(217 91% 60%)", color: "white" }}
+                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5 bg-status-blue text-white"
                 >
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
               </div>
-              <p className="text-[11px] mt-2 text-center" style={{ color: "hsl(220 10% 78%)" }}>
+              <p className="text-[11px] mt-2 text-center text-muted-foreground">
                 Press Enter to send · Shift+Enter for new line
               </p>
             </div>
@@ -506,18 +495,14 @@ export default function CompanyLeadSession() {
 
         {/* ══ RIGHT — Structured extraction rail ══ */}
         <div
-          className="w-[380px] shrink-0 overflow-y-auto hidden lg:block"
-          style={{
-            borderLeft: "1px solid hsl(220 14% 92%)",
-            background: "hsl(220 20% 98% / 0.6)",
-          }}
+          className="w-[380px] shrink-0 overflow-y-auto hidden lg:block border-l border-border bg-secondary/60"
         >
           <div className="p-5 space-y-4">
 
             {/* Rail header */}
             <div className="flex items-center gap-2 px-1">
-              <Sparkles className="h-3.5 w-3.5" style={{ color: "hsl(220 10% 78%)" }} strokeWidth={1.8} />
-              <span className="text-[11px] font-semibold tracking-[0.02em]" style={{ color: "hsl(220 10% 64%)" }}>
+              <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.8} />
+              <span className="text-[11px] font-semibold tracking-[0.02em] text-muted-foreground">
                 Live Extraction
               </span>
             </div>
@@ -539,7 +524,7 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Modules">
                     <div className="flex flex-wrap gap-1">
                       {scope.modules.map((m) => (
-                        <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ background: "hsl(220 20% 96%)", border: "1px solid hsl(220 14% 90%)", color: "hsl(222 32% 24%)" }}>{m}</span>
+                        <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-muted border border-border text-foreground">{m}</span>
                       ))}
                     </div>
                   </ExtRow>
@@ -548,7 +533,7 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Constraints">
                     <div className="flex flex-wrap gap-1">
                       {scope.constraints.map((c) => (
-                        <span key={c} className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ background: "hsl(38 92% 50% / 0.08)", border: "1px solid hsl(38 92% 50% / 0.2)", color: "hsl(38 92% 50%)" }}>{c}</span>
+                        <span key={c} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-status-amber/10 border border-status-amber/20 text-status-amber">{c}</span>
                       ))}
                     </div>
                   </ExtRow>
@@ -557,8 +542,8 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Risks">
                     <ul className="space-y-1">
                       {scope.risks.map((r) => (
-                        <li key={r} className="text-[11px] flex items-start gap-1.5" style={{ color: "hsl(220 10% 46%)" }}>
-                          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" style={{ color: "hsl(38 92% 50% / 0.6)" }} />
+                        <li key={r} className="text-[11px] flex items-start gap-1.5 text-muted-foreground">
+                          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5 text-status-amber/60" />
                           {r}
                         </li>
                       ))}
@@ -569,16 +554,16 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Team">
                     <div className="flex flex-wrap gap-1">
                       {scope.requiredRoles.map((r) => (
-                        <span key={r} className="text-[10px] font-medium px-2 py-0.5 rounded-md" style={{ background: "hsl(220 20% 96%)", border: "1px solid hsl(220 14% 90%)", color: "hsl(220 10% 46%)" }}>{r}</span>
+                        <span key={r} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted border border-border text-muted-foreground">{r}</span>
                       ))}
                     </div>
                   </ExtRow>
                 )}
               </RailCard>
             ) : (
-              <div className="rounded-2xl p-6 text-center" style={{ border: "1.5px dashed hsl(220 14% 90%)", background: "hsl(0 0% 100% / 0.5)" }}>
-                <Target className="h-5 w-5 mx-auto mb-2" style={{ color: "hsl(220 10% 82%)" }} />
-                <p className="text-[12px] font-medium" style={{ color: "hsl(220 10% 72%)" }}>
+              <div className="rounded-2xl p-6 text-center border-[1.5px] border-dashed border-border bg-card/50">
+                <Target className="h-5 w-5 mx-auto mb-2 text-muted-foreground/60" />
+                <p className="text-[12px] font-medium text-muted-foreground">
                   Scope will appear here as you describe your project
                 </p>
               </div>
@@ -605,35 +590,35 @@ export default function CompanyLeadSession() {
                     { label: "Cost", value: `$${totalCost}` },
                     { label: "Timeline", value: `${totalDays}d` },
                   ].map((s) => (
-                    <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "hsl(220 20% 97%)" }}>
-                      <span className="text-[18px] font-bold font-mono" style={{ color: "hsl(222 32% 14%)" }}>{s.value}</span>
-                      <p className="text-[10px] font-medium mt-0.5" style={{ color: "hsl(220 10% 64%)" }}>{s.label}</p>
+                    <div key={s.label} className="rounded-xl p-3 text-center bg-muted">
+                      <span className="text-[18px] font-bold font-mono text-foreground">{s.value}</span>
+                      <p className="text-[10px] font-medium mt-0.5 text-muted-foreground">{s.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Module breakdown */}
-                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(220 14% 90%)" }}>
-                  <div className="grid grid-cols-4 gap-0 text-[10px] font-semibold uppercase tracking-wider px-3 py-2" style={{ background: "hsl(220 20% 97%)", color: "hsl(220 10% 64%)" }}>
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <div className="grid grid-cols-4 gap-0 text-[10px] font-semibold uppercase tracking-wider px-3 py-2 bg-muted text-muted-foreground">
                     <span>Module</span><span className="text-right">Tokens</span><span className="text-right">Cost</span><span className="text-right">Days</span>
                   </div>
                   {moduleEstimates.map((mod) => (
-                    <div key={mod.name} className="grid grid-cols-4 gap-0 px-3 py-2 text-[11px]" style={{ borderTop: "1px solid hsl(220 14% 94%)" }}>
-                      <span className="font-semibold truncate" style={{ color: "hsl(222 32% 24%)" }}>{mod.name}</span>
-                      <span className="text-right font-mono" style={{ color: "hsl(220 10% 56%)" }}>{(mod.tokens / 1000).toFixed(0)}k</span>
-                      <span className="text-right font-mono" style={{ color: "hsl(220 10% 56%)" }}>${mod.cost}</span>
-                      <span className="text-right font-mono" style={{ color: "hsl(220 10% 56%)" }}>{mod.days}d</span>
+                    <div key={mod.name} className="grid grid-cols-4 gap-0 px-3 py-2 text-[11px] border-t border-border">
+                      <span className="font-semibold truncate text-foreground">{mod.name}</span>
+                      <span className="text-right font-mono text-muted-foreground">{(mod.tokens / 1000).toFixed(0)}k</span>
+                      <span className="text-right font-mono text-muted-foreground">${mod.cost}</span>
+                      <span className="text-right font-mono text-muted-foreground">{mod.days}d</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Founder requirements */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "hsl(220 10% 64%)" }}>You must provide</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5 text-muted-foreground">You must provide</p>
                   <ul className="space-y-1">
                     {scope.founderRequirements.map((req) => (
-                      <li key={req} className="text-[11px] flex items-center gap-2" style={{ color: "hsl(222 32% 34%)" }}>
-                        <ArrowRight className="h-2.5 w-2.5 shrink-0" style={{ color: "hsl(220 10% 78%)" }} />
+                      <li key={req} className="text-[11px] flex items-center gap-2 text-foreground/80">
+                        <ArrowRight className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
                         {req}
                       </li>
                     ))}
@@ -644,23 +629,20 @@ export default function CompanyLeadSession() {
                 <div className="pt-2 space-y-2">
                   <button
                     onClick={handleApprove}
-                    className="h-12 w-full flex items-center justify-center gap-2 text-[14px] font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.99]"
-                    style={{ background: "hsl(222 32% 14%)", color: "white", boxShadow: "0 2px 8px -2px hsl(222 32% 14% / 0.3)" }}
+                    className="h-12 w-full flex items-center justify-center gap-2 text-[14px] font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.99] bg-primary text-primary-foreground shadow-[var(--shadow-elevated)]"
                   >
                     <CheckCircle2 className="h-4 w-4" /> Approve & Create Blueprint
                   </button>
                   <div className="flex gap-2">
                     <button
                       onClick={handleRevise}
-                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all"
-                      style={{ border: "1px solid hsl(220 14% 88%)", color: "hsl(222 32% 24%)", background: "white" }}
+                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all border border-border text-foreground bg-card"
                     >
                       <RotateCcw className="h-3 w-3" /> Revise
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all"
-                      style={{ border: "1px solid hsl(0 72% 51% / 0.2)", color: "hsl(0 72% 51%)", background: "white" }}
+                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all border border-destructive/20 text-destructive bg-card"
                     >
                       <XCircle className="h-3 w-3" /> Cancel
                     </button>
@@ -676,7 +658,7 @@ export default function CompanyLeadSession() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SUB-COMPONENTS — Light theme
+   SUB-COMPONENTS — Theme-aware
    ═══════════════════════════════════════════════════════════ */
 
 function LightMessageBubble({ message }: { message: ChatMessage }) {
@@ -686,7 +668,7 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
   if (isSystem) {
     return (
       <div className="flex justify-center animate-slide-up">
-        <div className="px-4 py-2 rounded-full text-[11px] font-medium" style={{ background: "hsl(220 20% 96%)", color: "hsl(220 10% 64%)" }}>
+        <div className="px-4 py-2 rounded-full text-[11px] font-medium bg-muted text-muted-foreground">
           {message.content}
         </div>
       </div>
@@ -695,30 +677,27 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
 
   return (
     <div className={cn("flex items-start gap-3 animate-slide-up", !isLead && "flex-row-reverse")}>
-      {/* Avatar */}
       {isLead ? (
         <img src={leadAvatar} alt="Lead" width={36} height={36} className="rounded-xl shrink-0" style={{ imageRendering: "auto" }} />
       ) : (
-        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "hsl(217 91% 60%)", color: "white" }}>
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-status-blue text-white">
           <span className="text-[13px] font-bold">Y</span>
         </div>
       )}
 
-      {/* Bubble */}
       <div
-        className={cn("rounded-2xl px-5 py-3.5 max-w-[80%]")}
-        style={isLead
-          ? { background: "hsl(0 0% 100%)", border: "1px solid hsl(220 14% 92%)", boxShadow: "0 1px 4px -1px hsl(220 20% 20% / 0.04)" }
-          : { background: "hsl(217 91% 60%)", color: "white" }
-        }
+        className={cn(
+          "rounded-2xl px-5 py-3.5 max-w-[80%]",
+          isLead ? "bg-card border border-border shadow-[var(--shadow-card)]" : "bg-status-blue text-white"
+        )}
       >
         {isLead && (
-          <span className="text-[10px] font-semibold block mb-1.5" style={{ color: "hsl(220 10% 72%)" }}>Company Lead</span>
+          <span className="text-[10px] font-semibold block mb-1.5 text-muted-foreground">Company Lead</span>
         )}
-        <p className="text-[14px] leading-[1.65] whitespace-pre-wrap" style={isLead ? { color: "hsl(222 32% 14%)" } : { color: "white" }}>
+        <p className={cn("text-[14px] leading-[1.65] whitespace-pre-wrap", isLead ? "text-foreground" : "text-white")}>
           {message.content}
         </p>
-        <span className="text-[10px] mt-2 block" style={{ color: isLead ? "hsl(220 10% 78%)" : "hsl(0 0% 100% / 0.5)" }}>
+        <span className={cn("text-[10px] mt-2 block", isLead ? "text-muted-foreground" : "text-white/50")}>
           {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
@@ -730,18 +709,18 @@ function LightThinkingIndicator() {
   return (
     <div className="flex items-start gap-3 animate-slide-up">
       <img src={leadAvatar} alt="Lead" width={36} height={36} className="rounded-xl shrink-0" />
-      <div className="rounded-2xl px-5 py-4" style={{ background: "hsl(0 0% 100%)", border: "1px solid hsl(220 14% 92%)", boxShadow: "0 1px 4px -1px hsl(220 20% 20% / 0.04)" }}>
+      <div className="rounded-2xl px-5 py-4 bg-card border border-border shadow-[var(--shadow-card)]">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
-                className="h-2 w-2 rounded-full ls-thinking-dot"
-                style={{ background: "hsl(217 91% 60% / 0.4)", animationDelay: `${i * 0.15}s` }}
+                className="h-2 w-2 rounded-full ls-thinking-dot bg-status-blue/40"
+                style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
-          <span className="text-[11px] font-medium ml-1" style={{ color: "hsl(220 10% 72%)" }}>Analyzing...</span>
+          <span className="text-[11px] font-medium ml-1 text-muted-foreground">Analyzing...</span>
         </div>
       </div>
     </div>
@@ -750,9 +729,9 @@ function LightThinkingIndicator() {
 
 function RailCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-4 space-y-3 animate-slide-up" style={{ background: "hsl(0 0% 100%)", border: "1px solid hsl(220 14% 92%)", boxShadow: "0 1px 6px -2px hsl(220 20% 20% / 0.05)" }}>
-      <h3 className="text-[12px] font-bold tracking-tight flex items-center gap-2" style={{ color: "hsl(222 32% 14%)" }}>
-        <Icon className="h-3.5 w-3.5" style={{ color: "hsl(220 10% 72%)" }} />
+    <div className="rounded-2xl p-4 space-y-3 animate-slide-up bg-card border border-border shadow-[var(--shadow-card)]">
+      <h3 className="text-[12px] font-bold tracking-tight flex items-center gap-2 text-foreground">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         {title}
       </h3>
       <div className="space-y-2.5">
@@ -765,8 +744,8 @@ function RailCard({ title, icon: Icon, children }: { title: string; icon: React.
 function ExtRow({ label, value, children }: { label: string; value?: string; children?: React.ReactNode }) {
   return (
     <div>
-      <span className="text-[10px] font-semibold uppercase tracking-wider block mb-0.5" style={{ color: "hsl(220 10% 64%)" }}>{label}</span>
-      {children ?? <span className="text-[12px] font-medium" style={{ color: "hsl(222 32% 24%)" }}>{value}</span>}
+      <span className="text-[10px] font-semibold uppercase tracking-wider block mb-0.5 text-muted-foreground">{label}</span>
+      {children ?? <span className="text-[12px] font-medium text-foreground/80">{value}</span>}
     </div>
   );
 }
@@ -776,11 +755,11 @@ function LightConsultationCard({ entry }: { entry: ConsultationEntry }) {
   return (
     <div className="rounded-xl px-3.5 py-3 space-y-1.5" style={{ border: `1px solid ${cfg.border}`, background: cfg.bg }}>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold" style={{ color: "hsl(222 32% 24%)" }}>{entry.agent}</span>
+        <span className="text-[11px] font-bold text-foreground">{entry.agent}</span>
         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
       </div>
-      <p className="text-[11px] leading-snug" style={{ color: "hsl(222 32% 34%)" }}>{entry.concern}</p>
-      <p className="text-[10px] italic leading-snug" style={{ color: "hsl(220 10% 56%)" }}>{entry.recommendation}</p>
+      <p className="text-[11px] leading-snug text-foreground/80">{entry.concern}</p>
+      <p className="text-[10px] italic leading-snug text-muted-foreground">{entry.recommendation}</p>
     </div>
   );
 }
