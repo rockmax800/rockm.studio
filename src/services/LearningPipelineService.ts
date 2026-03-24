@@ -418,8 +418,24 @@ export class LearningPipelineService {
       },
     });
 
-    // Best-effort check — if approvals table doesn't support learning_proposal target_type yet,
-    // we still allow promotion (backward compatibility). The internal approve() gate already validates.
+    // Check Evaluation Rail gate — protected scenarios must pass
+    const evalReport = await this.prisma.evaluation_reports?.findFirst({
+      where: {
+        target_type: "learning_proposal",
+        target_id: proposalId,
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (evalReport && !evalReport.protected_scenarios_passed) {
+      throw new GuardError({
+        message: "Cannot promote — protected evaluation scenarios did not pass",
+        entityType: "approval",
+        entityId: proposalId,
+        fromState: "approved",
+        toState: "promoted",
+      });
+    }
 
     const now = new Date().toISOString();
     let promotedVersionRef: string | null = null;
