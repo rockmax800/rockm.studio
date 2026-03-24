@@ -32,11 +32,11 @@ const ENGINES: { value: ExecutionEngine; label: string; desc: string; icon: type
   { value: "ruflo", label: "Ruflo", desc: ENGINE_EXPLAINER.ruflo.short, icon: Zap },
 ];
 
-const PROVIDERS: { value: ProviderFamily; label: string; models: string[] }[] = [
-  { value: "anthropic", label: "Anthropic (Claude)", models: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"] },
-  { value: "openai", label: "OpenAI (GPT)", models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
-  { value: "google", label: "Google (Gemini)", models: ["gemini-2.5-pro", "gemini-2.5-flash"] },
-  { value: "local", label: "Local", models: ["llama-3.1-70b", "mixtral-8x22b"] },
+const PROVIDERS: { value: ProviderFamily; label: string; hint: string; models: string[] }[] = [
+  { value: "anthropic", label: "Anthropic (Claude)", hint: PROVIDER_EXPLAINER.anthropic.short, models: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"] },
+  { value: "openai", label: "OpenAI (GPT)", hint: PROVIDER_EXPLAINER.openai.short, models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
+  { value: "google", label: "Google (Gemini)", hint: PROVIDER_EXPLAINER.google.short, models: ["gemini-2.5-pro", "gemini-2.5-flash"] },
+  { value: "local", label: "Local", hint: PROVIDER_EXPLAINER.local.short, models: ["llama-3.1-70b", "mixtral-8x22b"] },
 ];
 
 const MODES: { value: OrchestrationMode; label: string; desc: string }[] = [
