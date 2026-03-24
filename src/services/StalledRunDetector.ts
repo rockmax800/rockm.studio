@@ -57,6 +57,8 @@ export class StalledRunDetector {
         heartbeat_at: true,
         started_at: true,
         correlation_id: true,
+        lease_owner: true,
+        lease_expires_at: true,
       },
     });
 
