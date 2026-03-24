@@ -127,177 +127,208 @@ export default function TeamRoom() {
     );
   }
 
-  // ── Pre-session: employee selection grid
+  // Specialist intro line based on role
+  const getSpecialistIntro = (roleCode: string, name: string) => {
+    const intros: Record<string, string> = {
+      product_strategist: `I'm ${name}. I'll help you sharpen the product scope and prioritize what matters.`,
+      solution_architect: `${name} here. Let's map out the architecture — layers, boundaries, and trade-offs.`,
+      frontend_builder: `Hey, I'm ${name}. I build interfaces that are clean, fast, and maintainable.`,
+      reviewer: `I'm ${name}. I review for correctness, security, and contract compliance.`,
+      qa_agent: `${name} reporting. I'll find the edge cases before your users do.`,
+    };
+    return intros[roleCode] ?? `I'm ${name}. Ready to work — let's start the session.`;
+  };
+
+  // ── Pre-session: employee selection
   return (
     <AppLayout title="Team Room">
       <ScrollArea className="h-full">
-        <div className="px-8 py-6 max-w-[1200px] mx-auto space-y-6">
+        <div className="h-full">
 
-          {/* Back to Teams */}
-          <Link to="/teams" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Teams
-          </Link>
-
-          {/* Header */}
-          <div>
-            <h1 className="text-[28px] font-bold text-foreground tracking-tight">{deptName}</h1>
-            <p className="text-[14px] text-muted-foreground mt-1">
-              Select a specialist to begin a structured working session.
-              <span className="text-muted-foreground/40 block text-[12px] mt-0.5">
-                Session participant ≠ task owner. Execution is governed by role contracts.
-              </span>
-            </p>
+          {/* ═══ HERO — Light themed briefing entrance ═══ */}
+          <div className="intake-hero-root ih-grid-bg">
+            <div className="max-w-3xl mx-auto px-6 pt-8 pb-6 flex flex-col items-center">
+              {/* Speech bubble — only when employee is selected */}
+              {selectedEmp ? (
+                <>
+                  <div className="ih-speech-bubble px-6 py-4 max-w-lg text-center mb-4">
+                    <p className="text-[15px] leading-[160%]" style={{ color: "hsl(222 32% 14%)" }}>
+                      {getSpecialistIntro(selectedEmp.role_code, selectedEmp.name)}
+                    </p>
+                  </div>
+                  <div className="ih-float flex flex-col items-center mb-4">
+                    <div className="relative">
+                      <img
+                        src={getPersona(selectedEmp.role_code).avatar}
+                        alt={selectedEmp.name}
+                        className={cn("h-24 w-24 rounded-2xl object-cover ring-2 ring-offset-[3px] shadow-lg ring-offset-[hsl(220_20%_97%)]", getPersona(selectedEmp.role_code).ringClass)}
+                        width={96} height={96}
+                      />
+                      <span className={cn("absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[3px]", getStatusMeta(selectedEmp.status).dot)} style={{ borderColor: "hsl(220 20% 97%)" }} />
+                    </div>
+                    <span className="mt-3 text-[18px] font-bold" style={{ color: "hsl(222 32% 14%)" }}>{selectedEmp.name}</span>
+                    <span className="text-[13px]" style={{ color: "hsl(220 10% 46%)" }}>
+                      {roles.find((r: any) => r.code === selectedEmp.role_code)?.name ?? selectedEmp.role_code}
+                    </span>
+                    <span className="text-[11px] mt-0.5 italic" style={{ color: "hsl(220 10% 64%)" }}>
+                      {getPersona(selectedEmp.role_code).specialty}
+                    </span>
+                  </div>
+                  <Button
+                    className="h-12 px-8 gap-2.5 text-[14px] font-bold rounded-xl mb-2"
+                    style={{ backgroundColor: "hsl(217 91% 60%)", color: "white" }}
+                    onClick={() => setSessionActive(true)}
+                  >
+                    <Play className="h-4 w-4" /> Begin Session
+                  </Button>
+                  <button
+                    onClick={() => setSelectedEmpId(null)}
+                    className="text-[12px] hover:underline"
+                    style={{ color: "hsl(217 91% 60%)" }}
+                  >
+                    Choose a different specialist
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="ih-speech-bubble px-6 py-4 max-w-md text-center mb-4">
+                    <p className="text-[15px] leading-[160%]" style={{ color: "hsl(222 32% 14%)" }}>
+                      Welcome to the briefing room. Pick a specialist to start a structured working session.
+                    </p>
+                  </div>
+                  <div className="ih-float flex flex-col items-center mb-2">
+                    <div className="h-20 w-20 rounded-2xl border-2 bg-white flex items-center justify-center shadow-sm" style={{ borderColor: "hsl(220 14% 90%)" }}>
+                      <Users className="h-8 w-8" style={{ color: "hsl(220 10% 64%)" }} />
+                    </div>
+                  </div>
+                  <h1 className="text-[22px] font-bold tracking-tight text-center" style={{ color: "hsl(222 32% 14%)" }}>
+                    {deptName}
+                  </h1>
+                  <p className="text-[13px] mt-1 text-center max-w-md" style={{ color: "hsl(220 10% 46%)" }}>
+                    Select a specialist below to begin.
+                  </p>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Employee grid */}
-          {displayEmployees.length === 0 ? (
-            <div className="rounded-2xl border border-border/40 bg-card overflow-hidden">
-              <div className="relative px-10 py-16 text-center">
-                <div className="absolute inset-0 bg-gradient-to-b from-muted/20 to-transparent pointer-events-none" />
-                <div className="relative">
-                  <div className="h-14 w-14 rounded-2xl bg-muted/30 border border-border/30 flex items-center justify-center mx-auto mb-5">
-                    <Users className="h-7 w-7 text-muted-foreground/20" strokeWidth={1.5} />
-                  </div>
-                  <p className="text-[20px] font-bold text-foreground">No team members yet</p>
-                  <p className="text-[14px] text-muted-foreground mt-2 max-w-[420px] mx-auto leading-relaxed">
-                    Add AI employees to this capability to start working sessions and generate structured blueprints.
-                  </p>
-                  <div className="flex items-center justify-center gap-3 mt-6">
-                    <AddEmployeeDialog
-                      teamId={selectedDept?.id ?? urlDept ?? undefined}
-                      teamName={deptName}
-                      trigger={
-                        <Button className="h-11 px-6 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                          <UserPlus className="h-4 w-4" /> Add Team Member
+          {/* ═══ TRANSITION STRIP ═══ */}
+          <div className="border-t border-b px-6 py-2 flex items-center justify-between bg-card border-border">
+            <div className="flex items-center gap-2">
+              <Link to="/teams" className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5" /> Back to Teams
+              </Link>
+            </div>
+            <span className="text-[11px] text-muted-foreground/50">
+              {displayEmployees.length} specialist{displayEmployees.length !== 1 ? "s" : ""} available
+            </span>
+          </div>
+
+          {/* ═══ EMPLOYEE SELECTION GRID ═══ */}
+          <div className="px-8 py-6 max-w-[1200px] mx-auto space-y-4">
+            {displayEmployees.length === 0 ? (
+              <div className="rounded-2xl border border-border/40 bg-card overflow-hidden">
+                <div className="relative px-10 py-16 text-center">
+                  <div className="absolute inset-0 bg-gradient-to-b from-muted/20 to-transparent pointer-events-none" />
+                  <div className="relative">
+                    <div className="h-14 w-14 rounded-2xl bg-muted/30 border border-border/30 flex items-center justify-center mx-auto mb-5">
+                      <Users className="h-7 w-7 text-muted-foreground/20" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-[20px] font-bold text-foreground">No team members yet</p>
+                    <p className="text-[14px] text-muted-foreground mt-2 max-w-[420px] mx-auto leading-relaxed">
+                      Add AI employees to this capability to start working sessions and generate structured blueprints.
+                    </p>
+                    <div className="flex items-center justify-center gap-3 mt-6">
+                      <AddEmployeeDialog
+                        teamId={selectedDept?.id ?? urlDept ?? undefined}
+                        teamName={deptName}
+                        trigger={
+                          <Button className="h-11 px-6 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                            <UserPlus className="h-4 w-4" /> Add Team Member
+                          </Button>
+                        }
+                      />
+                      <Link to="/teams">
+                        <Button variant="outline" className="h-11 px-6 gap-2 text-[13px] font-semibold rounded-xl border-border/60">
+                          <Users className="h-4 w-4" /> Go to Teams Setup
                         </Button>
-                      }
-                    />
-                    <Link to="/teams">
-                      <Button variant="outline" className="h-11 px-6 gap-2 text-[13px] font-semibold rounded-xl border-border/60">
-                        <Users className="h-4 w-4" /> Go to Teams Setup
-                      </Button>
-                    </Link>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {displayEmployees.map((emp) => {
-                const isSelected = selectedEmpId === emp.id;
-                const persona = getPersona(emp.role_code);
-                const meta = getStatusMeta(emp.status);
-                const roleName = roles.find((r: any) => r.code === emp.role_code)?.name ?? emp.role_code;
-                const perfScore = Math.round(((emp.reputation_score as number) ?? 0) * 100);
-                const perfColor = perfScore >= 80 ? "text-status-green" : perfScore >= 50 ? "text-status-amber" : "text-destructive";
-                const successPct = Math.round(((emp.success_rate as number) ?? 0) * 100);
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {displayEmployees.map((emp) => {
+                  const isSelected = selectedEmpId === emp.id;
+                  const persona = getPersona(emp.role_code);
+                  const meta = getStatusMeta(emp.status);
+                  const roleName = roles.find((r: any) => r.code === emp.role_code)?.name ?? emp.role_code;
+                  const perfScore = Math.round(((emp.reputation_score as number) ?? 0) * 100);
+                  const perfColor = perfScore >= 80 ? "text-status-green" : perfScore >= 50 ? "text-status-amber" : "text-destructive";
+                  const successPct = Math.round(((emp.success_rate as number) ?? 0) * 100);
 
-                return (
-                  <div
-                    key={emp.id}
-                    onClick={() => setSelectedEmpId(isSelected ? null : emp.id)}
-                    className={cn(
-                      "rounded-2xl border bg-card overflow-hidden cursor-pointer transition-all duration-200",
-                      isSelected
-                        ? "border-primary/50 shadow-lg ring-2 ring-primary/15 -translate-y-1"
-                        : "border-border/40 hover:shadow-md hover:-translate-y-0.5 hover:border-border/60"
-                    )}
-                  >
-                    {/* Card body */}
-                    <div className="p-5">
-                      <div className="flex items-start gap-4">
-                        {/* Avatar */}
-                        <div className="relative shrink-0">
-                          <img src={persona.avatar} alt={emp.name}
-                            className={cn(
-                              "h-[72px] w-[72px] rounded-xl object-cover ring-2 ring-offset-2 ring-offset-card",
-                              isSelected ? "ring-primary/50" : persona.ringClass
-                            )}
-                            width={72} height={72} loading="lazy" />
-                          <span className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card", meta.dot)} />
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <h3 className="text-[17px] font-bold text-foreground leading-tight truncate">{emp.name}</h3>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <p className="text-[13px] text-muted-foreground truncate">{roleName}</p>
-                            <span className="text-[11px] text-muted-foreground/30">·</span>
-                            <span className="text-[11px] text-muted-foreground/40 italic truncate">{persona.nickname}</span>
+                  return (
+                    <div
+                      key={emp.id}
+                      onClick={() => setSelectedEmpId(isSelected ? null : emp.id)}
+                      className={cn(
+                        "rounded-2xl border bg-card overflow-hidden cursor-pointer transition-all duration-200",
+                        isSelected
+                          ? "border-primary/50 shadow-lg ring-2 ring-primary/15 -translate-y-1"
+                          : "border-border/40 hover:shadow-md hover:-translate-y-0.5 hover:border-border/60"
+                      )}
+                    >
+                      <div className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="relative shrink-0">
+                            <img src={persona.avatar} alt={emp.name}
+                              className={cn(
+                                "h-[72px] w-[72px] rounded-xl object-cover ring-2 ring-offset-2 ring-offset-card",
+                                isSelected ? "ring-primary/50" : persona.ringClass
+                              )}
+                              width={72} height={72} loading="lazy" />
+                            <span className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card", meta.dot)} />
                           </div>
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", meta.chipBg)}>{meta.label}</span>
-                            {persona.chips.slice(0, 2).map((chip) => (
-                              <span key={chip} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground">{chip}</span>
-                            ))}
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <h3 className="text-[17px] font-bold text-foreground leading-tight truncate">{emp.name}</h3>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <p className="text-[13px] text-muted-foreground truncate">{roleName}</p>
+                              <span className="text-[11px] text-muted-foreground/30">·</span>
+                              <span className="text-[11px] text-muted-foreground/40 italic truncate">{persona.nickname}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", meta.chipBg)}>{meta.label}</span>
+                              {persona.chips.slice(0, 2).map((chip) => (
+                                <span key={chip} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground">{chip}</span>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Stats strip */}
-                      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border/20">
-                        <div className="flex items-center gap-1.5">
-                          <TrendingUp className="h-3 w-3 text-muted-foreground/40" />
-                          <span className={cn("text-[14px] font-bold font-mono", perfColor)}>{perfScore}</span>
-                          <span className="text-[10px] text-muted-foreground/40">perf</span>
+                        <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border/20">
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="h-3 w-3 text-muted-foreground/40" />
+                            <span className={cn("text-[14px] font-bold font-mono", perfColor)}>{perfScore}</span>
+                            <span className="text-[10px] text-muted-foreground/40">perf</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Shield className="h-3 w-3 text-muted-foreground/40" />
+                            <span className="text-[14px] font-bold font-mono text-foreground">{successPct}%</span>
+                            <span className="text-[10px] text-muted-foreground/40">success</span>
+                          </div>
+                          {emp.model_name && (
+                            <span className="text-[10px] text-muted-foreground/30 font-mono ml-auto truncate max-w-[80px]">
+                              {emp.model_name}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Shield className="h-3 w-3 text-muted-foreground/40" />
-                          <span className="text-[14px] font-bold font-mono text-foreground">{successPct}%</span>
-                          <span className="text-[10px] text-muted-foreground/40">success</span>
-                        </div>
-                        {emp.model_name && (
-                          <span className="text-[10px] text-muted-foreground/30 font-mono ml-auto truncate max-w-[80px]">
-                            {emp.model_name}
-                          </span>
-                        )}
                       </div>
                     </div>
-
-                    {/* Selected actions */}
-                    {isSelected && (
-                      <div className="px-5 py-3 border-t border-primary/15 bg-primary/[0.02] flex items-center gap-3">
-                        <Button className="h-10 flex-1 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"
-                          onClick={(e) => { e.stopPropagation(); setSessionActive(true); }}>
-                          <Play className="h-4 w-4" /> Start Session
-                        </Button>
-                        <Link to={`/employees/${emp.id}`} onClick={(e) => e.stopPropagation()}>
-                          <Button variant="outline" className="h-10 text-[12px] gap-1.5 rounded-xl border-border/60">
-                            <User className="h-3.5 w-3.5" /> Profile
-                          </Button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Session start CTA when employee selected */}
-          {selectedEmp && !sessionActive && (
-            <div className="rounded-2xl border border-primary/20 bg-primary/[0.02] p-8 text-center">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                <img src={getPersona(selectedEmp.role_code).avatar} alt=""
-                  className={cn("h-12 w-12 rounded-xl object-cover ring-2 ring-offset-2 ring-offset-background", getPersona(selectedEmp.role_code).ringClass)}
-                  width={48} height={48} />
+                  );
+                })}
               </div>
-              <p className="text-[20px] font-bold text-foreground">
-                Start session with {selectedEmp.name}
-              </p>
-              <p className="text-[13px] text-muted-foreground/50 italic">{getPersona(selectedEmp.role_code).specialty}</p>
-              <p className="text-[14px] text-muted-foreground mt-1 max-w-[480px] mx-auto">
-                Begin a structured conversation to extract scope, architecture, and task breakdowns.
-              </p>
-              <p className="text-[11px] text-muted-foreground/35 mt-1.5 italic max-w-[400px] mx-auto">
-                This is a working session participant. Downstream task execution is governed by role contracts, not individual session membership.
-              </p>
-              <Button className="mt-5 h-12 px-8 gap-2.5 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"
-                onClick={() => setSessionActive(true)}>
-                <Play className="h-4 w-4" /> Begin Session
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </ScrollArea>
     </AppLayout>
@@ -396,9 +427,9 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
           {/* ── LEFT 8 cols — Working Session ── */}
           <div className="col-span-8 border-r border-border/20 flex flex-col min-h-0 bg-background">
 
-            {/* Specialist header */}
+            {/* Specialist header — briefing identity */}
             <div className="px-6 py-5 border-b border-border/15 bg-card/30">
-              <div className="flex items-center gap-5">
+              <div className="flex items-start gap-5">
                 <div className="relative shrink-0">
                   <img src={persona.avatar} alt={emp.name}
                     className={cn("h-[72px] w-[72px] rounded-2xl object-cover ring-2 ring-offset-[3px] ring-offset-background", persona.ringClass)}
@@ -414,7 +445,24 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                     <Badge variant="secondary" className="text-[11px] h-6 px-2.5 font-semibold rounded-lg">{roleName}</Badge>
                   </div>
                   <p className="text-[12px] text-muted-foreground/40 mt-0.5 italic">{persona.specialty}</p>
-                  <div className="flex items-center gap-3 mt-2">
+
+                  {/* Intro bubble — briefing feel */}
+                  <div className="mt-2.5 rounded-xl bg-secondary/60 border border-border/30 px-4 py-2.5 max-w-[520px]">
+                    <p className="text-[13px] text-foreground/70 leading-[160%]">
+                      {(() => {
+                        const intros: Record<string, string> = {
+                          product_strategist: "Let's clarify the scope and make sure we're solving the right problem.",
+                          solution_architect: "I'll map the architecture — let's define layers and boundaries.",
+                          frontend_builder: "Ready to translate specs into clean, maintainable interfaces.",
+                          reviewer: "I'll check for correctness, security gaps, and contract compliance.",
+                          qa_agent: "Let's identify edge cases and make sure nothing slips through.",
+                        };
+                        return intros[emp.role_code] ?? "Session active. Let's work through this together.";
+                      })()}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-2.5">
                     <div className="flex items-center gap-1.5">
                       <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
                       <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
