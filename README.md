@@ -12,6 +12,47 @@ A production-grade orchestration system that routes client briefs through a dete
 
 ---
 
+## Document Honesty Rule
+
+- Documents describe **current branch reality first**.
+- Future architecture is labelled as **planned target state**.
+- See `docs/00-runtime-truth.md` for the canonical stack reference.
+- See `docs/00-transition-status.md` for migration tracking.
+
+---
+
+## Current Implemented Stack
+
+This is what runs when you check out the repo and start the dev server.
+
+| Layer | Technology |
+|-------|-----------|
+| Build / Dev Server | Vite 5 |
+| Frontend | React 18 + TypeScript + Tailwind CSS + shadcn/ui |
+| Routing | React Router 6 (client-side SPA) |
+| Client State | TanStack React Query |
+| Validation | Zod |
+| Data Access | Supabase JS client |
+| Backend Functions | Supabase Edge Functions |
+| Database | PostgreSQL (Supabase-hosted) |
+| Schema Reference | Prisma (schema file only — not runtime ORM) |
+
+### Target Stack (planned, not yet implemented)
+
+| Layer | Planned Technology | Status |
+|-------|--------------------|--------|
+| Frontend | Next.js (App Router) | ❌ Not started |
+| Backend | NestJS (modular monolith) | ❌ Not started |
+| ORM | Prisma (runtime client) | ❌ Not started |
+| Queue | Redis + BullMQ | ❌ Not started |
+| Worker | Separate Node.js process | ❌ Not started |
+| Sandbox | Docker (isolated execution) | ❌ Not started |
+| Deploy | Docker Compose → VPS | ❌ Not started |
+
+**Architecture lock active.** No stack changes without explicit founder approval.
+
+---
+
 ## Architecture: Four Operational Planes + Evolution Layer
 
 ```
@@ -76,19 +117,6 @@ No alternative paths. All production begins at Command Center via Company Lead.
 
 ---
 
-## Company Lead (AI Delivery Director)
-
-The Company Lead is the single entry point for all new projects:
-
-1. **Discovery** — structured conversation extracting goals, constraints, scope, modules, risks
-2. **Internal Consultation** — simulated feedback from Architect, QA, Reviewer agents
-3. **Estimate** — module breakdown with token budgets, cost estimates, timeline, required team
-4. **Founder Decision** — Approve & Create Blueprint / Revise Scope / Cancel
-
-Layout: 8/4 asymmetric grid — chat on left, live extraction panel on right.
-
----
-
 ## Core Capabilities
 
 ### Front Office (Intent Plane)
@@ -107,12 +135,6 @@ Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBi
 - **Capability Evolution** — stability scoring and high-performer cloning
 
 All evolution requires evaluation rail pass + founder approval. No silent mutations.
-
-### Infrastructure
-- **Event Log** — append-only canonical truth (immutable, never updated)
-- **Transactional Outbox** — reliable external event dispatch
-- **Sandbox Isolation** — Docker-based execution with resource limits
-- **Optimistic Locking** — version-based concurrency on all entities
 
 ### Hard Enforcement Layer
 - Role contract boundary enforcement (path-level restrictions)
@@ -151,46 +173,29 @@ Each employee has:
 ### Employee Lifecycle
 Created → Active → [Probation | Under Review] → [Active | Terminated]
 
-### Hiring Flow
-Integrated into Teams page. Capability selection is mandatory. Supports both creating new employees and assigning existing unassigned employees to capabilities.
-
 ### Spatial Office
 Always-on spatial map rendering one room per capability. Rooms render even when empty (with "Add Member" CTA). Employees appear immediately after assignment without page refresh.
-
----
-
-## Technology Stack (LOCKED)
-
-| Layer | Technology | Notes |
-|-------|-----------|-------|
-| Frontend | Next.js (App Router) + TypeScript + Tailwind | Single framework, no standalone Vite |
-| Backend | NestJS + TypeScript | Modular monolith, not route handlers |
-| Database | PostgreSQL + Prisma | Prisma is the only ORM |
-| Queue | Redis + BullMQ | Job queue, retry, scheduling |
-| Worker | Separate Node.js process | RunExecutor, provider calls, sandbox |
-| Sandbox | Docker | Isolated code execution with resource limits |
-| State (client) | TanStack React Query | Server-state cache |
-| Validation | Zod | Shared client + server |
-| CI | GitHub Actions | Automated checks on PRs |
-| Deployment | Docker → VPS | Single-server Docker Compose |
-| VCS | GitHub | Single integration surface |
-
-**Architecture lock active.** No stack changes without explicit founder approval.
 
 ---
 
 ## Key Directories
 
 ```
-apps/
-├── web/              Next.js frontend (App Router)
-├── api/              NestJS backend
-├── worker/           Node.js worker process (RunExecutor)
-packages/
-├── shared/           Shared types, Zod schemas, constants
+src/
+├── pages/            Page components (React Router)
+├── components/       UI components (shadcn/ui based)
+├── hooks/            Data hooks (TanStack Query + Supabase)
+├── services/         Service logic
+├── lib/              Utilities, personas, config
+├── integrations/     Supabase client + generated types
+supabase/
+├── functions/        Edge Functions (backend logic)
+├── migrations/       Database migrations
+├── config.toml       Project configuration
 prisma/
-├── schema.prisma     Database schema
-├── migrations/       Prisma migrations
+├── schema.prisma     Schema reference (not runtime ORM)
+app/
+├── api/              Pre-written route handlers (target architecture, not active)
 docs/
 ├── core/             Deterministic engine (Delivery Plane)
 ├── front-office/     Intent Plane (including Company Lead)

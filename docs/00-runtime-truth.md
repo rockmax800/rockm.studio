@@ -3,39 +3,108 @@ doc_kind: contract
 load_strategy: auto
 layer: cross-cutting
 criticality: critical
-version: v2.0
+version: v3.0
 ---
 
 # AI Production Studio — Runtime Truth
 
-> **Canonical source of truth for the production runtime stack.**
+> **Canonical source of truth for what is actually running on the current branch.**
 > All other documents defer to this file for stack decisions.
 > If a document contradicts this file, this file wins.
-> **Architecture is LOCKED. No changes without explicit founder approval.**
 
 ---
 
-## 1 — Canonical Stack
+## Document Honesty Rule
 
-| Layer | Technology | Notes |
-|-------|-----------|-------|
-| **Frontend** | Next.js (App Router) | TypeScript, Tailwind CSS, shadcn/ui |
-| **Client data** | TanStack Query | Server-state cache |
-| **Validation** | Zod | Shared between client and server |
-| **Backend** | NestJS | Modular monolith, TypeScript |
-| **ORM** | Prisma | Type-safe DB access, migrations |
-| **Database** | PostgreSQL 16+ | Single instance, Docker-managed |
-| **Queue** | Redis + BullMQ | Job queue, retry, scheduling |
-| **Worker Runtime** | Node.js (separate process) | RunExecutor, provider calls, sandbox orchestration |
-| **Code Execution** | Docker sandbox | Isolated containers with resource limits |
-| **VCS** | GitHub | Single integration surface |
-| **CI** | GitHub Actions | Automated checks on PRs |
-| **Deploy** | Docker → VPS | Single-server Docker Compose deployment |
-| **Secret Storage** | Environment config | Never in DB, never in logs |
+1. This document describes the **current branch reality first**.
+2. Future architecture is described only as a **planned target state**, clearly labelled.
+3. No document may claim a technology is "canonical" if it is not present in `package.json` or actively used in `src/`.
+4. If the implemented runtime and the target runtime diverge, both must be documented separately.
 
 ---
 
-## 2 — Runtime Separation
+## 1 — Current Implemented Runtime
+
+This is what actually runs when a contributor checks out the repository and starts the dev server.
+
+| Layer | Technology | Evidence |
+|-------|-----------|----------|
+| **Build / Dev Server** | Vite 5 | `vite.config.ts`, `package.json` |
+| **Frontend Framework** | React 18 | `src/main.tsx`, `react` dependency |
+| **Routing** | React Router 6 (client-side) | `src/App.tsx`, `react-router-dom` dependency |
+| **Styling** | Tailwind CSS + shadcn/ui | `tailwind.config.ts`, `src/components/ui/` |
+| **Client State** | TanStack React Query | `@tanstack/react-query` dependency |
+| **Validation** | Zod | `zod` dependency |
+| **Data Access** | Supabase JS client | `src/integrations/supabase/client.ts`, `@supabase/supabase-js` dependency |
+| **Backend Functions** | Supabase Edge Functions | `supabase/functions/` |
+| **Database** | PostgreSQL (Supabase-hosted) | `supabase/config.toml`, migrations in `supabase/migrations/` |
+| **ORM (schema reference)** | Prisma (schema file only) | `prisma/schema.prisma` — used for type reference, not active runtime ORM |
+| **TypeScript** | TypeScript 5 | `tsconfig.json`, `tsconfig.app.json` |
+
+### What is NOT currently running
+
+| Technology | Status |
+|-----------|--------|
+| Next.js | **Not installed.** No `next` in `package.json`. No App Router. |
+| NestJS | **Not installed.** No `@nestjs/*` in `package.json`. No API modules. |
+| Prisma Client (runtime) | **Not used at runtime.** Schema exists for reference. Supabase client is the active data layer. |
+| Redis / BullMQ | **Not installed.** No queue infrastructure in the current branch. |
+| Docker sandbox | **Not implemented.** No Dockerfile or container orchestration for code execution. |
+| Separate Worker process | **Not implemented.** `src/workers/runExecutor.ts` exists as application code, not a separate Node.js process. |
+
+### Current Architecture (as implemented)
+
+```
+┌─────────────────────────────────────────────┐
+│              BROWSER (SPA)                  │
+│                                             │
+│  Vite + React 18 + React Router 6           │
+│  TanStack Query (server-state cache)        │
+│  shadcn/ui + Tailwind CSS                   │
+│  Supabase JS client (data access)           │
+│                                             │
+│  src/pages/        → page components        │
+│  src/components/   → UI components          │
+│  src/hooks/        → data hooks             │
+│  src/services/     → service logic          │
+│  src/lib/          → utilities              │
+└──────────────┬──────────────────────────────┘
+               │ HTTPS
+               ▼
+┌─────────────────────────────────────────────┐
+│         SUPABASE (managed backend)          │
+│                                             │
+│  PostgreSQL database                        │
+│  Edge Functions (supabase/functions/)        │
+│  Auto-generated types (types.ts)            │
+│  Row-Level Security policies                │
+└─────────────────────────────────────────────┘
+```
+
+### API Route Handlers
+
+The `app/api/` directory contains Next.js-style route handlers. These are **not currently served** by a running Next.js server. They exist as pre-written code for the target architecture migration. In the current runtime, equivalent functionality is handled through Supabase client calls and Edge Functions.
+
+---
+
+## 2 — Target Runtime (not yet implemented on current branch)
+
+The following architecture is the **planned production target**. It is documented here to preserve the strategic vision, but none of these components are active in the current repository.
+
+> **Migration status:** Not started. See `docs/00-transition-status.md` for tracking.
+
+| Layer | Planned Technology | Current Status |
+|-------|--------------------|----------------|
+| **Frontend** | Next.js (App Router) | ❌ Not installed |
+| **Backend** | NestJS (modular monolith) | ❌ Not installed |
+| **ORM** | Prisma (runtime client) | ⚠️ Schema exists, client not used |
+| **Queue** | Redis + BullMQ | ❌ Not installed |
+| **Worker Runtime** | Separate Node.js process | ❌ Not implemented |
+| **Code Execution** | Docker sandbox | ❌ Not implemented |
+| **CI** | GitHub Actions | ⚠️ No workflow files in repo |
+| **Deploy** | Docker → VPS | ❌ Not implemented |
+
+### Target Architecture (planned)
 
 ```
 ┌──────────────────┐                  ┌──────────────────┐
@@ -47,134 +116,31 @@ version: v2.0
 │  Dashboards      │   (event_log)   │  CI Tracking     │
 │  Client Portal   │      Redis      │  Deployments     │
 └──────────────────┘   (BullMQ)      └──────────────────┘
-        │                                     │
-        ▼                                     ├──► GitHub
-   UI only                                    ├──► VPS (SSH)
-                                              ├──► Registry
-                                              └──► DNS
-```
-
-### Control Plane
-
-- Next.js App Router (UI)
-- NestJS (API layer, business logic)
-- OrchestrationService (state transitions)
-- Founder Dashboard, Client Portal
-- **Never** executes code, runs Docker, or performs git operations
-
-### Execution Plane
-
-- Separate Node.js worker process
-- RunExecutor: context loading → provider call → output handling
-- Docker sandbox management
-- Git operations (clone, commit, push)
-- CI status tracking, deployment operations
-- Communicates with Control Plane **via PostgreSQL + event_log + Redis/BullMQ**
-
-### Database
-
-- PostgreSQL as single source of state
-- Prisma ORM for type-safe access
-- event_log as canonical audit trail
-- Transactional outbox for external dispatch
-
-### Queue
-
-- Redis as message broker
-- BullMQ for job scheduling, retry policies, dead-letter handling
-- No pg_cron — all scheduling through BullMQ
-
-### External Systems
-
-| System | Access From | Purpose |
-|--------|------------|---------|
-| GitHub | Execution Plane | VCS, PR management |
-| GitHub Actions | External (webhook) | CI pipeline |
-| VPS | Execution Plane | Production deploy target |
-| Container Registry | Execution Plane | Image storage |
-| DNS Provider | Execution Plane | Domain binding |
-| LLM Providers | Execution Plane | AI model calls |
-
----
-
-## 3 — What Is NOT Used
-
-The following technologies are **explicitly excluded** from the production runtime:
-
-| Excluded | Reason |
-|----------|--------|
-| Vite (standalone) | Next.js handles bundling |
-| Supabase client SDK | Not used as runtime ORM — Prisma is primary |
-| Supabase Edge Functions | Not used — NestJS handles all backend logic |
-| Supabase Auth | Not used — internal system, no public users |
-| Supabase Realtime | Not used — replaced by application-level WebSocket if needed |
-| Kafka / RabbitMQ / SQS | Over-engineered for single-server |
-| Kubernetes / ECS | Single VPS deployment only |
-| Multi-cloud | Single VPS target |
-| GraphQL | REST + typed DTOs sufficient |
-| MongoDB / Firebase | PostgreSQL is the only database |
-| Nuxt / Vue / Angular | Next.js + React is the only frontend framework |
-| pg_cron | BullMQ handles all scheduling |
-
----
-
-## 4 — Supabase Scope
-
-Supabase is **NOT used** in the production runtime stack.
-
-PostgreSQL is hosted and managed directly (Docker on VPS).
-Prisma is the canonical ORM.
-NestJS handles all API and business logic.
-BullMQ handles all job scheduling.
-
-If any document references Supabase Edge Functions, Supabase client SDK, or Lovable Cloud as runtime components, that reference is **invalid** and must be corrected.
-
----
-
-## 5 — Worker Architecture
-
-```
-┌─────────────────────────────────────┐
-│         Worker Process              │
-│                                     │
-│  ┌─────────────┐  ┌──────────────┐ │
-│  │ RunExecutor  │  │ProviderAdapter│ │
-│  │             │  │              │ │
-│  │ Poll BullMQ │──│ Call LLM API │ │
-│  │ Load context│  │ Capture usage│ │
-│  │ Write output│  │ Handle errors│ │
-│  └─────────────┘  └──────────────┘ │
-│         │                           │
-│  ┌──────▼──────┐  ┌──────────────┐ │
-│  │Docker Sandbox│  │ RetryHandler │ │
-│  │ Code exec   │  │ Timeout check│ │
-│  │ Isolated    │  │ Stall detect │ │
-│  └─────────────┘  └──────────────┘ │
-└─────────────────────────────────────┘
 ```
 
 ---
 
-## 6 — Hard Rules
+## 3 — Hard Rules (apply to both current and target)
 
-1. **Control Plane never executes code.**
-2. **Sandbox never has production deploy credentials.**
-3. **Learning Plane never has secret access.**
-4. **Secrets never written to event_log.**
-5. **No business decision may rely on a boolean approval flag** — all decisions go through the Approval entity.
-6. **event_log is append-only and immutable.**
-7. **No stack changes without explicit founder approval.**
+1. **Secrets never written to event logs.**
+2. **No business decision may rely on a boolean approval flag** — all decisions go through the Approval entity.
+3. **event_log is append-only and immutable.**
+4. **No stack changes without explicit founder approval.**
+5. **Architecture lock active** — the target architecture is locked. The current runtime is transitional.
 
 ---
 
-## 7 — Document Precedence
+## 4 — Document Precedence
 
 This document is the **canonical runtime truth**. If any other document references a different stack component, this file takes precedence.
 
 | Document | Relationship |
 |----------|-------------|
+| `README.md` | Must match this file for stack claims |
 | `00-system-overview.md` | Defers to this file for stack |
-| `delivery/backend-architecture.md` | Defers to this file for tech choices |
+| `delivery/backend-architecture.md` | Describes target architecture — must be labelled as planned |
 | `archive/*` | Superseded — historical only |
+| `archive/19-tech-stack-decision-v1.md` | Records the strategic decision — target, not current |
 | `delivery/runtime-and-secret-governance.md` | Complements — security detail |
 | `product/constraints.md` | Defers to this file for infrastructure |
+| `00-transition-status.md` | Tracks migration from current → target |
