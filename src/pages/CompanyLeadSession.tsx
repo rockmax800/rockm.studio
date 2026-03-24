@@ -814,7 +814,7 @@ function LightThinkingIndicator() {
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
-                className="h-2 w-2 rounded-full ls-thinking-dot bg-status-blue/40"
+                className="h-2 w-2 rounded-full ls-thinking-dot bg-muted-foreground/40"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
