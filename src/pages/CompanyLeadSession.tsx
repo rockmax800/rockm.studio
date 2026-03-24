@@ -349,6 +349,9 @@ export default function CompanyLeadSession() {
           ))}
         </div>
 
+        {/* Execution context */}
+        <ExecutionPolicyBadge label="The team will execute with" />
+
         {showEstimate && (
           <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono" style={{ background: "hsl(217 91% 60% / 0.06)", color: "hsl(217 91% 60%)" }}>
             <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>

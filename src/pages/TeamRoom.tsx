@@ -396,8 +396,10 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
               <span className="w-px h-5 bg-border/40" />
               <div className="flex items-center gap-1.5">
                 <span className={cn("w-2 h-2 rounded-full", meetingDot)} />
-                <span className="text-[12px] font-bold text-muted-foreground">{meetingLabel}</span>
+              <span className="text-[12px] font-bold text-muted-foreground">{meetingLabel}</span>
               </div>
+              <span className="w-px h-5 bg-border/40" />
+              <ExecutionPolicyBadge label="Current execution environment" />
             </div>
 
             <div className="flex items-center gap-4">
