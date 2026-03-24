@@ -16,6 +16,8 @@ export interface StalledRun {
   lastHeartbeat: string | null;
   stalledDurationMs: number;
   correlationId: string | null;
+  leaseOwner: string | null;
+  leaseExpired: boolean;
 }
 
 const DEFAULT_STALL_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
