@@ -497,8 +497,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
         <TooltipTrigger asChild>
           <div onClick={onClick}
             className={cn(
-              "group rounded-xl bg-card border border-border/30 p-3 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-border/60",
-              st.glow,
+              "group rounded-lg bg-card border border-border/40 p-3 cursor-pointer transition-all duration-150 hover:border-border hover:bg-surface-raised",
             )}
           >
             <div className="flex items-start gap-3">
