@@ -156,6 +156,14 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
 
   return (
     <div className="space-y-2">
+      {/* Calibration explainer */}
+      <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-secondary/40 border border-border/20">
+        <Brain className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+        <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+          Your notes and corrections shape this agent's guidance over time. Only published prompts become active in delivery sessions.
+        </p>
+      </div>
+
       {/* Status bar */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">

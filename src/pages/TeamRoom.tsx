@@ -22,7 +22,8 @@ import {
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
   AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
   Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
-}from "lucide-react";
+  GraduationCap,
+} from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
