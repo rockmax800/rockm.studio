@@ -405,10 +405,49 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
         </div>
       </header>
 
+      {/* ── Purpose strip ────────────────────────────────── */}
+      <div className="shrink-0 flex items-center gap-3 px-6 py-2 border-b border-border/50 bg-secondary/30">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Target className="h-3 w-3 text-status-blue/60" />
+          <span className="font-medium">This conversation feeds the project blueprint and estimate.</span>
+        </div>
+        {showExtraction && scope.goal && (
+          <div className="ml-auto flex items-center gap-4 text-[10px] font-mono text-muted-foreground/70">
+            {scope.goal && (
+              <span className="flex items-center gap-1 max-w-[200px] truncate">
+                <span className="font-semibold text-muted-foreground uppercase tracking-wider">Objective</span>
+                <span className="text-foreground/70 truncate">{scope.goal.slice(0, 60)}</span>
+              </span>
+            )}
+            {scope.modules.length > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="font-semibold text-muted-foreground uppercase tracking-wider">Scope</span>
+                <span className="text-foreground/70">{scope.modules.length} modules</span>
+              </span>
+            )}
+            {scope.constraints.length > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="font-semibold text-muted-foreground uppercase tracking-wider">Constraints</span>
+                <span className="text-foreground/70">{scope.constraints.length}</span>
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <span className="font-semibold text-muted-foreground uppercase tracking-wider">Confidence</span>
+              <span className={cn(
+                "text-foreground/70",
+                userMessageCount >= 4 ? "text-status-green" : userMessageCount >= 2 ? "text-status-amber" : ""
+              )}>
+                {userMessageCount >= 4 ? "High" : userMessageCount >= 2 ? "Medium" : "Low"}
+              </span>
+            </span>
+          </div>
+        )}
+      </div>
+
       {/* ── Main content ─────────────────────────────────── */}
       <div className="flex-1 min-h-0 flex overflow-hidden">
 
-        {/* ══ LEFT — Character-led conversation ══ */}
+        {/* ══ LEFT — Guided briefing conversation ══ */}
         <div className="flex-1 flex flex-col min-h-0 relative">
 
           {/* Conversation area */}
