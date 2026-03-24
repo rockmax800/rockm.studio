@@ -13,6 +13,8 @@ import { getPersona, getStatusMeta } from "@/lib/personas";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import { cn } from "@/lib/utils";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
+import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
+import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 import {
   ArrowLeft, Users, MessageSquare, Send, SkipForward,
   Snowflake, Square, Coins, ChevronDown, ChevronUp,
