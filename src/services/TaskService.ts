@@ -43,10 +43,12 @@ const ASSIGNABLE_STATES = ["ready", "rework_required", "blocked", "escalated", "
 export class TaskService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
+  private handoffService: HandoffService;
 
   constructor(prisma: PrismaLike, orchestrationService: OrchestrationServiceLike) {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
+    this.handoffService = new HandoffService(prisma);
   }
 
   async assignTask({
