@@ -90,7 +90,7 @@ const COLUMNS = [
 export function DeliveryBoard({ tasks, projectId }: DeliveryBoardProps) {
   const buckets = COLUMNS.map((col) => ({
     ...col,
-    tasks: tasks.filter((t) => col.states.includes(t.state)),
+    tasks: tasks.filter((t) => (col.states as readonly string[]).includes(t.state)),
   }));
 
   if (tasks.length === 0) {
