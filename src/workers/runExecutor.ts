@@ -1,7 +1,8 @@
 // Worker Run Executor
 // UC-03 → UC-13 → UC-04 / UC-14
 // Extended with: Dual Verification flagging (PART 1), Self-Review (PART 2),
-// Context Compression (PART 4), Auto-Retry (PART 6)
+// Context Compression (PART 4), Auto-Retry (PART 6),
+// Sandbox Execution Isolation (PART 13)
 
 import { GuardError } from "@/guards/GuardError";
 import { ProviderService } from "@/services/ProviderService";
@@ -9,6 +10,7 @@ import { SelfReviewService } from "@/services/SelfReviewService";
 import { ContextCompressionService } from "@/services/ContextCompressionService";
 import { RetryPolicyService } from "@/services/RetryPolicyService";
 import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
+import { SandboxExecutorService } from "@/services/SandboxExecutorService";
 import { logInfo } from "@/lib/logger";
 
 interface PrismaTransactionClient {
