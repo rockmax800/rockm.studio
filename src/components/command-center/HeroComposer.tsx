@@ -1,54 +1,114 @@
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { FileText, FolderOpen, ArrowRight, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  MessageSquare, FileText, FolderOpen, Monitor, Crown,
+  ArrowRight, Sparkles,
+} from "lucide-react";
+
+/* ── StatusStrip ─────────────────────────────────────────── */
+
+interface StatusStripProps {
+  mode: string;
+  metrics: { label: string; value: number; icon: any; danger?: boolean }[];
+}
+
+export function StatusStrip({ mode, metrics }: StatusStripProps) {
+  return (
+    <div className="flex items-center gap-5 px-5 py-3 rounded-xl bg-surface-raised border border-border/40">
+      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/40 font-mono shrink-0">
+        {mode}
+      </span>
+      <div className="h-4 w-px bg-border/40" />
+      {metrics.map((m) => (
+        <div key={m.label} className="flex items-center gap-1.5">
+          <m.icon className={cn(
+            "h-3.5 w-3.5",
+            m.danger && m.value > 0 ? "text-destructive" : "text-muted-foreground/40",
+          )} strokeWidth={1.8} />
+          <span className={cn(
+            "text-[14px] font-bold font-mono tabular-nums",
+            m.danger && m.value > 0 ? "text-destructive" : "text-foreground",
+          )}>{m.value}</span>
+          <span className="text-[11px] text-muted-foreground/45 font-medium">{m.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── HeroComposer ────────────────────────────────────────── */
 
 export function HeroComposer() {
   return (
-    <div className="rounded-2xl bg-card border border-border px-8 py-8 shadow-sm relative overflow-hidden">
-      {/* Subtle accent gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent pointer-events-none" />
+    <div className="relative rounded-2xl border border-border/50 bg-card overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-status-blue/[0.015] pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
 
-      <div className="relative flex items-end justify-between gap-8">
-        {/* Left — dominant text */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="h-5 w-5 text-primary/40" />
-            <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">
-              Launch Pad
+      <div className="relative px-10 py-12">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-glass border border-border/30 mb-5">
+            <Sparkles className="h-3.5 w-3.5 text-muted-foreground/50" strokeWidth={1.8} />
+            <span className="text-[11px] font-semibold text-muted-foreground/60 tracking-[0.02em]">
+              AI Production Studio
             </span>
           </div>
-          <h1 className="text-[36px] font-bold tracking-[-0.025em] text-foreground leading-[1.1]">
-            What are we launching next?
-          </h1>
-          <p className="text-[15px] text-muted-foreground mt-2 leading-relaxed max-w-[440px]">
-            Start with structured intake or resume an active project.
-          </p>
-        </div>
 
-        {/* Right — action cluster */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link to="/presale/new">
-            <Button
-              size="lg"
-              className="h-12 px-7 gap-2.5 text-[15px] font-bold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-md"
-            >
-              <FileText className="h-4.5 w-4.5" />
-              Start Intake
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-          <Link to="/projects">
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 px-6 gap-2 text-[15px] font-bold border-border-strong text-foreground hover:bg-secondary rounded-xl"
-            >
-              <FolderOpen className="h-4.5 w-4.5" />
-              Resume Project
-            </Button>
-          </Link>
+          <h1 className="text-[36px] font-bold tracking-[-0.03em] text-foreground leading-[1.1]">
+            What are we building?
+          </h1>
+          <p className="text-[15px] text-muted-foreground mt-3 leading-relaxed max-w-md mx-auto">
+            Start with a Company Lead discussion or launch a structured intake to begin production.
+          </p>
+
+          <div className="flex items-center gap-3 justify-center mt-8">
+            <Link to="/lead">
+              <Button className="h-12 px-7 gap-2.5 text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-elevated">
+                <MessageSquare className="h-4 w-4" />
+                Talk to Company Lead
+                <ArrowRight className="h-3.5 w-3.5 ml-0.5 opacity-60" />
+              </Button>
+            </Link>
+            <Link to="/presale/new">
+              <Button variant="outline" className="h-12 px-6 gap-2.5 text-[14px] font-semibold border-border/60 text-foreground hover:bg-surface-glass rounded-xl">
+                <FileText className="h-4 w-4 opacity-60" />
+                Start Structured Intake
+              </Button>
+            </Link>
+          </div>
+
+          <div className="mt-4">
+            <Link to="/projects" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground/60 hover:text-foreground transition-colors">
+              <FolderOpen className="h-3.5 w-3.5" />
+              Open Projects
+            </Link>
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── QuickActions ─────────────────────────────────────────── */
+
+export function QuickActions() {
+  const actions = [
+    { label: "New Intake", to: "/presale/new", icon: FileText },
+    { label: "Resume Project", to: "/projects", icon: FolderOpen },
+    { label: "Open Office", to: "/office", icon: Monitor },
+    { label: "Founder Queue", to: "/founder", icon: Crown },
+  ];
+
+  return (
+    <div className="grid grid-cols-4 gap-3">
+      {actions.map((a) => (
+        <Link key={a.label} to={a.to}>
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-surface-raised border border-border/30 hover:border-border/60 hover:bg-surface-glass transition-all duration-180 group cursor-pointer">
+            <a.icon className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+            <span className="text-[13px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }
