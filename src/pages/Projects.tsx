@@ -120,14 +120,18 @@ export default function ProjectsPage() {
                   <div className="flex-1 min-h-3" />
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/20">
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/20">
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/40 font-mono">
                       <Calendar className="h-3 w-3" />
                       {formatDate(p.updated_at)}
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground/40 group-hover:text-foreground/60 transition-colors font-medium">
-                      <span>{STATE_LABELS[p.state] ?? p.state}</span>
-                      <ChevronRight className="h-3 w-3" />
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-muted-foreground/30 font-medium">
+                        {STATE_LABELS[p.state] ?? p.state}
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground/40 group-hover:text-foreground/60 transition-colors font-medium">
+                        Board <ChevronRight className="h-3 w-3" />
+                      </span>
                     </div>
                   </div>
                 </div>

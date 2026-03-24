@@ -9,6 +9,7 @@ import { EvidencePanel } from "@/components/project-cockpit/EvidencePanel";
 import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness";
 import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
+import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
   AlertTriangle, CheckCircle2, FileText, ChevronRight,
-  Layers, Activity, Package, History,
+  Layers, Activity, Package, History, Columns3,
 } from "lucide-react";
 
 const RISK_COLORS = {
@@ -353,6 +354,27 @@ export default function ProjectDetail() {
                 hasProductionLive={hasProductionLive}
               />
             </div>
+          </div>
+
+          {/* ══ DELIVERY BOARD ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Columns3} title="Delivery Board" count={tasks.length} />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Task movement across delivery states — the canonical view of what's moving, stuck, or done.
+            </p>
+            <DeliveryBoard
+              tasks={tasks.map((t) => ({
+                id: t.id,
+                title: t.title,
+                state: t.state,
+                domain: t.domain,
+                priority: t.priority,
+                updated_at: t.updated_at,
+                owner_role_name: (t as any).agent_roles?.name,
+                owner_role_code: (t as any).agent_roles?.code,
+              }))}
+              projectId={id!}
+            />
           </div>
 
           {/* ══ ROW 2 — TASK FLOW + ACTIVITY ══ */}
