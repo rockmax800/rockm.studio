@@ -6,6 +6,7 @@ import {
   Settings,
   Building2,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
