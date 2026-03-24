@@ -259,11 +259,12 @@ export class ReviewService {
     await this.orchestration.transitionEntity({
       entityType: "review",
       entityId: reviewId,
-      toState: "rejected",
+      toState: "resolved",
       actorType,
       actorRoleId: review.reviewer_role_id,
       projectId,
-      metadata: { use_case: "UC-07", trigger: "reviewer rejected", reason },
+      metadata: { use_case: "UC-06", trigger: "reviewer resolved with rejection", verdict: "rejected", reason },
+      guardContext: { verdict: "rejected" },
     });
 
     await this.orchestration.transitionEntity({
