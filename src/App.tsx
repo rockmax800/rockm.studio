@@ -74,7 +74,7 @@ const App = () => (
           <Route path="/control/office" element={<Navigate to="/office" replace />} />
           <Route path="/control/hr" element={<Navigate to="/teams" replace />} />
           <Route path="/control/hiring-market" element={<Navigate to="/teams" replace />} />
-          <Route path="/control/blog" element={<Navigate to="/teams" replace />} />
+          <Route path="/control/blog" element={<Navigate to="/smm" replace />} />
           <Route path="/control/providers" element={<Navigate to="/system" replace />} />
           <Route path="/providers" element={<Navigate to="/system" replace />} />
           <Route path="/runs" element={<Navigate to="/projects" replace />} />
