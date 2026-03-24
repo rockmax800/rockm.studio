@@ -1,5 +1,4 @@
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 
 interface DeliveryLaneProps {
   stages: {
@@ -9,18 +8,25 @@ interface DeliveryLaneProps {
   }[];
 }
 
-const STATUS_COLORS = {
+const STATUS_DOT = {
   done: "bg-status-green",
   active: "bg-status-cyan animate-pulse",
-  pending: "bg-muted-foreground/30",
+  pending: "bg-muted",
   failed: "bg-status-red",
 };
 
 const STATUS_TEXT = {
   done: "text-status-green",
   active: "text-status-cyan",
-  pending: "text-muted-foreground/40",
+  pending: "text-muted-foreground/50",
   failed: "text-status-red",
+};
+
+const STATUS_LABEL = {
+  done: "Complete",
+  active: "Active",
+  pending: "Pending",
+  failed: "Failed",
 };
 
 export function DeliveryLane({ stages }: DeliveryLaneProps) {
@@ -28,37 +34,44 @@ export function DeliveryLane({ stages }: DeliveryLaneProps) {
   const progress = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
 
   return (
-    <div className="border border-border/30 rounded-lg bg-card/30 p-2.5">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Delivery Lane
-        </h2>
-        <span className="text-[8px] font-mono text-muted-foreground">{progress}%</span>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-card-title text-foreground">Delivery Lane</h3>
+        <span className="text-[13px] font-mono font-bold text-muted-foreground">{progress}%</span>
       </div>
 
-      <Progress value={progress} className="h-1 mb-2" />
+      <Progress value={progress} className="h-1.5 mb-4" />
 
-      <div className="flex items-center gap-0">
+      {/* Vertical lane */}
+      <div className="flex-1 flex flex-col gap-0">
         {stages.map((stage, i) => (
-          <div key={stage.label} className="flex items-center flex-1 min-w-0">
-            {/* Node */}
-            <div className="flex flex-col items-center gap-0.5">
-              <div className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[stage.status]}`} />
-              <span className={`text-[7px] font-mono whitespace-nowrap ${STATUS_TEXT[stage.status]}`}>
-                {stage.label}
-              </span>
-              {stage.status === "failed" && (
-                <Badge variant="destructive" className="text-[6px] px-0.5 py-0 h-2.5">
-                  ERR
-                </Badge>
+          <div key={stage.label} className="flex items-stretch gap-3">
+            {/* Timeline column */}
+            <div className="flex flex-col items-center w-4 shrink-0">
+              <div className={`h-3 w-3 rounded-full shrink-0 ${STATUS_DOT[stage.status]}`} />
+              {i < stages.length - 1 && (
+                <div className={`flex-1 w-px min-h-[16px] ${
+                  stage.status === "done" ? "bg-status-green/30" : "bg-border"
+                }`} />
               )}
             </div>
-            {/* Connector */}
-            {i < stages.length - 1 && (
-              <div className={`flex-1 h-px mx-1 ${
-                stage.status === "done" ? "bg-status-green/40" : "bg-border/30"
-              }`} />
-            )}
+
+            {/* Content */}
+            <div className="flex-1 pb-3">
+              <div className="flex items-center gap-2">
+                <span className={`text-[14px] font-medium ${
+                  stage.status === "pending" ? "text-muted-foreground/50" : "text-foreground"
+                }`}>
+                  {stage.label}
+                </span>
+                {stage.status === "failed" && (
+                  <span className="ds-badge bg-status-red/10 text-status-red text-[10px]">ERR</span>
+                )}
+              </div>
+              <span className={`text-[11px] font-mono ${STATUS_TEXT[stage.status]}`}>
+                {STATUS_LABEL[stage.status]}
+              </span>
+            </div>
           </div>
         ))}
       </div>

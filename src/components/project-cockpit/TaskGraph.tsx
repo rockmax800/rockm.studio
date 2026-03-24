@@ -1,10 +1,8 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronRight, Plus, Rocket } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface TaskItem {
   id: string;
@@ -21,10 +19,11 @@ interface TaskGraphProps {
   projectId: string;
 }
 
-const GROUP_ORDER = ["blocked", "in_progress", "waiting_review", "rework", "ready", "validated", "done", "cancelled", "draft", "escalated"] as const;
+const GROUP_ORDER = ["blocked", "escalated", "in_progress", "waiting_review", "rework", "ready", "validated", "done", "draft", "cancelled"] as const;
 
 const GROUP_LABELS: Record<string, string> = {
   blocked: "Blocked",
+  escalated: "Escalated",
   in_progress: "In Progress",
   waiting_review: "Review",
   rework: "Rework",
@@ -33,20 +32,32 @@ const GROUP_LABELS: Record<string, string> = {
   done: "Done",
   cancelled: "Cancelled",
   draft: "Draft",
-  escalated: "Escalated",
 };
 
 const GROUP_DOT_COLORS: Record<string, string> = {
   blocked: "bg-lifecycle-blocked",
+  escalated: "bg-lifecycle-escalated",
   in_progress: "bg-lifecycle-in-progress",
   waiting_review: "bg-lifecycle-review",
-  rework: "bg-status-amber",
+  rework: "bg-lifecycle-rework",
   ready: "bg-lifecycle-ready",
   validated: "bg-lifecycle-validated",
   done: "bg-lifecycle-done",
-  escalated: "bg-lifecycle-escalated",
   draft: "bg-lifecycle-draft",
   cancelled: "bg-status-muted",
+};
+
+const GROUP_TEXT_COLORS: Record<string, string> = {
+  blocked: "text-lifecycle-blocked",
+  escalated: "text-lifecycle-escalated",
+  in_progress: "text-lifecycle-in-progress",
+  waiting_review: "text-lifecycle-review",
+  rework: "text-lifecycle-rework",
+  ready: "text-lifecycle-ready",
+  validated: "text-lifecycle-validated",
+  done: "text-lifecycle-done",
+  draft: "text-muted-foreground",
+  cancelled: "text-status-muted",
 };
 
 export function TaskGraph({ tasks, projectId }: TaskGraphProps) {
@@ -56,64 +67,87 @@ export function TaskGraph({ tasks, projectId }: TaskGraphProps) {
     return acc;
   }, [] as { state: string; items: TaskItem[] }[]);
 
-  // Catch any states not in GROUP_ORDER
   const knownStates = new Set(GROUP_ORDER);
   const other = tasks.filter((t) => !knownStates.has(t.state as any));
   if (other.length > 0) grouped.push({ state: "other", items: other });
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Tasks ({tasks.length})
-        </h2>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-card-title text-foreground">Tasks</h3>
+          <span className="text-[13px] font-mono font-bold text-muted-foreground">{tasks.length}</span>
+        </div>
       </div>
 
       {tasks.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 border border-dashed border-border/50 rounded-lg p-4">
-          <Rocket className="h-5 w-5 text-muted-foreground/30" />
-          <p className="text-[10px] text-muted-foreground text-center">Start first task from blueprint</p>
-          <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 border-border/50">
+        <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-secondary">
+          <Rocket className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-[14px] font-medium text-foreground">Start from Blueprint</p>
+            <p className="text-[12px] text-muted-foreground">Create the first task to begin delivery.</p>
+          </div>
+          <div className="flex-1" />
+          <Button size="sm" className="h-7 text-[12px] gap-1 bg-foreground text-background hover:bg-foreground/90 rounded-lg font-semibold">
             <Plus className="h-3 w-3" /> Create Task
           </Button>
         </div>
       ) : (
-        <ScrollArea className="flex-1 -mr-1 pr-1">
-          <div className="space-y-2">
+        <ScrollArea className="flex-1 -mr-2 pr-2">
+          <div className="space-y-3">
             {grouped.map(({ state, items }) => (
               <div key={state}>
-                <div className="flex items-center gap-1.5 px-1 mb-1">
-                  <div className={`h-1.5 w-1.5 rounded-full ${GROUP_DOT_COLORS[state] ?? "bg-muted-foreground"}`} />
-                  <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {/* Group header */}
+                <div className="flex items-center gap-2 px-1 mb-1.5">
+                  <div className={`h-2 w-2 rounded-full ${GROUP_DOT_COLORS[state] ?? "bg-muted-foreground"}`} />
+                  <span className="text-[13px] font-semibold text-foreground">
                     {GROUP_LABELS[state] ?? state}
                   </span>
-                  <span className="text-[8px] font-mono text-muted-foreground">{items.length}</span>
+                  <span className={`text-[13px] font-mono font-bold ${GROUP_TEXT_COLORS[state] ?? "text-muted-foreground"}`}>
+                    {items.length}
+                  </span>
                 </div>
+
+                {/* Task rows */}
                 <div className="space-y-0.5">
                   {items.map((t) => (
                     <Link key={t.id} to={`/control/tasks/${t.id}`}>
-                      <div className="group flex items-center gap-2 px-2 py-1.5 rounded bg-card/50 border border-border/20 hover:border-primary/20 transition-colors cursor-pointer">
+                      <div className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors duration-180 cursor-pointer">
+                        {/* Role avatar placeholder */}
+                        <div className="h-6 w-6 rounded-md bg-muted flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-mono font-bold text-muted-foreground">
+                            {(t.roleName ?? t.domain ?? "?").slice(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-medium truncate leading-tight">{t.title}</p>
+                          <p className="text-[14px] font-medium text-foreground truncate leading-snug">
+                            {t.title}
+                          </p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[7px] font-mono text-muted-foreground">{t.domain}</span>
+                            <span className="text-[11px] font-mono text-muted-foreground">{t.domain}</span>
                             {t.roleName && (
                               <>
-                                <span className="text-[7px] text-muted-foreground/40">·</span>
-                                <span className="text-[7px] text-muted-foreground">{t.roleName}</span>
+                                <span className="text-[11px] text-muted-foreground/40">·</span>
+                                <span className="text-[11px] text-muted-foreground">{t.roleName}</span>
                               </>
                             )}
                           </div>
                         </div>
+
+                        {/* Artifact count */}
                         {t.artifactCount > 0 && (
-                          <Badge variant="outline" className="text-[6px] px-1 py-0 h-3 border-border/40">
-                            {t.artifactCount}
-                          </Badge>
+                          <span className="ds-badge bg-muted text-muted-foreground text-[10px]">
+                            {t.artifactCount} art
+                          </span>
                         )}
-                        <span className="text-[7px] font-mono text-muted-foreground whitespace-nowrap shrink-0">
+
+                        {/* Age */}
+                        <span className="text-[11px] font-mono text-muted-foreground tabular-nums whitespace-nowrap shrink-0">
                           {formatDistanceToNow(new Date(t.updatedAt), { addSuffix: true })}
                         </span>
-                        <ChevronRight className="h-2.5 w-2.5 text-muted-foreground/20 group-hover:text-primary transition-colors shrink-0" />
+
+                        <ChevronRight className="h-3.5 w-3.5 text-border-strong group-hover:text-foreground transition-colors shrink-0" />
                       </div>
                     </Link>
                   ))}

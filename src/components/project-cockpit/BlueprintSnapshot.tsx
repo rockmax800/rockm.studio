@@ -1,6 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, FileText, HelpCircle, AlertTriangle, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText, HelpCircle, AlertTriangle, Clock, Target, Shield } from "lucide-react";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -14,6 +12,12 @@ interface BlueprintSnapshotProps {
   riskLevel: "low" | "medium" | "high";
 }
 
+const RISK_COLORS = {
+  low: "text-status-green",
+  medium: "text-status-amber",
+  high: "text-status-red",
+};
+
 export function BlueprintSnapshot({
   purpose,
   founderNotes,
@@ -26,60 +30,65 @@ export function BlueprintSnapshot({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card className="border-border/30 bg-card/50">
-      <CardContent className="p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-card-title text-foreground">Blueprint</h3>
+          {currentPhase && (
+            <span className="ds-badge bg-muted text-muted-foreground">{currentPhase}</span>
+          )}
+        </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+        >
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {/* Goal */}
+      <div className="mb-3">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Target className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[12px] font-medium text-muted-foreground">Goal</span>
+        </div>
+        <p className="text-[14px] leading-relaxed text-foreground line-clamp-3">{purpose}</p>
+      </div>
+
+      {/* Metrics row */}
+      <div className="flex items-center gap-4 py-2 border-t border-border">
+        <div className="flex items-center gap-1.5">
+          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[13px] font-mono font-bold text-foreground">{acceptanceCriteriaCount}</span>
+          <span className="text-[12px] text-muted-foreground">criteria</span>
+        </div>
+        {openQuestionsCount > 0 && (
           <div className="flex items-center gap-1.5">
-            <FileText className="h-3 w-3 text-primary" />
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Blueprint
-            </span>
-            {currentPhase && (
-              <Badge variant="outline" className="text-[7px] px-1 py-0 h-3 border-border/40">
-                {currentPhase}
-              </Badge>
-            )}
-          </div>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </button>
-        </div>
-
-        <p className="text-[10px] leading-relaxed text-foreground/90 line-clamp-2">{purpose}</p>
-
-        <div className="flex items-center gap-3 mt-2">
-          <div className="flex items-center gap-1 text-[8px] text-muted-foreground">
-            <FileText className="h-2.5 w-2.5" />
-            <span>{acceptanceCriteriaCount} criteria</span>
-          </div>
-          {openQuestionsCount > 0 && (
-            <div className="flex items-center gap-1 text-[8px] text-status-amber">
-              <HelpCircle className="h-2.5 w-2.5" />
-              <span>{openQuestionsCount} open</span>
-            </div>
-          )}
-          <div className="flex items-center gap-1 text-[8px] text-muted-foreground">
-            <Clock className="h-2.5 w-2.5" />
-            <span>{formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}</span>
-          </div>
-          {riskLevel !== "low" && (
-            <div className="flex items-center gap-1 text-[8px] text-status-red">
-              <AlertTriangle className="h-2.5 w-2.5" />
-              <span>{riskLevel} risk</span>
-            </div>
-          )}
-        </div>
-
-        {expanded && founderNotes && (
-          <div className="mt-2 pt-2 border-t border-border/30">
-            <p className="text-[9px] text-muted-foreground mb-0.5">Founder Notes</p>
-            <p className="text-[10px] text-foreground/80">{founderNotes}</p>
+            <HelpCircle className="h-3.5 w-3.5 text-status-amber" />
+            <span className="text-[13px] font-mono font-bold text-status-amber">{openQuestionsCount}</span>
+            <span className="text-[12px] text-status-amber">open</span>
           </div>
         )}
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-1.5">
+          <Shield className={`h-3.5 w-3.5 ${RISK_COLORS[riskLevel]}`} />
+          <span className={`text-[13px] font-medium ${RISK_COLORS[riskLevel]}`}>{riskLevel} risk</span>
+        </div>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[12px] text-muted-foreground">
+            {formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}
+          </span>
+        </div>
+      </div>
+
+      {/* Expanded: Founder Notes */}
+      {expanded && founderNotes && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <span className="text-[12px] font-medium text-muted-foreground block mb-1">Founder Notes</span>
+          <p className="text-[13px] text-foreground leading-relaxed">{founderNotes}</p>
+        </div>
+      )}
+    </div>
   );
 }

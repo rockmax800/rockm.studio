@@ -17,7 +17,6 @@ export default function ProjectDetail() {
   const { data: approvals = [] } = useApprovals(id);
   const { data: artifacts = [] } = useArtifacts(id);
 
-  // Deployments for this project
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
     queryFn: async () => {
@@ -32,7 +31,6 @@ export default function ProjectDetail() {
     enabled: !!id,
   });
 
-  // Domain bindings
   const { data: domainBindings = [] } = useQuery({
     queryKey: ["project-domains", id],
     queryFn: async () => {
@@ -46,7 +44,6 @@ export default function ProjectDetail() {
     enabled: !!id,
   });
 
-  // Runs for failed count
   const { data: failedRuns = [] } = useQuery({
     queryKey: ["project-failed-runs", id],
     queryFn: async () => {
@@ -65,14 +62,18 @@ export default function ProjectDetail() {
   if (isLoading) {
     return (
       <AppLayout title="Loading…">
-        <p className="text-xs text-muted-foreground p-4">Loading…</p>
+        <div className="flex items-center gap-2 p-6 text-muted-foreground text-[13px]">
+          Loading project…
+        </div>
       </AppLayout>
     );
   }
   if (!project) {
     return (
       <AppLayout title="Not found">
-        <p className="text-xs text-muted-foreground p-4">Project not found.</p>
+        <div className="flex items-center gap-2 p-6 text-muted-foreground text-[13px]">
+          Project not found.
+        </div>
       </AppLayout>
     );
   }
@@ -82,7 +83,6 @@ export default function ProjectDetail() {
   const pendingApprovals = approvals.filter((a) => a.state === "pending");
   const doneCount = tasks.filter((t) => t.state === "done").length;
 
-  // Risk level
   const riskLevel: "low" | "medium" | "high" =
     blockedCount > 0 || escalatedCount > 0 || failedRuns.length >= 3
       ? "high"
@@ -90,20 +90,16 @@ export default function ProjectDetail() {
         ? "medium"
         : "low";
 
-  // Next founder action
   let nextAction: string | null = null;
   if (pendingApprovals.length > 0) nextAction = `${pendingApprovals.length} approval(s) pending`;
   else if (blockedCount > 0) nextAction = `${blockedCount} task(s) blocked`;
   else if (failedRuns.length > 0) nextAction = `${failedRuns.length} failed run(s)`;
 
-  // Staging/production status
   const hasStagingLive = deployments.some((d: any) => d.environment === "staging" && d.status === "live");
   const hasProductionLive = deployments.some((d: any) => d.environment === "production" && d.status === "live");
 
-  // Delivery lane stages
   const hasPatches = artifacts.some((a) => (a.artifact_type as string) === "code_patch");
   const hasPRs = artifacts.some((a) => (a.artifact_type as string) === "pull_request");
-  const hasCIPassed = true; // Inferred from deployments existing
   const deliveryStages = [
     { label: "Tasks", status: (tasks.length > 0 ? (doneCount === tasks.length && tasks.length > 0 ? "done" : "active") : "pending") as any },
     { label: "PR", status: (hasPRs ? "done" : hasPatches ? "active" : "pending") as any },
@@ -113,7 +109,6 @@ export default function ProjectDetail() {
     { label: "Production", status: (hasProductionLive ? "done" : "pending") as any },
   ];
 
-  // Task items
   const taskItems = tasks.map((t) => ({
     id: t.id,
     title: t.title,
@@ -124,13 +119,10 @@ export default function ProjectDetail() {
     artifactCount: artifacts.filter((a) => a.task_id === t.id).length,
   }));
 
-  // Stalled runs (approximate: failed runs for this project)
-  const stalledRunsCount = 0; // Would need heartbeat data, keep 0 for now
-
   return (
-    <AppLayout title={project.name}>
-      <div className="max-w-[1800px] mx-auto space-y-2.5 h-[calc(100vh-4rem)]">
-        {/* Top Bar */}
+    <AppLayout title={project.name} fullHeight>
+      <div className="grid-content px-6 py-4 space-y-3 h-full overflow-auto">
+        {/* ── TOP HEADER ──────────────────────────────────── */}
         <ProjectTopBar
           project={project}
           riskLevel={riskLevel}
@@ -140,33 +132,35 @@ export default function ProjectDetail() {
           hasProductionLive={hasProductionLive}
         />
 
-        {/* Blueprint + Delivery Lane + Risk row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
-          <BlueprintSnapshot
-            purpose={project.purpose}
-            founderNotes={project.founder_notes}
-            currentPhase={project.current_phase}
-            updatedAt={project.updated_at}
-            acceptanceCriteriaCount={0}
-            openQuestionsCount={0}
-            riskLevel={riskLevel}
-          />
-          <DeliveryLane stages={deliveryStages} />
-          <RiskSummary
-            blockedTasks={blockedCount}
-            stalledRuns={stalledRunsCount}
-            pendingApprovals={pendingApprovals.length}
-            escalations={escalatedCount}
-            failedRuns={failedRuns.length}
-          />
-        </div>
+        {/* ── ROW 1: Blueprint (4) + Task Graph (5) + Delivery Lane (3) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3" style={{ minHeight: "calc(100vh - 320px)" }}>
+          {/* Blueprint Snapshot — 4 cols */}
+          <div className="lg:col-span-4 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+            <BlueprintSnapshot
+              purpose={project.purpose}
+              founderNotes={project.founder_notes}
+              currentPhase={project.current_phase}
+              updatedAt={project.updated_at}
+              acceptanceCriteriaCount={0}
+              openQuestionsCount={0}
+              riskLevel={riskLevel}
+            />
+          </div>
 
-        {/* Main 2-column: Tasks + Evidence */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-2.5" style={{ height: "calc(100% - 11rem)" }}>
-          <div className="border border-border/30 rounded-lg bg-card/30 p-3 flex flex-col min-h-0">
+          {/* Task Graph — 5 cols (dominant) */}
+          <div className="lg:col-span-5 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <TaskGraph tasks={taskItems} projectId={id!} />
           </div>
-          <div className="border border-border/30 rounded-lg bg-card/30 p-3 flex flex-col min-h-0">
+
+          {/* Delivery Lane — 3 cols */}
+          <div className="lg:col-span-3 ds-card p-4 flex flex-col min-h-0 overflow-hidden">
+            <DeliveryLane stages={deliveryStages} />
+          </div>
+        </div>
+
+        {/* ── ROW 2: Evidence (8) + Risk (4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <div className="lg:col-span-8 ds-card p-4">
             <EvidencePanel
               artifacts={artifacts.map((a) => ({
                 id: a.id,
@@ -181,6 +175,15 @@ export default function ProjectDetail() {
                 version_label: d.version_label,
               }))}
               hasDomainBinding={domainBindings.length > 0}
+            />
+          </div>
+          <div className="lg:col-span-4 ds-card p-4">
+            <RiskSummary
+              blockedTasks={blockedCount}
+              stalledRuns={0}
+              pendingApprovals={pendingApprovals.length}
+              escalations={escalatedCount}
+              failedRuns={failedRuns.length}
             />
           </div>
         </div>
