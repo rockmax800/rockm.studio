@@ -5,16 +5,17 @@ import { TopBar } from "@/components/TopBar";
 interface AppLayoutProps {
   children: React.ReactNode;
   title?: string;
+  fullHeight?: boolean;
 }
 
-export function AppLayout({ children, title }: AppLayoutProps) {
+export function AppLayout({ children, title, fullHeight }: AppLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar title={title} />
-          <main className="flex-1 overflow-auto p-6">
+          <main className={`flex-1 overflow-auto ${fullHeight ? "" : "p-4"}`}>
             {children}
           </main>
         </div>

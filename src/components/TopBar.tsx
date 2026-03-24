@@ -1,30 +1,92 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useSystemMode } from "@/hooks/use-system-mode";
+import { useDashboardCounts } from "@/hooks/use-data";
+import { AlertTriangle, Zap, ShieldCheck, Stamp } from "lucide-react";
 
 interface TopBarProps {
   title?: string;
 }
 
 export function TopBar({ title }: TopBarProps) {
+  const { data: modeData } = useSystemMode();
+  const { data: counts } = useDashboardCounts();
+
   return (
-    <header className="h-12 flex items-center justify-between border-b px-4 bg-card shrink-0">
-      <div className="flex items-center gap-3">
-        <SidebarTrigger className="h-8 w-8" />
+    <header className="h-10 flex items-center justify-between border-b border-border/50 px-3 bg-surface-overlay shrink-0">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="h-7 w-7 text-muted-foreground" />
         {title && (
-          <h1 className="text-sm font-semibold tracking-tight">{title}</h1>
+          <h1 className="text-xs font-semibold tracking-tight text-foreground">{title}</h1>
         )}
       </div>
 
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Search className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-status-red" />
-        </Button>
+      <div className="flex items-center gap-3">
+        {/* Live counters */}
+        {counts && (
+          <div className="flex items-center gap-2.5 text-[10px] font-mono">
+            <CounterPill
+              icon={<AlertTriangle className="h-3 w-3" />}
+              value={counts.blockedTasks}
+              color="destructive"
+            />
+            <CounterPill
+              icon={<Zap className="h-3 w-3" />}
+              value={counts.failedRuns}
+              color="destructive"
+            />
+            <CounterPill
+              icon={<Stamp className="h-3 w-3" />}
+              value={counts.pendingApprovals}
+              color="amber"
+            />
+            <CounterPill
+              icon={<ShieldCheck className="h-3 w-3" />}
+              value={counts.waitingReview}
+              color="cyan"
+            />
+          </div>
+        )}
+
+        {/* System mode */}
+        {modeData && (
+          <Badge
+            variant="outline"
+            className={`text-[9px] font-mono px-2 py-0 h-5 border ${
+              modeData.mode === "production"
+                ? "border-status-green/40 text-status-green bg-status-green/5"
+                : "border-status-amber/40 text-status-amber bg-status-amber/5"
+            }`}
+          >
+            {modeData.mode === "production" ? "PROD" : "EXP"}
+          </Badge>
+        )}
       </div>
     </header>
+  );
+}
+
+function CounterPill({
+  icon,
+  value,
+  color,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  color: "destructive" | "amber" | "cyan";
+}) {
+  if (value === 0) return null;
+
+  const colorMap = {
+    destructive: "text-status-red",
+    amber: "text-status-amber",
+    cyan: "text-status-cyan",
+  };
+
+  return (
+    <div className={`flex items-center gap-1 ${colorMap[color]}`}>
+      {icon}
+      <span className="font-bold">{value}</span>
+    </div>
   );
 }
