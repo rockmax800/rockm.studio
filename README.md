@@ -75,31 +75,31 @@ This is what runs when you check out the repo and start the dev server.
 
 ## Navigation Structure
 
-### Operations
+### Operations (primary)
 | Page | Route | Purpose |
 |------|-------|---------|
-| Command Center | `/` | Production pipeline overview, founder inbox, project initiation |
-| Company Lead | `/lead` | AI Delivery Director — first contact for new projects |
-| Projects | `/projects` | Project list and project cockpit |
+| Command Center | `/` | **Canonical starting point.** Production pipeline overview, founder inbox, project initiation |
+| Company Lead | `/lead` | Step 1 — AI consultation to define scope, estimate cost, assess risk |
+| Intake Composer | `/presale/new` | Step 2 — Structured brief extraction, blueprint creation |
+| Projects | `/projects` | Project list and project cockpit (projects are outputs of the intake flow) |
 | Office | `/office` | Spatial capability rooms with employee visualization |
 | Founder | `/founder` | Decision queue (approvals, escalations, risk) |
-| System | `/system` | Health, providers, mode, audit, docs |
+| System | `/system` | Health, providers, mode, operational trace, docs |
 
-### Teams & Capabilities
+### Management
 | Page | Route | Purpose |
 |------|-------|---------|
 | Teams | `/teams` | Capability teams, team members, hiring & performance |
 | Evolution | `/evolution` | Gödel proposals, Darwin experiments, feedback triggers |
 | Content | `/smm` | AI-generated content from production events |
 
-### Deep Links
-| Page | Route |
-|------|-------|
-| Project Cockpit | `/projects/:id` |
-| Employee Profile | `/employees/:id` |
-| Team Room | `/team-room?dept=:slug` |
-| Intake Composer | `/presale/new` |
-| Client Portal | `/client/:token` |
+### Deep Links (backward-compatible, not primary entry points)
+| Page | Route | Note |
+|------|-------|------|
+| Project Cockpit | `/projects/:id` | Accessible after project creation |
+| Employee Profile | `/employees/:id` | Accessible from Teams/Office |
+| Team Room | `/team-room?dept=:slug` | Accessible from Teams |
+| Client Portal | `/client/:token` | External read-only access |
 
 ---
 
