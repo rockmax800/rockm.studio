@@ -57,8 +57,8 @@ export function HeroComposer() {
           <h1 className="text-[36px] font-bold tracking-[-0.03em] text-foreground leading-[1.1]">
             What are we building?
           </h1>
-          <p className="text-[15px] text-muted-foreground mt-3 leading-relaxed max-w-md mx-auto">
-            Start with a Company Lead discussion or launch a structured intake to begin production.
+          <p className="text-[15px] text-muted-foreground mt-3 leading-relaxed max-w-lg mx-auto">
+            Every project starts here. Begin with a Company Lead consultation to define scope and get a cost estimate, then proceed to structured intake.
           </p>
 
           <div className="flex items-center gap-3 justify-center mt-8">
@@ -72,16 +72,20 @@ export function HeroComposer() {
             <Link to="/presale/new">
               <Button variant="outline" className="h-12 px-6 gap-2.5 text-[14px] font-semibold border-border/60 text-foreground hover:bg-surface-glass rounded-xl">
                 <FileText className="h-4 w-4 opacity-60" />
-                Start Structured Intake
+                Skip to Structured Intake
               </Button>
             </Link>
           </div>
 
-          <div className="mt-4">
-            <Link to="/projects" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground/60 hover:text-foreground transition-colors">
-              <FolderOpen className="h-3.5 w-3.5" />
-              Open Projects
-            </Link>
+          {/* Path explanation */}
+          <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-muted-foreground/40 font-medium">
+            <span className="px-2 py-0.5 rounded bg-foreground/5">Consultation</span>
+            <ArrowRight className="h-3 w-3" />
+            <span className="px-2 py-0.5 rounded bg-foreground/5">Structured Intake</span>
+            <ArrowRight className="h-3 w-3" />
+            <span className="px-2 py-0.5 rounded bg-foreground/5">Blueprint</span>
+            <ArrowRight className="h-3 w-3" />
+            <span className="px-2 py-0.5 rounded bg-foreground/5">Project</span>
           </div>
         </div>
       </div>
