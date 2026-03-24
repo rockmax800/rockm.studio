@@ -40,8 +40,8 @@ const PROVIDERS: { value: ProviderFamily; label: string; hint: string; models: s
 ];
 
 const MODES: { value: OrchestrationMode; label: string; desc: string }[] = [
-  { value: "single", label: "Single Agent", desc: "One agent per run" },
-  { value: "swarm", label: "Swarm", desc: "Multi-agent orchestration" },
+  { value: "single", label: "Single Agent", desc: MODE_EXPLAINER.single.short },
+  { value: "swarm", label: "Swarm", desc: MODE_EXPLAINER.swarm.short },
 ];
 
 /* ── Component ────────────────────────────────── */
