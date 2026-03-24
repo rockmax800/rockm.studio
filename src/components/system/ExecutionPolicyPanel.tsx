@@ -15,6 +15,9 @@ import {
   Cpu, Zap, AlertTriangle, Check, Loader2, Info,
   Server, Bot, Sparkles, Shield,
 } from "lucide-react";
+import {
+  ENGINE_EXPLAINER, PROVIDER_EXPLAINER, MODE_EXPLAINER, POLICY_SUMMARY,
+} from "@/components/ui/execution-policy-explainer";
 import type {
   ExecutionEngine,
   ProviderFamily,
@@ -25,20 +28,20 @@ import type {
 /* ── Static data ──────────────────────────────── */
 
 const ENGINES: { value: ExecutionEngine; label: string; desc: string; icon: typeof Server }[] = [
-  { value: "native", label: "Native", desc: "Built-in execution flow", icon: Server },
-  { value: "ruflo", label: "Ruflo", desc: "External experimental engine", icon: Zap },
+  { value: "native", label: "Native", desc: ENGINE_EXPLAINER.native.short, icon: Server },
+  { value: "ruflo", label: "Ruflo", desc: ENGINE_EXPLAINER.ruflo.short, icon: Zap },
 ];
 
-const PROVIDERS: { value: ProviderFamily; label: string; models: string[] }[] = [
-  { value: "anthropic", label: "Anthropic (Claude)", models: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"] },
-  { value: "openai", label: "OpenAI (GPT)", models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
-  { value: "google", label: "Google (Gemini)", models: ["gemini-2.5-pro", "gemini-2.5-flash"] },
-  { value: "local", label: "Local", models: ["llama-3.1-70b", "mixtral-8x22b"] },
+const PROVIDERS: { value: ProviderFamily; label: string; hint: string; models: string[] }[] = [
+  { value: "anthropic", label: "Anthropic (Claude)", hint: PROVIDER_EXPLAINER.anthropic.short, models: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"] },
+  { value: "openai", label: "OpenAI (GPT)", hint: PROVIDER_EXPLAINER.openai.short, models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
+  { value: "google", label: "Google (Gemini)", hint: PROVIDER_EXPLAINER.google.short, models: ["gemini-2.5-pro", "gemini-2.5-flash"] },
+  { value: "local", label: "Local", hint: PROVIDER_EXPLAINER.local.short, models: ["llama-3.1-70b", "mixtral-8x22b"] },
 ];
 
 const MODES: { value: OrchestrationMode; label: string; desc: string }[] = [
-  { value: "single", label: "Single Agent", desc: "One agent per run" },
-  { value: "swarm", label: "Swarm", desc: "Multi-agent orchestration" },
+  { value: "single", label: "Single Agent", desc: MODE_EXPLAINER.single.short },
+  { value: "swarm", label: "Swarm", desc: MODE_EXPLAINER.swarm.short },
 ];
 
 /* ── Component ────────────────────────────────── */
@@ -109,20 +112,19 @@ export default function ExecutionPolicyPanel() {
 
   return (
     <div className="space-y-4">
-      {/* Warning box */}
-      <Card className="border-status-amber/30 bg-status-amber/5 border shadow-none">
+      {/* Context box */}
+      <Card className="border-primary/20 bg-primary/[0.02] border shadow-none">
         <CardContent className="p-4 flex items-start gap-3">
-          <AlertTriangle className="h-4 w-4 text-status-amber shrink-0 mt-0.5" />
-          <div className="text-[13px] text-foreground/80 leading-relaxed space-y-1">
-            <p>
-              <strong>Native</strong> = current built-in execution flow (runs processed by internal services).
-            </p>
-            <p>
-              <strong>Ruflo</strong> = external experimental orchestration engine. Work is delegated externally but
-              all product state (projects, tasks, runs, artifacts, reviews, approvals, deployments) remains in this app.
-            </p>
-            <p className="text-muted-foreground text-[12px] italic">
-              Ruflo integration is not yet fully connected to a backend dispatcher. Selecting it records your preference
+          <Info className="h-4 w-4 text-primary/60 shrink-0 mt-0.5" />
+          <div className="text-[13px] text-foreground/80 leading-relaxed space-y-1.5">
+            <p className="font-semibold text-foreground">Global execution default</p>
+            <p>{POLICY_SUMMARY}</p>
+            <div className="text-[12px] text-muted-foreground space-y-0.5 mt-1">
+              <p><strong>Native</strong> — {ENGINE_EXPLAINER.native.detail}</p>
+              <p><strong>Ruflo</strong> — {ENGINE_EXPLAINER.ruflo.detail}</p>
+            </div>
+            <p className="text-muted-foreground text-[11px] italic mt-1">
+              Ruflo integration is not yet fully connected. Selecting it records your preference
               but does not currently route execution externally.
             </p>
           </div>
@@ -186,13 +188,14 @@ export default function ExecutionPolicyPanel() {
                   key={p.value}
                   onClick={() => handleProviderChange(p.value)}
                   className={cn(
-                    "rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-all",
+                    "rounded-lg border px-3 py-2 text-left transition-all",
                     provider === p.value
                       ? "border-primary/50 bg-primary/5 text-foreground"
                       : "border-border/40 text-muted-foreground hover:border-border/60 hover:text-foreground"
                   )}
                 >
-                  {p.label}
+                  <span className="text-[13px] font-medium block">{p.label}</span>
+                  <span className="text-[10px] text-muted-foreground block">{p.hint}</span>
                 </button>
               ))}
             </div>

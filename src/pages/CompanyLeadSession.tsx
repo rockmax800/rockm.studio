@@ -356,7 +356,7 @@ export default function CompanyLeadSession() {
         {/* Execution context */}
         <div className="flex items-center gap-2">
           <ExecutionPolicyBadge
-            label="The team will execute with"
+            label="How should the team execute this work?"
             policyOverride={execOverride.enabled ? execOverride.policy : null}
             isOverride={execOverride.enabled}
           />

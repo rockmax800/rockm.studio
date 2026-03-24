@@ -228,7 +228,7 @@ export default function ProjectDetail() {
                   </span>
                 </div>
                 <div className="flex-1" />
-                <ExecutionPolicyBadge label="Project execution default" className="mr-3" />
+                <ExecutionPolicyBadge label="Current execution environment" className="mr-3" />
                 <div className="flex items-center gap-2">
                   {pendingApprovals.length > 0 && (
                     <Link to="/founder">

@@ -15,6 +15,9 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 import { Settings2, Cpu, Zap, Bot, Sparkles, Info } from "lucide-react";
+import {
+  ENGINE_EXPLAINER, PROVIDER_EXPLAINER, MODE_EXPLAINER, POLICY_SUMMARY,
+} from "@/components/ui/execution-policy-explainer";
 import type {
   ExecutionEngine,
   ProviderFamily,
@@ -29,11 +32,11 @@ const ENGINES: { value: ExecutionEngine; label: string; icon: typeof Cpu }[] = [
   { value: "ruflo", label: "Ruflo", icon: Zap },
 ];
 
-const PROVIDERS: { value: ProviderFamily; label: string; models: string[] }[] = [
-  { value: "anthropic", label: "Claude", models: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"] },
-  { value: "openai", label: "GPT", models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
-  { value: "google", label: "Gemini", models: ["gemini-2.5-pro", "gemini-2.5-flash"] },
-  { value: "local", label: "Local", models: ["llama-3.1-70b", "mixtral-8x22b"] },
+const PROVIDERS: { value: ProviderFamily; label: string; hint: string; models: string[] }[] = [
+  { value: "anthropic", label: "Claude", hint: PROVIDER_EXPLAINER.anthropic.short, models: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"] },
+  { value: "openai", label: "GPT", hint: PROVIDER_EXPLAINER.openai.short, models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
+  { value: "google", label: "Gemini", hint: PROVIDER_EXPLAINER.google.short, models: ["gemini-2.5-pro", "gemini-2.5-flash"] },
+  { value: "local", label: "Local", hint: PROVIDER_EXPLAINER.local.short, models: ["llama-3.1-70b", "mixtral-8x22b"] },
 ];
 
 const MODES: { value: OrchestrationMode; label: string }[] = [
@@ -103,7 +106,8 @@ export function ExecutionOverrideSheet({ override, onChange, triggerLabel = "Ove
 
       <SheetContent className="w-[360px] sm:w-[400px]">
         <SheetHeader>
-          <SheetTitle className="text-[15px]">Session Execution Override</SheetTitle>
+          <SheetTitle className="text-[15px]">How should the team execute?</SheetTitle>
+          <p className="text-[12px] text-muted-foreground mt-1">{POLICY_SUMMARY}</p>
         </SheetHeader>
 
         <div className="mt-4 space-y-5">
@@ -163,13 +167,14 @@ export function ExecutionOverrideSheet({ override, onChange, triggerLabel = "Ove
                       key={p.value}
                       onClick={() => handleProviderChange(p.value)}
                       className={cn(
-                        "rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all",
+                        "rounded-md border px-2.5 py-1.5 text-left transition-all",
                         current.providerFamily === p.value
                           ? "border-primary/50 bg-primary/5 text-foreground"
                           : "border-border/40 text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      {p.label}
+                      <span className="text-[11px] font-medium block">{p.label}</span>
+                      <span className="text-[9px] text-muted-foreground block">{p.hint}</span>
                     </button>
                   ))}
                 </div>
