@@ -102,7 +102,7 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | A1 | created → classified | Source task/run exists | Both null |
 | A2 | classified → submitted | Target review/consumer exists | No target |
 | A3 | submitted → under_review | Review record exists | No review |
-| A4 | under_review → accepted | Review verdict = approved (terminal) | Review verdict non-terminal |
+| A4 | under_review → accepted | Review verdict ∈ {approved, approved_with_notes} | Review verdict non-terminal |
 | A5 | under_review → rejected | Review verdict = rejected | Verdict ≠ rejected |
 | A6 | accepted → frozen | Freeze reason recorded | No reason |
 | A7-A8 | accepted/rejected → superseded | Replacement artifact linked | No replacement |
