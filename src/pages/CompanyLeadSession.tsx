@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
+import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
+import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
