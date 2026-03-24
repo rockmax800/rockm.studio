@@ -55,10 +55,22 @@ export class TaskService {
     taskId,
     ownerRoleId,
     actorType,
+    handoffParams,
   }: {
     taskId: string;
     ownerRoleId: string;
     actorType: "system" | "founder" | "agent_role";
+    handoffParams?: {
+      sourceRoleId: string;
+      requestedOutcome: HandoffOutcome;
+      acceptanceCriteria: unknown[];
+      constraints?: unknown[];
+      openQuestions?: unknown[];
+      contextPackId?: string;
+      sourceArtifactIds?: string[];
+      urgency?: "normal" | "high" | "blocker";
+      createdFromReviewId?: string;
+    };
   }) {
     const validationResult = await this.prisma.$transaction(async (tx) => {
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
