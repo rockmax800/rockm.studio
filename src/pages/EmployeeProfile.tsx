@@ -250,9 +250,13 @@ export default function EmployeeProfile() {
           {/* ── TOP HEADER ──────────────────────────────────── */}
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[14px] font-bold text-foreground/60 shrink-0">
-                {employee.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2)}
-              </div>
+              <img
+                src={ROLE_AVATARS[employee.role_code] ?? avatarArchitect}
+                alt={employee.name}
+                className={`h-14 w-14 rounded-xl object-cover ring-2 ${ROLE_RING[employee.role_code] ?? "ring-muted-foreground"} ring-offset-2 ring-offset-background shrink-0`}
+                width={56}
+                height={56}
+              />
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-[20px] font-semibold text-foreground tracking-tight">{employee.name}</h1>
