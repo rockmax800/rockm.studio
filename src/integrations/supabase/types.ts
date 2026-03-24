@@ -589,8 +589,6 @@ export type Database = {
       blueprint_contracts: {
         Row: {
           acceptance_criteria_json: Json
-          approved_at: string | null
-          approved_by_founder: boolean
           created_at: string
           critical_risks_json: Json
           effort_band: string
@@ -602,8 +600,6 @@ export type Database = {
         }
         Insert: {
           acceptance_criteria_json?: Json
-          approved_at?: string | null
-          approved_by_founder?: boolean
           created_at?: string
           critical_risks_json?: Json
           effort_band?: string
@@ -615,8 +611,6 @@ export type Database = {
         }
         Update: {
           acceptance_criteria_json?: Json
-          approved_at?: string | null
-          approved_by_founder?: boolean
           created_at?: string
           critical_risks_json?: Json
           effort_band?: string
@@ -1228,8 +1222,6 @@ export type Database = {
       }
       estimate_reports: {
         Row: {
-          approved_at: string | null
-          approved_by_founder: boolean
           avg_cost_estimate: number
           avg_token_estimate: number
           blueprint_contract_id: string
@@ -1243,8 +1235,6 @@ export type Database = {
           worst_case_token_estimate: number
         }
         Insert: {
-          approved_at?: string | null
-          approved_by_founder?: boolean
           avg_cost_estimate?: number
           avg_token_estimate?: number
           blueprint_contract_id: string
@@ -1258,8 +1248,6 @@ export type Database = {
           worst_case_token_estimate?: number
         }
         Update: {
-          approved_at?: string | null
-          approved_by_founder?: boolean
           avg_cost_estimate?: number
           avg_token_estimate?: number
           blueprint_contract_id?: string
