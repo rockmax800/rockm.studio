@@ -522,7 +522,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                       }}
                       className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99] bg-card border border-border shadow-[var(--shadow-card)]"
                     >
-                      <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-accent text-status-blue">
+                      <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-accent text-foreground">
                         <opt.icon className="h-5 w-5" strokeWidth={1.8} />
                       </div>
                       <div>
