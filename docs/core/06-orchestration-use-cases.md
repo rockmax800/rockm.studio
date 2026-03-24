@@ -83,10 +83,11 @@ Each use case runs inside ONE Prisma interactive transaction with Serializable i
 
 1. **Guard phase** — All guards evaluated first. Any failure rejects entire use case.
 2. **Mutation phase** — All state changes applied. Verdict/decision set atomically with lifecycle transition.
-3. **Commit phase** — Transaction commits.
-4. **Event phase** — Activity events emitted after commit (append-only).
+3. **Outbox phase** — Outbox event written in same transaction (durable before dispatch).
+4. **Commit phase** — Transaction commits.
+5. **Dispatch phase** — OutboxDispatcherService polls and dispatches events asynchronously.
 
-Events are post-commit: if emission fails, state change is still valid (events retry).
+Events are durable: written in-transaction, dispatched asynchronously. If dispatch fails, state change is still valid (events retry from outbox).
 
 ---
 

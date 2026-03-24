@@ -163,15 +163,26 @@ Task → validated → done → Project milestone
 
 ---
 
-## 8 — Event Flow
+## 8 — Event Flow & Execution Reliability
 
 All state transitions emit `ActivityEvent` records for audit trail.
+All transitions also write an `OutboxEvent` in the same transaction for durable dispatch.
 
 **Layer 1 events:** `project.*`, `task.*`, `run.*`, `artifact.*`, `review.*`, `approval.*`
 **Layer 2 events:** `employee.*`, `office.*`, `blog.*`, `hr.*`
 **Layer 3 events:** `autonomy.*`, `experiment.*`
 
 Events are append-only. No updates, no deletes.
+
+### 8.1 — Execution Reliability (v2.3)
+
+| Mechanism | Purpose |
+|-----------|---------|
+| Transactional Outbox | Events written in-transaction, dispatched asynchronously |
+| Idempotency Keys | `task_id:run:N` prevents duplicate run creation |
+| Lease Model | `lease_owner` + `lease_expires_at` prevents concurrent execution |
+| Heartbeat | `heartbeat_at` refreshed during execution; stale → stalled flag |
+| Correlation ID | Traces across handoff → run → PR → deployment |
 
 ---
 

@@ -431,3 +431,51 @@ Defines the core data model supporting project control, task orchestration, exec
 - Run 1:1 RepoWorkspace (for code-producing runs)
 - Task 1:N PullRequest (via runs)
 - PullRequest 1:N CheckSuite
+
+---
+
+## 16 — Outbox Events (v2.3)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| aggregate_type | text | yes | project, task, run, review, approval, handoff, deployment |
+| aggregate_id | uuid | yes | Entity that changed |
+| event_type | text | yes | e.g. `run.running`, `task.in_progress` |
+| payload_json | jsonb | yes | Full event context |
+| correlation_id | uuid | no | Traces across handoff → run → PR → deployment |
+| causation_id | uuid | no | Event that triggered this one |
+| idempotency_key | text | no | Unique — prevents duplicate dispatch |
+| status | text | yes | pending, dispatched, failed |
+| retry_count | integer | yes | Default 0, max 5 |
+| created_at | timestamp | yes | Written in same transaction as state change |
+| dispatched_at | timestamp | no | Set when successfully dispatched |
+
+### 16.1 Outbox Invariants
+
+1. Outbox row is written **inside the same transaction** as the state change
+2. Dispatch is asynchronous — poll-based, not inline
+3. `idempotency_key` prevents duplicate events for the same transition
+4. Failed events retry up to 5 times before marking as `failed`
+5. Events are never deleted — append-only for auditability
+
+---
+
+## 17 — Lease Model for Run Execution (v2.3)
+
+Run execution uses a lease-based model to prevent concurrent execution:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| lease_owner | text | Executor instance identifier |
+| lease_acquired_at | timestamp | When lease was acquired |
+| lease_expires_at | timestamp | Lease auto-expires after this time |
+| heartbeat_at | timestamp | Refreshed periodically during execution |
+
+### 17.1 Lease Rules
+
+1. Before executing, executor must **acquire lease** (set `lease_owner` + `lease_expires_at`)
+2. If lease is held and not expired → abort (another executor owns it)
+3. If lease is expired (`now > lease_expires_at`) → lease can be reclaimed
+4. Heartbeat extends lease during long-running execution
+5. Stalled detection: `state=running AND heartbeat_at < threshold` → soft flag, no auto-transition
