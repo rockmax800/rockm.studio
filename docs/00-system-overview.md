@@ -228,18 +228,22 @@ Sessions use 8/4 split: hero message + live extraction panel.
 
 ---
 
-## 11 — Technology Stack
+## 11 — Technology Stack (LOCKED)
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React + Vite + Tailwind + shadcn/ui + TypeScript |
-| Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
-| Data Access | Supabase client SDK |
-| State | TanStack React Query |
-| Routing | React Router v6 |
-| Validation | Zod |
-| Real-time | Supabase Realtime (WebSocket) |
-| CI/CD | GitHub Actions → Docker → VPS |
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Frontend | Next.js (App Router) + TypeScript + Tailwind + shadcn/ui | No standalone Vite or React |
+| Backend | NestJS + TypeScript | Modular monolith |
+| Database | PostgreSQL + Prisma | Prisma is the only ORM |
+| Queue | Redis + BullMQ | Job queue, retry, scheduling |
+| Worker | Separate Node.js process | RunExecutor, sandbox orchestration |
+| Sandbox | Docker | Isolated code execution |
+| State (client) | TanStack React Query | Server-state cache |
+| Validation | Zod | Shared client + server |
+| CI | GitHub Actions | PR checks |
+| Deployment | Docker → VPS | Single-server Docker Compose |
+
+**Architecture lock active.** No stack substitutions without explicit founder unlock.
 
 ---
 

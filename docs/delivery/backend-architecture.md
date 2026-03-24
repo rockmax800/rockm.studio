@@ -81,11 +81,11 @@ Location: `src/guards/`
 
 > **Canonical stack definition lives in `docs/00-runtime-truth.md`.** Summary below.
 
-- Next.js App Router — route handlers as API layer
+- NestJS — API layer and business logic
 - Prisma ORM — persistence
 - PostgreSQL — database
 - Zod — validation
-- Supabase Edge Functions — serverless backend functions
+- Redis + BullMQ — job queue, scheduling, retry
 - Node.js worker process — RunExecutor, provider calls
 - Docker sandbox — isolated code execution
 
