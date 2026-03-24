@@ -787,7 +787,7 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={cn(
           "rounded-2xl px-5 py-3.5 max-w-[80%]",
-          isLead ? "bg-card border border-border shadow-[var(--shadow-card)]" : "bg-status-blue text-white"
+          isLead ? "bg-card border border-border shadow-[var(--shadow-card)]" : "bg-primary text-primary-foreground"
         )}
       >
         {isLead && (
