@@ -2562,6 +2562,7 @@ export type Database = {
           retry_class: string | null
           retry_of_run_id: string | null
           run_number: number
+          sandbox_policy_id: string | null
           skill_pack_version_ref: string | null
           started_at: string | null
           state: Database["public"]["Enums"]["run_state"]
@@ -2604,6 +2605,7 @@ export type Database = {
           retry_class?: string | null
           retry_of_run_id?: string | null
           run_number: number
+          sandbox_policy_id?: string | null
           skill_pack_version_ref?: string | null
           started_at?: string | null
           state?: Database["public"]["Enums"]["run_state"]
@@ -2646,6 +2648,7 @@ export type Database = {
           retry_class?: string | null
           retry_of_run_id?: string | null
           run_number?: number
+          sandbox_policy_id?: string | null
           skill_pack_version_ref?: string | null
           started_at?: string | null
           state?: Database["public"]["Enums"]["run_state"]
@@ -2708,6 +2711,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "runs_sandbox_policy_id_fkey"
+            columns: ["sandbox_policy_id"]
+            isOneToOne: false
+            referencedRelation: "sandbox_policies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "runs_superseded_by_run_id_fkey"
             columns: ["superseded_by_run_id"]
             isOneToOne: false
@@ -2729,6 +2739,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sandbox_policies: {
+        Row: {
+          allowed_network: boolean
+          allowed_paths_json: Json
+          allowed_ports_json: Json
+          cpu_limit: number
+          created_at: string
+          id: string
+          memory_limit_mb: number
+          name: string
+          read_only_root: boolean
+          timeout_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_network?: boolean
+          allowed_paths_json?: Json
+          allowed_ports_json?: Json
+          cpu_limit?: number
+          created_at?: string
+          id?: string
+          memory_limit_mb?: number
+          name: string
+          read_only_root?: boolean
+          timeout_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_network?: boolean
+          allowed_paths_json?: Json
+          allowed_ports_json?: Json
+          cpu_limit?: number
+          created_at?: string
+          id?: string
+          memory_limit_mb?: number
+          name?: string
+          read_only_root?: boolean
+          timeout_seconds?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       system_settings: {
         Row: {
