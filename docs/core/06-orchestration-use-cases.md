@@ -65,14 +65,16 @@ Each use case runs inside ONE Prisma interactive transaction with Serializable i
 | Use Case | Transaction Includes |
 |----------|---------------------|
 | UC-01 | Read Approval + Read Documents + Update Project |
-| UC-03 | Create Run + Update Task + Read ContextPack + Read AgentRole |
-| UC-04 | Update Run + Create/Update Artifact(s) |
+| UC-03 | Create Run (with correlation_id, idempotency_key) + Update Task + Read ContextPack + Read AgentRole |
+| UC-04 | Update Run (store provider refs, tokens, cost, workspace link) + Create/Update Artifact(s) |
 | UC-05 | Update Artifact (×2) + Create Review + Update Review + Update Task |
 | UC-06 | Update Review (set verdict + state→resolved) + Update Artifact + Update Task |
 | UC-10 | Update Approval (set decision + state→decided) |
 | UC-11 | Update Task (validated→done) + Update Approval(s) (decided→closed) |
 | UC-12 | Update Project + Update Approval (decided→closed) |
-| UC-16 | Update old Run + Create new Run |
+| UC-13 | Update Run (set lease_owner, heartbeat_at, started_at, provider_id, provider_model_id) |
+| UC-14 | Update Run (set error_class, failure_reason, duration_ms) |
+| UC-16 | Update old Run + Create new Run (propagate correlation_id, set causation_id) |
 | UC-21 | Update Task + Update Run(s) + Update Review(s) |
 
 ---

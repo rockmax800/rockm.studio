@@ -89,7 +89,22 @@ export async function executeRun(
         phase: "run_executor",
         trigger: "execution started",
         run_number: run.run_number,
+        correlation_id: run.correlation_id,
       },
+    });
+
+    // PART 11 — Set heartbeat and lease at execution start
+    const executionStart = new Date().toISOString();
+    await prisma.$transaction(async (tx) => {
+      await tx.runs.update({
+        where: { id: runId },
+        data: {
+          heartbeat_at: executionStart,
+          lease_owner: `executor:${runId.slice(0, 8)}`,
+          started_at: executionStart,
+          updated_at: executionStart,
+        },
+      });
     });
 
     // 4. Call ProviderService (includes dual verification & adaptive routing)
@@ -117,14 +132,35 @@ export async function executeRun(
       });
       artifactId = artifact.id;
 
-      // Store output summary on run
+      // PART 11 — Store execution trace: provider refs, tokens, cost, workspace link
+      const updateData: Record<string, unknown> = {
+        output_summary: providerResult.outputText.slice(0, 500),
+        ended_at: now,
+        updated_at: now,
+        provider_id: providerResult.providerId ?? null,
+        provider_model_id: providerResult.modelId ?? null,
+        input_tokens: providerResult.inputTokens ?? null,
+        output_tokens: providerResult.outputTokens ?? null,
+        estimated_cost: providerResult.estimatedCost ?? null,
+        logs_ref: `runs/${runId}/logs`,
+        heartbeat_at: now,
+        duration_ms: run.started_at
+          ? new Date(now).getTime() - new Date(run.started_at).getTime()
+          : null,
+      };
+
+      // Link workspace if one exists for this run
+      try {
+        const workspace = await tx.repo_workspaces?.findFirst({ where: { run_id: runId } });
+        if (workspace) {
+          updateData.workspace_id = workspace.id;
+          updateData.branch_name = workspace.branch_name;
+        }
+      } catch { /* best-effort */ }
+
       await tx.runs.update({
         where: { id: runId },
-        data: {
-          output_summary: providerResult.outputText.slice(0, 500),
-          ended_at: now,
-          updated_at: now,
-        },
+        data: updateData,
       });
     });
 
@@ -184,12 +220,21 @@ export async function executeRun(
         const isTimeout = error instanceof Error && error.message.toLowerCase().includes("timed out");
 
         await prisma.$transaction(async (tx) => {
+          const errorClassName = error instanceof GuardError ? "guard_error"
+            : error instanceof Error && error.message.toLowerCase().includes("timed out") ? "timeout"
+            : error instanceof Error ? error.constructor.name
+            : "unknown";
+
           await tx.runs.update({
             where: { id: runId },
             data: {
               failure_reason: isTimeout ? `provider_timeout: ${failureReason}` : failureReason,
+              error_class: errorClassName,
               ended_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
+              duration_ms: run.started_at
+                ? new Date().getTime() - new Date(run.started_at).getTime()
+                : null,
             },
           });
         });
@@ -207,6 +252,7 @@ export async function executeRun(
             trigger: "execution failed",
             failure_reason: failureReason,
             run_number: run.run_number,
+            correlation_id: run.correlation_id,
           },
         });
 

@@ -144,6 +144,10 @@ export class RunService {
       const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
       const now = new Date().toISOString();
 
+      // PART 11 — Generate execution trace identifiers
+      const correlationId = crypto.randomUUID();
+      const idempotencyKey = `${taskId}:run:${existingRunCount + 1}`;
+
       const run = await tx.runs.create({
         data: {
           project_id: task.project_id,
@@ -152,6 +156,8 @@ export class RunService {
           context_pack_id: contextPack.id,
           state: "created",
           run_number: existingRunCount + 1,
+          correlation_id: correlationId,
+          idempotency_key: idempotencyKey,
           created_at: now,
           updated_at: now,
         },
@@ -253,6 +259,10 @@ export class RunService {
 
       const contextPack = await tx.context_packs.findFirst({ where: { task_id: originalRun.task_id } });
 
+      // PART 11 — Propagate correlation_id from original run, generate new idempotency_key
+      const correlationId = originalRun.correlation_id ?? crypto.randomUUID();
+      const idempotencyKey = `${originalRun.task_id}:run:${existingRunCount + 1}`;
+
       const newRun = await tx.runs.create({
         data: {
           project_id: originalRun.project_id,
@@ -262,6 +272,9 @@ export class RunService {
           state: "created",
           run_number: existingRunCount + 1,
           retry_of_run_id: originalRun.id,
+          correlation_id: correlationId,
+          causation_id: originalRun.id,
+          idempotency_key: idempotencyKey,
           created_at: now,
           updated_at: now,
         },

@@ -2270,63 +2270,123 @@ export type Database = {
       runs: {
         Row: {
           agent_role_id: string
+          branch_name: string | null
+          causation_id: string | null
+          commit_sha: string | null
           context_pack_id: string | null
+          correlation_id: string | null
           created_at: string
           duration_ms: number | null
           ended_at: string | null
+          error_class: string | null
+          estimated_cost: number | null
+          exit_code: number | null
           failure_reason: string | null
+          heartbeat_at: string | null
           id: string
+          idempotency_key: string | null
+          input_tokens: number | null
+          lease_owner: string | null
+          logs_ref: string | null
           output_summary: string | null
+          output_tokens: number | null
           project_id: string
+          prompt_version_ref: string | null
+          provider_id: string | null
+          provider_model_id: string | null
+          retry_class: string | null
           retry_of_run_id: string | null
           run_number: number
+          skill_pack_version_ref: string | null
           started_at: string | null
           state: Database["public"]["Enums"]["run_state"]
           status_summary: string | null
           superseded_by_run_id: string | null
           task_id: string
+          tool_policy_ref: string | null
           updated_at: string
           version: number
+          workspace_id: string | null
         }
         Insert: {
           agent_role_id: string
+          branch_name?: string | null
+          causation_id?: string | null
+          commit_sha?: string | null
           context_pack_id?: string | null
+          correlation_id?: string | null
           created_at?: string
           duration_ms?: number | null
           ended_at?: string | null
+          error_class?: string | null
+          estimated_cost?: number | null
+          exit_code?: number | null
           failure_reason?: string | null
+          heartbeat_at?: string | null
           id?: string
+          idempotency_key?: string | null
+          input_tokens?: number | null
+          lease_owner?: string | null
+          logs_ref?: string | null
           output_summary?: string | null
+          output_tokens?: number | null
           project_id: string
+          prompt_version_ref?: string | null
+          provider_id?: string | null
+          provider_model_id?: string | null
+          retry_class?: string | null
           retry_of_run_id?: string | null
           run_number: number
+          skill_pack_version_ref?: string | null
           started_at?: string | null
           state?: Database["public"]["Enums"]["run_state"]
           status_summary?: string | null
           superseded_by_run_id?: string | null
           task_id: string
+          tool_policy_ref?: string | null
           updated_at?: string
           version?: number
+          workspace_id?: string | null
         }
         Update: {
           agent_role_id?: string
+          branch_name?: string | null
+          causation_id?: string | null
+          commit_sha?: string | null
           context_pack_id?: string | null
+          correlation_id?: string | null
           created_at?: string
           duration_ms?: number | null
           ended_at?: string | null
+          error_class?: string | null
+          estimated_cost?: number | null
+          exit_code?: number | null
           failure_reason?: string | null
+          heartbeat_at?: string | null
           id?: string
+          idempotency_key?: string | null
+          input_tokens?: number | null
+          lease_owner?: string | null
+          logs_ref?: string | null
           output_summary?: string | null
+          output_tokens?: number | null
           project_id?: string
+          prompt_version_ref?: string | null
+          provider_id?: string | null
+          provider_model_id?: string | null
+          retry_class?: string | null
           retry_of_run_id?: string | null
           run_number?: number
+          skill_pack_version_ref?: string | null
           started_at?: string | null
           state?: Database["public"]["Enums"]["run_state"]
           status_summary?: string | null
           superseded_by_run_id?: string | null
           task_id?: string
+          tool_policy_ref?: string | null
           updated_at?: string
           version?: number
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -2351,6 +2411,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "runs_prompt_version_ref_fkey"
+            columns: ["prompt_version_ref"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_provider_model_id_fkey"
+            columns: ["provider_model_id"]
+            isOneToOne: false
+            referencedRelation: "provider_models"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "runs_retry_of_run_id_fkey"
             columns: ["retry_of_run_id"]
             isOneToOne: false
@@ -2369,6 +2450,13 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "repo_workspaces"
             referencedColumns: ["id"]
           },
         ]
