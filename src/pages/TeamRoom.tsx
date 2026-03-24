@@ -627,78 +627,58 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                 </div>
               </div>
 
-              {/* ── Active Guidance (Training Prompt) ── */}
-              <div className="mx-5 mb-4 rounded-xl border border-border/30 bg-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
-                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground/40" /> Active Guidance
+              {/* ── Active Guidance ── */}
+              <div className="mx-4 mb-3 rounded-lg border border-border/20 bg-card/60 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border/10">
+                  <h4 className="text-[11px] font-bold text-muted-foreground/60 flex items-center gap-1.5">
+                    <FileText className="h-3 w-3 text-muted-foreground/30" /> Active Guidance
                   </h4>
                 </div>
                 {activeGuidance ? (
-                  <div className="p-4 space-y-2.5">
-                    <div className="flex items-center gap-2">
-                      <BadgeCheck className="h-3.5 w-3.5 text-status-green shrink-0" />
-                      <span className="text-[11px] font-bold text-status-green">Published training prompt</span>
-                      <span className="text-[10px] text-muted-foreground/40 ml-auto font-mono">v{activeGuidance.version_number}</span>
+                  <div className="p-3 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <BadgeCheck className="h-3 w-3 text-status-green shrink-0" />
+                      <span className="text-[10px] font-bold text-status-green/80">Published</span>
+                      <span className="text-[9px] text-muted-foreground/30 ml-auto font-mono">v{activeGuidance.version_number}</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground/50">
-                      Last updated {new Date(activeGuidance.created_at).toLocaleDateString()}
-                    </p>
                     {guidanceSections.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        {guidanceSections.map((s, i) => (
-                          <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
-                            <p className="text-[10px] font-bold text-foreground/70 mb-0.5">{s.title}</p>
-                            <p className="text-[10px] text-muted-foreground leading-relaxed truncate">{s.preview}{s.preview.length >= 80 ? "…" : ""}</p>
+                      <div className="space-y-1">
+                        {guidanceSections.slice(0, 3).map((s, i) => (
+                          <div key={i} className="rounded-md bg-secondary/30 px-2.5 py-1.5">
+                            <p className="text-[9px] font-bold text-foreground/50 mb-0.5">{s.title}</p>
+                            <p className="text-[9px] text-muted-foreground/50 leading-relaxed truncate">{s.preview}</p>
                           </div>
                         ))}
                       </div>
                     )}
-                    <Link to={`/employees/${emp.id}`}>
-                      <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg border-border/40 mt-1">
-                        <BookOpen className="h-3.5 w-3.5" /> Open Training Lab
-                      </Button>
-                    </Link>
                   </div>
                 ) : (
-                  <div className="p-4 text-center">
-                    <p className="text-[11px] text-muted-foreground/50 mb-2">No active training guidance published</p>
-                    <Link to={`/employees/${emp.id}`}>
-                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5 rounded-lg border-border/40">
-                        <BookOpen className="h-3 w-3" /> Open Training Lab
-                      </Button>
-                    </Link>
+                  <div className="p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground/40">No published guidance yet</p>
                   </div>
                 )}
               </div>
 
               {/* ── Memory Snapshot ── */}
-              <div className="mx-5 mb-5 rounded-xl border border-border/30 bg-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
-                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-primary/40" /> Memory Snapshot
+              <div className="mx-4 mb-4 rounded-lg border border-border/20 bg-card/60 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border/10">
+                  <h4 className="text-[11px] font-bold text-muted-foreground/60 flex items-center gap-1.5">
+                    <Brain className="h-3 w-3 text-muted-foreground/30" /> Memory
                   </h4>
                 </div>
-                <div className="grid grid-cols-3 gap-0 divide-x divide-border/15 py-3">
+                <div className="grid grid-cols-3 gap-0 divide-x divide-border/10 py-2.5">
                   <div className="text-center">
-                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.coreRules}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5 font-medium">Core Rules</p>
+                    <p className="text-[14px] font-bold font-mono text-foreground/70">{memoryCounts.coreRules}</p>
+                    <p className="text-[9px] text-muted-foreground/40 font-medium">Rules</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.learnedPatterns}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5 font-medium">Patterns</p>
+                    <p className="text-[14px] font-bold font-mono text-foreground/70">{memoryCounts.learnedPatterns}</p>
+                    <p className="text-[9px] text-muted-foreground/40 font-medium">Patterns</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.failures}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5 font-medium">Failures</p>
+                    <p className="text-[14px] font-bold font-mono text-foreground/70">{memoryCounts.failures}</p>
+                    <p className="text-[9px] text-muted-foreground/40 font-medium">Failures</p>
                   </div>
-                </div>
-                <div className="px-4 pb-3">
-                  <Link to={`/employees/${emp.id}`}>
-                    <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg border-border/40">
-                      <Brain className="h-3.5 w-3.5" /> Open Full Memory
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </ScrollArea>
@@ -718,26 +698,26 @@ function ExtractionSection({ title, icon, items, emptyText, critical }: {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={cn("py-4 first:pt-0", critical && items.length > 0 && "border-l-2 border-destructive/20 pl-3 -ml-3")}>
-      <button onClick={() => setCollapsed(!collapsed)} className="flex items-center justify-between w-full mb-2 group">
-        <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
+    <div className={cn("py-3 first:pt-0", critical && items.length > 0 && "border-l-2 border-destructive/15 pl-2.5 -ml-2.5")}>
+      <button onClick={() => setCollapsed(!collapsed)} className="flex items-center justify-between w-full mb-1.5 group">
+        <h4 className="text-[11px] font-bold text-foreground/60 flex items-center gap-1.5">
           {icon} {title}
-          {items.length > 0 && <span className="text-[11px] text-muted-foreground/40 font-mono font-normal">{items.length}</span>}
+          {items.length > 0 && <span className="text-[10px] text-muted-foreground/30 font-mono font-normal">{items.length}</span>}
         </h4>
-        <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-muted-foreground/50 transition-all", collapsed && "-rotate-90")} />
+        <ChevronDown className={cn("h-3 w-3 text-muted-foreground/15 group-hover:text-muted-foreground/40 transition-all", collapsed && "-rotate-90")} />
       </button>
       {!collapsed && (
         items.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {items.map((item, i) => (
-              <div key={i} className="flex items-start gap-2.5 text-[13px] text-foreground/70 leading-relaxed">
-                <span className={cn("w-2 h-2 rounded-full mt-[6px] shrink-0", CONFIDENCE_DOT[item.confidence])} title={`${item.confidence} confidence`} />
+              <div key={i} className="flex items-start gap-2 text-[11px] text-foreground/60 leading-relaxed">
+                <span className={cn("w-1.5 h-1.5 rounded-full mt-[5px] shrink-0", CONFIDENCE_DOT[item.confidence])} title={`${item.confidence} confidence`} />
                 {item.text}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[12px] text-muted-foreground/30 italic">{emptyText ?? "—"}</p>
+          <p className="text-[10px] text-muted-foreground/25 italic">{emptyText ?? "—"}</p>
         )
       )}
     </div>
