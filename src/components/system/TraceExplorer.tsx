@@ -74,6 +74,9 @@ export default function TraceExplorer({ initialFilters }: TraceExplorerProps = {
 
   return (
     <div className="space-y-3">
+      {/* Execution trace legend */}
+      <ExecutionTraceLegend />
+
       {/* Honesty banner */}
       <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/30">
         <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
