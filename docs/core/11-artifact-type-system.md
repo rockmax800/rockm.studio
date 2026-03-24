@@ -186,3 +186,4 @@ Violations block merge with classification `evidence_missing`. See `delivery/41-
 | `core/06-orchestration-use-cases.md` | UC-04/UC-05 set category on artifact creation |
 | `delivery/delivery-lane.md` | Delivery spine entities are cross-referenced |
 | `core/10-role-contracts-and-taskspec.md` | Required artifacts per role/task |
+| `delivery/41-hard-enforcement-layer.md` | Hard merge gates for artifact completeness |

@@ -235,6 +235,8 @@ All deployment events are written to the transactional outbox:
 4. **All deploys logged** — ActivityEvent + OutboxEvent for every deployment state change
 5. **Rollback always possible** — via `rollback_of_deployment_id` chain
 6. **Single VPS** — no multi-cloud, no Kubernetes, no distributed deploys
+7. **Hard enforcement gates** — role contract violations and missing evidence block merge (see `delivery/41-hard-enforcement-layer.md`)
+8. **DomainBindingSpec required** — production deploy blocked without approved spec
 
 ---
 
