@@ -554,7 +554,7 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Team">
                     <div className="flex flex-wrap gap-1">
                       {scope.requiredRoles.map((r) => (
-                        <span key={r} className="text-[10px] font-medium px-2 py-0.5 rounded-md" style={{ background: "hsl(220 20% 96%)", border: "1px solid hsl(220 14% 90%)", color: "hsl(220 10% 46%)" }}>{r}</span>
+                        <span key={r} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted border border-border text-muted-foreground">{r}</span>
                       ))}
                     </div>
                   </ExtRow>
