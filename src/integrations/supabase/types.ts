@@ -1370,6 +1370,178 @@ export type Database = {
           },
         ]
       }
+      employee_prompt_drafts: {
+        Row: {
+          created_at: string
+          id: string
+          is_published: boolean
+          prompt_markdown: string
+          session_id: string
+          synthesized_from_session: boolean
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          prompt_markdown?: string
+          session_id: string
+          synthesized_from_session?: boolean
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          prompt_markdown?: string
+          session_id?: string
+          synthesized_from_session?: boolean
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_prompt_drafts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "employee_training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_training_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload_json: Json
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload_json?: Json
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload_json?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_training_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "employee_training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_training_materials: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          material_type: string
+          session_id: string
+          title: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          material_type?: string
+          session_id: string
+          title?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          material_type?: string
+          session_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_training_materials_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "employee_training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_training_messages: {
+        Row: {
+          author_type: string
+          content: string
+          created_at: string
+          id: string
+          session_id: string
+        }
+        Insert: {
+          author_type?: string
+          content?: string
+          created_at?: string
+          id?: string
+          session_id: string
+        }
+        Update: {
+          author_type?: string
+          content?: string
+          created_at?: string
+          id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_training_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "employee_training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_training_sessions: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_training_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enforcement_metrics: {
         Row: {
           created_at: string
