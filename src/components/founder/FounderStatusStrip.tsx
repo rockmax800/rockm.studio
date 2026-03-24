@@ -1,11 +1,12 @@
-import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
-  Shield,
-  Stamp,
-  AlertTriangle,
-  Rocket,
-  Clock,
+  Shield, Stamp, AlertTriangle, Rocket, Clock,
+  Pause, HeartPulse, FolderOpen,
 } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 interface FounderStatusStripProps {
   systemMode: string;
@@ -13,12 +14,8 @@ interface FounderStatusStripProps {
   highRiskCount: number;
   deployReadyCount: number;
   blockedCritical: number;
+  projects: { id: string; name: string }[];
 }
-
-const MODE_STYLES: Record<string, string> = {
-  production: "bg-status-green/15 text-status-green border-status-green/30",
-  experimental: "bg-status-amber/15 text-status-amber border-status-amber/30",
-};
 
 export function FounderStatusStrip({
   systemMode,
@@ -26,31 +23,74 @@ export function FounderStatusStrip({
   highRiskCount,
   deployReadyCount,
   blockedCritical,
+  projects,
 }: FounderStatusStripProps) {
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap bg-surface-sunken border border-border/40 rounded-lg px-3 py-1.5">
-      <Badge
-        variant="outline"
-        className={`text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 border ${MODE_STYLES[systemMode] ?? MODE_STYLES.production}`}
-      >
-        <Shield className="h-3 w-3 mr-1" />
-        {systemMode}
-      </Badge>
+  const navigate = useNavigate();
 
-      <Indicator icon={<Stamp className="h-3 w-3" />} value={pendingDecisions} label="Decisions" color={pendingDecisions > 0 ? "text-status-amber" : undefined} />
-      <Indicator icon={<AlertTriangle className="h-3 w-3" />} value={highRiskCount} label="High Risk" color={highRiskCount > 0 ? "text-status-red" : undefined} />
-      <Indicator icon={<Rocket className="h-3 w-3" />} value={deployReadyCount} label="Deploy Ready" color={deployReadyCount > 0 ? "text-status-cyan" : undefined} />
-      <Indicator icon={<Clock className="h-3 w-3" />} value={blockedCritical} label="Blocked" color={blockedCritical > 0 ? "text-status-red" : undefined} />
+  return (
+    <div className="flex items-center gap-2 h-11 bg-card rounded-[12px] border border-border px-4">
+      {/* Mode badge */}
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border">
+        <div className={`h-1.5 w-1.5 rounded-full ${systemMode === "production" ? "bg-status-green" : "bg-status-amber"}`} />
+        <span className="text-[11px] font-bold text-foreground uppercase tracking-wider">{systemMode}</span>
+      </div>
+
+      <div className="h-5 w-px bg-border mx-0.5" />
+
+      <Metric icon={Stamp} value={pendingDecisions} label="Decisions" warn={pendingDecisions > 0} warnColor="text-status-amber" />
+      <Metric icon={AlertTriangle} value={highRiskCount} label="High Risk" warn={highRiskCount > 0} warnColor="text-status-red" />
+      <Metric icon={Rocket} value={deployReadyCount} label="Deploy Ready" warn={deployReadyCount > 0} warnColor="text-status-cyan" />
+      {blockedCritical > 0 && (
+        <Metric icon={Clock} value={blockedCritical} label="Blocked" warn warnColor="text-status-red" />
+      )}
+
+      <div className="flex-1" />
+
+      {/* Right actions */}
+      <div className="flex items-center gap-1.5">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-[11px] px-2 gap-1 text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/system")}
+        >
+          <Pause className="h-3 w-3" /> Pause
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-[11px] px-2 gap-1 text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/system")}
+        >
+          <HeartPulse className="h-3 w-3" /> Health
+        </Button>
+
+        {/* Quick Project Jump */}
+        <Select onValueChange={(v) => navigate(`/projects/${v}`)}>
+          <SelectTrigger className="h-7 w-[130px] text-[11px] bg-secondary border-border rounded-lg">
+            <FolderOpen className="h-3 w-3 mr-1 text-muted-foreground" />
+            <SelectValue placeholder="Jump to…" />
+          </SelectTrigger>
+          <SelectContent>
+            {projects.map((p) => (
+              <SelectItem key={p.id} value={p.id} className="text-[11px]">{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
 
-function Indicator({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color?: string }) {
+function Metric({ icon: Icon, value, label, warn, warnColor }: {
+  icon: any; value: number; label: string; warn?: boolean; warnColor?: string;
+}) {
+  const color = warn && warnColor ? warnColor : "text-muted-foreground";
   return (
-    <div className={`flex items-center gap-1 px-1.5 py-0.5 ${color ?? "text-muted-foreground"}`}>
-      {icon}
-      <span className="text-xs font-bold font-mono leading-none">{value}</span>
-      <span className="text-[8px] opacity-60 hidden lg:inline">{label}</span>
+    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${color}`}>
+      <Icon className="h-3 w-3" />
+      <span className="text-[13px] font-bold font-mono tabular-nums">{value}</span>
+      <span className="text-[11px] font-medium hidden xl:inline">{label}</span>
     </div>
   );
 }
