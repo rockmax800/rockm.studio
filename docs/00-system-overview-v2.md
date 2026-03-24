@@ -137,6 +137,9 @@ Task (draft → ready → assigned → in_progress)
 Run (created → preparing → running → produced_output → finalized)
     │
     ├─── Provider call via RoutingPolicy
+    ├─── Execution trace: provider_id, model_id, tokens, cost, heartbeat
+    ├─── Workspace: branch_name, commit_sha (code domains)
+    ├─── Observability: correlation_id, logs_ref
     │
     ▼
 Artifact (created → classified → submitted → under_review)
