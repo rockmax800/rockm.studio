@@ -80,7 +80,7 @@ See `01-project-lifecycle.md` for full project state machine.
 | in_progress | waiting_review | Artifact submitted | Output exists |
 | in_progress | blocked | Dependency failure | Blocker recorded |
 | in_progress | escalated | Ambiguity/risk found | Escalation reason recorded |
-| waiting_review | **validated** | Reviewer accepts | Review verdict = approved |
+| waiting_review | **validated** | Reviewer accepts | Review verdict ∈ {approved, approved_with_notes} |
 | waiting_review | rework_required | Reviewer rejects | Review verdict = rejected |
 | rework_required | assigned | Task returned | Rework notes exist |
 | blocked | assigned | Blocker resolved | Blocker cleared |
@@ -88,6 +88,8 @@ See `01-project-lifecycle.md` for full project state machine.
 | **validated** | done | No further approval needed | Downstream complete |
 | **validated** | assigned | Follow-up needed | Next stage defined |
 | any non-terminal | cancelled | Founder cancels | Cancellation reason; actor=founder |
+
+> **approved_with_notes:** When `review.verdict = approved_with_notes`, the task proceeds to `validated` (same as `approved`), but a follow-up task is auto-created in `ready` state with `requested_outcome = clarification`. The follow-up must NOT auto-start — it requires explicit assignment.
 
 ### 4.3 Terminal States: `done`, `cancelled`
 

@@ -102,6 +102,7 @@ UC-02 Assign Task (ready → assigned; sets owner_role_id + creates Handoff)
           → UC-05 Submit Artifact for Review
             → UC-06 Resolve Review
               verdict=approved → Task → validated (UC-11 Complete Task)
+              verdict=approved_with_notes → Task → validated + follow-up task created (ready, not auto-started)
               verdict=rejected → Task → rework_required + rework Handoff created → UC-02 Reassign
               verdict=escalated → UC-20 Resolve Escalation
 ```

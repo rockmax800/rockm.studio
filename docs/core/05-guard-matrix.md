@@ -64,7 +64,7 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | T4 | in_progress → waiting_review | Artifact submitted | No output |
 | T5 | in_progress → blocked | Blocker reason recorded | Reason null |
 | T6 | in_progress → escalated | Escalation reason recorded | Reason null |
-| T7 | waiting_review → **validated** | Review verdict = approved | No review; verdict ≠ approved |
+| T7 | waiting_review → **validated** | Review verdict ∈ {approved, approved_with_notes} | No review; verdict ≠ approved/approved_with_notes |
 | T8 | waiting_review → rework_required | Review verdict = rejected | Verdict ≠ rejected |
 | T9 | rework_required → assigned | Rework notes exist | Notes missing |
 | T10 | blocked → assigned | Blocker cleared | Blocker active |
@@ -73,7 +73,8 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | T13 | **validated** → assigned | Next stage defined | No next stage |
 | T14 | any non-terminal → cancelled | Actor=founder; cancellation reason | Not founder; no reason |
 
-> **Note:** T7 checks `review.verdict == approved`, not `review.state`. T8 checks `review.verdict == rejected`.
+> **Note:** T7 checks `review.verdict ∈ {approved, approved_with_notes}`, not `review.state`. T8 checks `review.verdict == rejected`.
+> **Follow-up:** When verdict = `approved_with_notes`, a follow-up task (requested_outcome=clarification) is auto-created in `ready` state. It does NOT auto-start.
 
 ---
 
@@ -101,13 +102,13 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | A1 | created → classified | Source task/run exists | Both null |
 | A2 | classified → submitted | Target review/consumer exists | No target |
 | A3 | submitted → under_review | Review record exists | No review |
-| A4 | under_review → accepted | Review verdict = approved (terminal) | Review verdict non-terminal |
+| A4 | under_review → accepted | Review verdict ∈ {approved, approved_with_notes} | Review verdict non-terminal |
 | A5 | under_review → rejected | Review verdict = rejected | Verdict ≠ rejected |
 | A6 | accepted → frozen | Freeze reason recorded | No reason |
 | A7-A8 | accepted/rejected → superseded | Replacement artifact linked | No replacement |
 | A9-A10 | frozen/accepted → archived | Archival reason recorded | No reason |
 
-> **Note:** A4/A5 check `review.verdict`, not `review.state`.
+> **Note:** A4/A5 check `review.verdict`, not `review.state`. Both `approved` and `approved_with_notes` lead to artifact acceptance.
 
 ---
 

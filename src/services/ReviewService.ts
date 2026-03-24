@@ -169,7 +169,8 @@ export class ReviewService {
       toState: "accepted",
       actorType,
       projectId,
-      metadata: { use_case: "UC-06", trigger: "artifact accepted after review", review_id: reviewId },
+      metadata: { use_case: "UC-06", trigger: "artifact accepted after review", review_id: reviewId, verdict },
+      guardContext: { reviewApproved: true },
     });
 
     if (task) {
@@ -179,9 +180,25 @@ export class ReviewService {
         toState: "validated",
         actorType,
         projectId,
-        metadata: { use_case: "UC-06", trigger: "task validated after review", review_id: reviewId, artifact_id: artifact.id },
+        metadata: { use_case: "UC-06", trigger: "task validated after review", review_id: reviewId, artifact_id: artifact.id, verdict },
         guardContext: { reviewVerdict: verdict },
       });
+
+      // Follow-up task generation for approved_with_notes
+      if (verdict === "approved_with_notes" && nonBlockingNotes && (nonBlockingNotes as unknown[]).length > 0) {
+        try {
+          await this.createFollowUpTask({
+            projectId,
+            sourceTaskId: task.id,
+            reviewId,
+            notes: nonBlockingNotes,
+            actorType,
+          });
+        } catch {
+          // Best-effort — validation still stands without follow-up
+          logInfo("follow_up_task_creation_failed", { reviewId, taskId: task.id, verdict });
+        }
+      }
     }
 
     // PART 7 — Record RunEvaluation (approved → quality_score = 1)
@@ -392,5 +409,72 @@ export class ReviewService {
     }
 
     return task ?? artifact;
+  }
+
+  /**
+   * Creates a follow-up task when verdict is approved_with_notes.
+   * Follow-up task starts in "ready" state (spec-complete, no owner yet).
+   * It must NOT auto-start — requires explicit assignment via UC-02.
+   */
+  private async createFollowUpTask({
+    projectId,
+    sourceTaskId,
+    reviewId,
+    notes,
+    actorType,
+  }: {
+    projectId: string;
+    sourceTaskId: string;
+    reviewId: string;
+    notes: unknown[];
+    actorType: string;
+  }) {
+    const followUpTask = await this.prisma.$transaction(async (tx) => {
+      const sourceTask = await tx.tasks.findUniqueOrThrow({ where: { id: sourceTaskId } });
+
+      const task = await tx.tasks.create({
+        data: {
+          project_id: projectId,
+          title: `Follow-up: ${sourceTask.title ?? "Review notes"}`,
+          goal: "Address non-blocking notes from review",
+          requested_outcome: "clarification",
+          acceptance_criteria: notes,
+          constraints: [
+            { type: "follow_up", source_task_id: sourceTaskId, source_review_id: reviewId },
+          ],
+          state: "draft",
+          version: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      });
+
+      return task;
+    }, { isolationLevel: "Serializable" });
+
+    // Transition draft → ready (spec is complete)
+    await this.orchestration.transitionEntity({
+      entityType: "task",
+      entityId: followUpTask.id,
+      toState: "ready",
+      actorType,
+      projectId,
+      metadata: {
+        use_case: "UC-06",
+        trigger: "follow-up from approved_with_notes",
+        source_task_id: sourceTaskId,
+        source_review_id: reviewId,
+      },
+      guardContext: { acceptanceCriteria: notes },
+    });
+
+    logInfo("follow_up_task_created", {
+      followUpTaskId: followUpTask.id,
+      sourceTaskId,
+      reviewId,
+      noteCount: notes.length,
+    });
+
+    return followUpTask;
   }
 }
