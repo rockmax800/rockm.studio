@@ -7,51 +7,78 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import { getPersona } from "@/lib/personas";
 import { getMBTI } from "@/lib/mbtiData";
 import { getNationality } from "@/lib/nationalityData";
 import { ROLE_OPTIONS } from "@/lib/employeeConfig";
-import { PIPELINE_STAGES, STAGE_COLORS, resolveStageIndex } from "@/components/PipelineBar";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
 import {
-  Building2, Users, Activity, Zap, Stamp, FolderKanban,
-  AlertTriangle, ChevronRight, ChevronDown,
-  Shield, Play, Eye, Plus,
-  Smartphone, Bot, Globe, Cpu, Filter, UserPlus,
+  Activity, Users, Zap, Stamp, FolderKanban,
+  AlertTriangle, ChevronRight, Shield, Play, Eye,
+  UserPlus, OctagonX,
+  CheckCircle, XCircle, Upload, ThumbsUp, ThumbsDown,
+  Rocket, ArrowRight, GitPullRequest, Loader2,
 } from "lucide-react";
 
-const DEPT_ICONS: Record<string, React.ElementType> = {
-  Smartphone, Bot, Globe, Building2, Cpu,
+/* ═══════════════════════════════════════════════════════════════
+   CINEMATIC STUDIO CONSTANTS
+   ═══════════════════════════════════════════════════════════════ */
+
+const ROOM_POSITIONS = [
+  { gridArea: "1 / 1 / 2 / 2", glow: "from-blue-500/6 to-transparent" },
+  { gridArea: "1 / 2 / 2 / 3", glow: "from-violet-500/6 to-transparent" },
+  { gridArea: "2 / 1 / 3 / 2", glow: "from-amber-500/6 to-transparent" },
+  { gridArea: "2 / 2 / 3 / 3", glow: "from-emerald-500/6 to-transparent" },
+];
+
+const STATUS_GLOW: Record<string, { ring: string; dot: string; label: string; anim?: string }> = {
+  working:   { ring: "ring-green-500/60",  dot: "bg-green-400",   label: "Working",   anim: "animate-pulse" },
+  reviewing: { ring: "ring-amber-500/60",  dot: "bg-amber-400",   label: "Reviewing" },
+  blocked:   { ring: "ring-red-500/60",    dot: "bg-red-400",     label: "Blocked" },
+  idle:      { ring: "ring-white/10",      dot: "bg-white/20",    label: "Idle" },
 };
 
-const DEPT_TINTS: Record<number, string> = {
-  0: "from-blue-50/60 to-blue-50/20",
-  1: "from-violet-50/60 to-violet-50/20",
-  2: "from-amber-50/60 to-amber-50/20",
-  3: "from-emerald-50/60 to-emerald-50/20",
-  4: "from-rose-50/60 to-rose-50/20",
+/* ═══ EVENT CONFIG ═══ */
+const EVT: Record<string, { dot: string; label: string }> = {
+  "task.assigned":      { dot: "bg-blue-400",   label: "Task Assigned" },
+  "run.started":        { dot: "bg-amber-400",  label: "Run Started" },
+  "run.completed":      { dot: "bg-green-400",  label: "Run Completed" },
+  "run.failed":         { dot: "bg-red-400",    label: "Run Failed" },
+  "artifact.submitted": { dot: "bg-cyan-400",   label: "Artifact Submitted" },
+  "review.approved":    { dot: "bg-green-400",  label: "Review Approved" },
+  "review.rejected":    { dot: "bg-red-400",    label: "Review Rejected" },
+  "deploy.live":        { dot: "bg-green-400",  label: "Deploy Live" },
+  task_assigned:        { dot: "bg-blue-400",   label: "Task Assigned" },
+  run_started:          { dot: "bg-amber-400",  label: "Run Started" },
+  run_completed:        { dot: "bg-green-400",  label: "Run Completed" },
+  run_failed:           { dot: "bg-red-400",    label: "Run Failed" },
+  artifact_submitted:   { dot: "bg-cyan-400",   label: "Artifact Submitted" },
+  review_approved:      { dot: "bg-green-400",  label: "Review Approved" },
+  review_rejected:      { dot: "bg-red-400",    label: "Review Rejected" },
+  deployment_started:   { dot: "bg-indigo-400", label: "Deploy Started" },
+  deployment_completed: { dot: "bg-green-400",  label: "Deploy Completed" },
+  approval_created:     { dot: "bg-amber-400",  label: "Approval Created" },
+  task_escalated:       { dot: "bg-pink-400",   label: "Task Escalated" },
+  handoff_created:      { dot: "bg-blue-300",   label: "Handoff Created" },
+  pr_created:           { dot: "bg-violet-400", label: "PR Created" },
 };
 
-const DEPT_BORDER: Record<number, string> = {
-  0: "border-blue-200/50",
-  1: "border-violet-200/50",
-  2: "border-amber-200/50",
-  3: "border-emerald-200/50",
-  4: "border-rose-200/50",
-};
+const DEFAULT_EVT = { dot: "bg-white/30", label: "Event" };
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN PAGE
+   ═══════════════════════════════════════════════════════════════ */
 
 export default function OfficePage() {
   const { data, isLoading, error } = useOfficeData();
   useOfficeRealtime();
   const navigate = useNavigate();
   const { data: departments = [] } = useDepartments();
-  const [expandedDeptId, setExpandedDeptId] = useState<string | null>(null);
-  const [stageFilter, setStageFilter] = useState<string | null>(null);
 
-  // Query roles with skill_profile for MBTI/nationality
   const { data: allRolesWithProfile = [] } = useQuery({
     queryKey: ["office-roles-profile"],
     queryFn: async () => {
@@ -78,7 +105,6 @@ export default function OfficePage() {
     };
   }, [data]);
 
-  // Build enriched employees per team
   const teamEmployeesEnriched = useMemo(() => {
     if (!data) return {};
     const map: Record<string, any[]> = {};
@@ -112,6 +138,7 @@ export default function OfficePage() {
         reputationScore: emp.reputation_score ?? 0,
         bugRate: emp.bug_rate ?? 0,
         taskTitle: activeTask?.title ?? null,
+        taskState: activeTask?.state ?? null,
         taskCount: tasks.filter((t: any) => !["done", "cancelled"].includes(t.state)).length,
         mbtiCode: sp?.mbtiCode ?? null,
         nationalityCode: sp?.nationalityCode ?? null,
@@ -123,68 +150,39 @@ export default function OfficePage() {
     return map;
   }, [data, roleProfileById]);
 
-  /* ── Pipeline stage counts for filter bar ── */
-  const stageCounts = useMemo(() => {
-    if (!data) return {};
-    const counts: Record<string, number> = {};
-    for (const p of data.projects) {
-      const idx = resolveStageIndex(p.state);
-      if (idx >= 0) {
-        const key = PIPELINE_STAGES[idx].key;
-        counts[key] = (counts[key] ?? 0) + 1;
-      }
-    }
-    return counts;
-  }, [data]);
-
-  /* ── Filtered projects by stage ── */
-  const filteredProjects = useMemo(() => {
+  /* ── Event feed ── */
+  const mergedEvents = useMemo(() => {
     if (!data) return [];
-    if (!stageFilter) return data.projects;
-    return data.projects.filter((p: any) => {
-      const idx = resolveStageIndex(p.state);
-      return idx >= 0 && PIPELINE_STAGES[idx].key === stageFilter;
-    });
-  }, [data, stageFilter]);
-
-  const deptTasks = useMemo(() => {
-    if (!data || !expandedDeptId) return [];
-    const team = data.teams.find((t: any) => t.id === expandedDeptId);
-    if (!team) return [];
-    const roleIds = new Set(team.roles.map((r: any) => r.id));
-    const projectMap = Object.fromEntries(data.projects.map((p: any) => [p.id, p.name]));
-
-    let tasks = data.allTasks
-      .filter((t: any) => t.owner_role_id && roleIds.has(t.owner_role_id) && !["done", "cancelled"].includes(t.state));
-
-    if (stageFilter) {
-      const filteredProjectIds = new Set(filteredProjects.map((p: any) => p.id));
-      tasks = tasks.filter((t: any) => filteredProjectIds.has(t.project_id));
-    }
-
-    return tasks.map((t: any) => ({
-      id: t.id,
-      title: t.title,
-      state: t.state,
-      projectName: projectMap[t.project_id] ?? "—",
-      roleCode: t.role_code,
-      employeeName: t.employee_name,
-      latestRunState: t.latest_run_state,
-      hasPendingReview: t.has_pending_review,
+    const officeEvts = (data.officeEvents ?? []).map((e: any) => ({
+      id: e.id,
+      type: e.event_type,
+      time: e.timestamp,
+      meta: e.from_zone && e.to_zone ? `${e.from_zone} → ${e.to_zone}` : undefined,
     }));
-  }, [data, expandedDeptId, stageFilter, filteredProjects]);
+    const actEvts = (data.recentEvents ?? []).slice(0, 50).map((e: any) => ({
+      id: e.id,
+      type: e.event_type,
+      time: e.created_at,
+      meta: `${e.entity_type} · ${e.actor_type}`,
+    }));
+    return [...officeEvts, ...actEvts]
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .slice(0, 60);
+  }, [data]);
 
   if (isLoading) {
     return (
       <AppLayout title="Production Floor">
-        <div className="flex items-center gap-2 p-8 text-[14px] text-muted-foreground">Loading production floor…</div>
+        <div className="flex items-center justify-center min-h-[60vh] text-[14px] text-white/40">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading studio…
+        </div>
       </AppLayout>
     );
   }
   if (error || !data) {
     return (
       <AppLayout title="Production Floor">
-        <div className="flex items-center gap-2 p-8 text-[14px] text-destructive">Error loading data.</div>
+        <div className="flex items-center gap-2 p-8 text-[14px] text-red-400">Error loading data.</div>
       </AppLayout>
     );
   }
@@ -195,401 +193,335 @@ export default function OfficePage() {
 
   return (
     <AppLayout title="Production Floor">
-      <div className="grid-content space-y-5 pb-8">
+      {/* ═══ DARK STUDIO CANVAS ═══ */}
+      <div className="relative min-h-[calc(100vh-64px)] -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8"
+        style={{ background: "linear-gradient(180deg, #0E1116 0%, #141920 50%, #0E1116 100%)" }}>
 
-        {/* ═══ FIRST-TIME SETUP ══════════════════════════════════ */}
-        {hasNoSetup && (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card shadow-sm p-12 text-center max-w-[700px] mx-auto my-8">
-            <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-6">
-              <Building2 className="h-10 w-10 text-primary/30" />
-            </div>
-            <h1 className="text-[28px] font-bold text-foreground tracking-tight">Set Up Your AI Production Team</h1>
-            <p className="text-[16px] text-muted-foreground mt-3 leading-relaxed max-w-[460px] mx-auto">
-              Create capabilities and add AI team members to activate your production floor.
-            </p>
-            <div className="flex items-center justify-center gap-3 mt-8">
-              <Link to="/teams">
-                <Button className="h-12 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                  <Zap className="h-4 w-4" /> Create Capability
-                </Button>
-              </Link>
-              <AddEmployeeDialog
-                teamName="Unassigned"
-                trigger={
-                  <Button variant="outline" className="h-12 px-6 gap-2 text-[14px] font-bold rounded-xl">
-                    <UserPlus className="h-4 w-4" /> Add Team Member
-                  </Button>
-                }
-              />
-            </div>
-          </div>
-        )}
+        {/* Vignette overlay */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
+          }}
+        />
 
-        {!hasNoSetup && (
-          <>
-            {/* ═══ PIPELINE STAGE FILTER BAR ═══════════════════════════ */}
-            <div className="rounded-2xl bg-card border border-border shadow-sm px-5 py-3.5">
-              <div className="flex items-center gap-2 overflow-x-auto">
-                <Filter className="h-4 w-4 text-muted-foreground/50 shrink-0" />
-                <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 mr-1">Stage</span>
-                <button
-                  onClick={() => setStageFilter(null)}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all shrink-0",
-                    !stageFilter ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary",
-                  )}
-                >
-                  All
-                  <span className="font-mono text-[11px]">{data.projects.length}</span>
-                </button>
-                {PIPELINE_STAGES.map((stage) => {
-                  const count = stageCounts[stage.key] ?? 0;
-                  const isActive = stageFilter === stage.key;
-                  const colors = STAGE_COLORS[stage.key];
-                  const Icon = stage.icon;
-                  if (count === 0 && !isActive) return null;
-                  return (
-                    <button
-                      key={stage.key}
-                      onClick={() => setStageFilter(isActive ? null : stage.key)}
-                      className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all shrink-0 border",
-                        isActive
-                          ? `${colors.activeBg} ${colors.border} ${colors.active}`
-                          : "border-transparent text-muted-foreground hover:bg-secondary",
-                      )}
-                    >
-                      <Icon className={cn("h-3.5 w-3.5", isActive ? colors.active : "text-muted-foreground/40")} />
-                      {stage.label}
-                      <span className={cn("font-mono text-[11px]", isActive ? colors.active : "text-muted-foreground/50")}>{count}</span>
-                    </button>
-                  );
-                })}
+        {/* Subtle industrial texture */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+
+        <div className="relative z-10 px-6 py-5">
+
+          {/* ═══ STUDIO TOP BAR ═══════════════════════════════════ */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
+                <span className="text-[13px] font-bold text-white/90 uppercase tracking-[0.2em]">Production</span>
               </div>
-            </div>
-
-            {/* ═══ TOP BAR ═══════════════════════════════════════════ */}
-            <div className="flex items-center gap-5 px-1 text-[13px]">
-              <div className="flex items-center gap-1.5">
-                <div className="h-2 w-2 rounded-full bg-status-green animate-pulse" />
-                <span className="font-bold text-foreground uppercase tracking-widest text-[11px]">Production</span>
-              </div>
-              <TopMetric icon={FolderKanban} value={stats.projects} label="Projects" />
-              <TopMetric icon={Activity} value={stats.tasks} label="Active Tasks" />
-              <TopMetric icon={Zap} value={stats.runs} label="Runs" accent={stats.runs > 0} accentCls="text-status-blue" />
-              <TopMetric icon={Stamp} value={stats.approvals} label="Approvals" accent={stats.approvals > 0} accentCls="text-status-amber" />
+              <div className="h-5 w-px bg-white/10" />
+              <StudioStat icon={FolderKanban} value={stats.projects} label="Projects" />
+              <StudioStat icon={Zap} value={stats.runs} label="Runs" active={stats.runs > 0} />
+              <StudioStat icon={Stamp} value={stats.approvals} label="Approvals" active={stats.approvals > 0} warn />
               {stats.blocked > 0 && (
-                <TopMetric icon={AlertTriangle} value={stats.blocked} label="Blocked" accent accentCls="text-destructive" />
+                <StudioStat icon={AlertTriangle} value={stats.blocked} label="Blocked" active danger />
               )}
             </div>
+          </div>
 
-            {/* ═══ CAPABILITY ROOMS ══════════════════════════════════ */}
-            <div>
-              <h2 className="text-[22px] font-bold text-foreground tracking-tight mb-4">Capability Rooms</h2>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {teamData.map((team: any, idx: number) => {
-                  const isExpanded = expandedDeptId === team.id;
-                  const Icon = DEPT_ICONS[departments.find((d) => d.name.includes(team.name?.split(" ")[0]))?.icon ?? ""] ?? Building2;
-                  const employees = teamEmployeesEnriched[team.id] ?? [];
-                  const loadPct = Math.round((team.load_ratio ?? 0) * 100);
-                  const successRate = employees.length > 0
-                    ? Math.round(employees.reduce((s: number, e: any) => s + (e.successRate ?? 0), 0) / employees.length * 100)
-                    : 0;
-
-                  return (
-                    <div key={team.id} className={`rounded-2xl border overflow-hidden transition-all shadow-sm ${
-                      isExpanded
-                        ? `${DEPT_BORDER[idx % 5]} shadow-md lg:col-span-2`
-                        : "border-border hover:border-border-strong hover:shadow-md"
-                    }`}>
-                      {/* Card header */}
-                      <button
-                        onClick={() => setExpandedDeptId(isExpanded ? null : team.id)}
-                        className={`w-full text-left px-6 py-5 bg-gradient-to-br ${DEPT_TINTS[idx % 5]} hover:brightness-[0.98] transition-all`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-4 flex-1 min-w-0">
-                            <div className="h-12 w-12 rounded-xl bg-card/80 border border-border/30 flex items-center justify-center shadow-sm shrink-0">
-                              <Icon className="h-6 w-6 text-foreground/70" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-[18px] font-bold text-foreground leading-tight">{team.name}</h3>
-                              <p className="text-[13px] text-muted-foreground mt-0.5">{team.focus_domain || "Production Capability"}</p>
-                              <div className="flex items-center gap-5 mt-3">
-                                <MiniStat icon={Users} value={employees.length} label="members" />
-                                <MiniStat icon={Activity} value={team.active_tasks} label="tasks" />
-                                <MiniStat icon={Shield} value={`${successRate}%`} label="success" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2 shrink-0">
-                            <div className="flex items-center gap-2">
-                              <Badge className={`text-[10px] font-bold px-2 py-0.5 ${
-                                team.load_status === "overloaded"
-                                  ? "bg-destructive/10 text-destructive border-destructive/20"
-                                  : team.load_status === "high"
-                                    ? "bg-status-amber/10 text-status-amber border-status-amber/20"
-                                    : "bg-status-green/10 text-status-green border-status-green/20"
-                              }`}>
-                                {team.load_status === "overloaded" ? "Overloaded" : team.load_status === "high" ? "High Load" : "Balanced"}
-                              </Badge>
-                              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                            </div>
-                            <div className="flex items-center gap-2 w-32">
-                              <Progress value={loadPct} className="h-2 flex-1" />
-                              <span className="text-[11px] font-mono font-bold text-muted-foreground">{loadPct}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-
-                      {/* Expanded room */}
-                      {isExpanded && (
-                        <div className="border-t border-border/30">
-                          <div className="px-6 py-5">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="text-[16px] font-bold text-foreground">Team Members</h4>
-                              <div className="flex items-center gap-2">
-                              </div>
-                            </div>
-
-                            {employees.length === 0 ? (
-                              <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/5 p-8 text-center">
-                                <Users className="h-10 w-10 text-muted-foreground/15 mx-auto mb-3" />
-                                <p className="text-[18px] font-bold text-foreground">No team members yet</p>
-                                <p className="text-[14px] text-muted-foreground mt-1.5 max-w-[380px] mx-auto">
-                                  Add AI employees to this capability to see them working on the production floor.
-                                </p>
-                                <AddEmployeeDialog teamId={team.id} teamName={team.name}
-                                  trigger={
-                                    <Button className="mt-4 h-10 px-5 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                                      <UserPlus className="h-4 w-4" /> Add First Member
-                                    </Button>
-                                  }
-                                />
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {employees.map((emp: any) => (
-                                  <OfficeEmployeeCard key={emp.id ?? emp.roleId} employee={emp} onClick={() => navigate(`/employees/${emp.id}`)} />
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {deptTasks.length > 0 && (
-                            <div className="border-t border-border/20 px-6 py-4 bg-secondary/20">
-                              <h4 className="text-[14px] font-bold text-foreground mb-3">Active Tasks</h4>
-                              <div className="space-y-1">
-                                {deptTasks.slice(0, 10).map((task: any) => (
-                                  <DeptTaskRow key={task.id} task={task} onClick={() => navigate(`/control/tasks/${task.id}`)} />
-                                ))}
-                                {deptTasks.length > 10 && (
-                                  <div className="text-[12px] text-muted-foreground/50 text-center pt-2">+{deptTasks.length - 10} more</div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {teamData.length === 0 && totalEmployees > 0 && (
-                <div className="text-center py-12">
-                  <Building2 className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-[18px] font-bold text-foreground">Create capabilities to organize your team</p>
-                  <p className="text-[14px] text-muted-foreground mt-1.5 max-w-[400px] mx-auto">
-                    You have {totalEmployees} team member{totalEmployees > 1 ? "s" : ""} — assign them to capability pools.
-                  </p>
+          {/* ═══ FIRST TIME EMPTY STATE ═══════════════════════════ */}
+          {hasNoSetup && (
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center max-w-[520px]">
+                <div className="h-24 w-24 rounded-3xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-8">
+                  <Users className="h-12 w-12 text-white/10" />
+                </div>
+                <h1 className="text-[32px] font-bold text-white/90 tracking-tight">This studio has no team yet.</h1>
+                <p className="text-[16px] text-white/30 mt-3 leading-relaxed">
+                  Create capabilities and add AI team members to activate the production floor.
+                </p>
+                <div className="flex items-center justify-center gap-3 mt-8">
                   <Link to="/teams">
-                    <Button className="mt-5 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                      <Users className="h-4 w-4" /> Go to Teams Setup
+                    <Button className="h-12 px-7 gap-2 text-[14px] font-bold rounded-xl bg-white text-[#0E1116] hover:bg-white/90">
+                      <Zap className="h-4 w-4" /> Build Your AI Team
                     </Button>
                   </Link>
                 </div>
-              )}
+              </div>
             </div>
-          </>
-        )}
+          )}
+
+          {/* ═══ STUDIO MAIN LAYOUT ══════════════════════════════ */}
+          {!hasNoSetup && (
+            <div className="flex gap-5">
+              {/* ── Rooms Grid ── */}
+              <div className="flex-1 min-w-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-min">
+                  {teamData.map((team: any, idx: number) => {
+                    const employees = teamEmployeesEnriched[team.id] ?? [];
+                    const pos = ROOM_POSITIONS[idx % ROOM_POSITIONS.length];
+                    const activeCount = employees.filter((e: any) => e.status !== "idle").length;
+                    const successRate = employees.length > 0
+                      ? Math.round(employees.reduce((s: number, e: any) => s + (e.successRate ?? 0), 0) / employees.length * 100)
+                      : 0;
+
+                    return (
+                      <div key={team.id} className="relative rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
+                        {/* Room glow */}
+                        {activeCount > 0 && (
+                          <div className={`absolute inset-0 bg-gradient-radial ${pos.glow} pointer-events-none`} />
+                        )}
+
+                        <div className="relative p-5">
+                          {/* Room header */}
+                          <div className="flex items-start justify-between mb-5">
+                            <div>
+                              <h3 className="text-[20px] font-bold text-white/90 tracking-tight">{team.name}</h3>
+                              <p className="text-[12px] text-white/25 mt-0.5">{team.focus_domain || "Production Capability"}</p>
+                            </div>
+                            <div className="flex items-center gap-3 text-[11px] text-white/30">
+                              <span><strong className="text-white/60 font-mono">{employees.length}</strong> members</span>
+                              <span><strong className="text-white/60 font-mono">{successRate}%</strong> success</span>
+                            </div>
+                          </div>
+
+                          {/* Employees */}
+                          {employees.length === 0 ? (
+                            <div className="flex flex-col items-center py-8 text-center">
+                              <Users className="h-8 w-8 text-white/[0.06] mb-3" />
+                              <p className="text-[14px] font-semibold text-white/20">No team members</p>
+                              <AddEmployeeDialog teamId={team.id} teamName={team.name}
+                                trigger={
+                                  <Button variant="ghost" className="mt-3 h-9 px-4 gap-2 text-[12px] font-bold text-white/40 hover:text-white/70 hover:bg-white/5 rounded-lg">
+                                    <UserPlus className="h-3.5 w-3.5" /> Add Member
+                                  </Button>
+                                }
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-5">
+                              {employees.map((emp: any) => (
+                                <StudioEmployee key={emp.id ?? emp.roleId} emp={emp} onClick={() => navigate(`/employees/${emp.id}`)} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Room bottom light line */}
+                        <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {teamData.length === 0 && totalEmployees > 0 && (
+                  <div className="text-center py-16">
+                    <p className="text-[18px] font-bold text-white/60">Create capabilities to organize your team</p>
+                    <p className="text-[14px] text-white/25 mt-2">
+                      You have {totalEmployees} team member{totalEmployees > 1 ? "s" : ""}.
+                    </p>
+                    <Link to="/teams">
+                      <Button className="mt-5 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-white text-[#0E1116] hover:bg-white/90">
+                        <Users className="h-4 w-4" /> Go to Teams Setup
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Live Flow Side Panel ── */}
+              <div className="hidden xl:block w-[280px] shrink-0">
+                <div className="sticky top-20 rounded-2xl border border-white/[0.06] bg-white/[0.015] backdrop-blur-sm p-4 max-h-[calc(100vh-120px)]">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-[14px] font-bold text-white/70 tracking-tight">Live Flow</h3>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_rgba(74,222,128,0.3)]" />
+                      <span className="text-[10px] font-bold text-green-400/70">LIVE</span>
+                    </div>
+                  </div>
+
+                  {mergedEvents.length === 0 ? (
+                    <div className="flex items-center gap-2 py-6 text-[12px] text-white/20 justify-center">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Waiting for events…
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-[calc(100vh-220px)]">
+                      <div className="space-y-0 pr-2">
+                        {mergedEvents.map((evt, i) => {
+                          const cfg = EVT[evt.type] ?? DEFAULT_EVT;
+                          return (
+                            <div key={evt.id}
+                              className="flex items-start gap-2.5 py-2 animate-fade-in"
+                              style={{ animationDelay: `${Math.min(i * 15, 150)}ms` }}
+                            >
+                              {/* Color strip + dot */}
+                              <div className="flex flex-col items-center w-2 shrink-0 pt-1">
+                                <div className={`h-2 w-2 rounded-full ${cfg.dot} shadow-[0_0_4px_currentColor]`} />
+                                {i < mergedEvents.length - 1 && <div className="flex-1 w-px bg-white/[0.04] min-h-[12px]" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-semibold text-white/50 truncate">{cfg.label}</p>
+                                {evt.meta && (
+                                  <p className="text-[10px] text-white/20 truncate mt-0.5">{evt.meta}</p>
+                                )}
+                                <p className="text-[9px] font-mono text-white/15 mt-0.5">
+                                  {formatDistanceToNow(new Date(evt.time), { addSuffix: true })}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );
 }
 
-/* ═══ Sub-components ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   STUDIO SUB-COMPONENTS
+   ═══════════════════════════════════════════════════════════════ */
 
-function TopMetric({ icon: Icon, value, label, accent, accentCls }: {
-  icon: React.ElementType; value: number; label: string; accent?: boolean; accentCls?: string;
+function StudioStat({ icon: Icon, value, label, active, warn, danger }: {
+  icon: React.ElementType; value: number; label: string; active?: boolean; warn?: boolean; danger?: boolean;
 }) {
-  const color = accent && accentCls ? accentCls : "text-muted-foreground";
+  const color = danger ? "text-red-400" : warn && active ? "text-amber-400" : active ? "text-blue-400" : "text-white/30";
   return (
     <div className={`flex items-center gap-1.5 ${color}`}>
       <Icon className="h-3.5 w-3.5" />
-      <span className="font-bold font-mono text-foreground tabular-nums">{value}</span>
-      <span className="text-[12px] font-medium">{label}</span>
+      <span className="font-bold font-mono text-white/80 tabular-nums text-[13px]">{value}</span>
+      <span className="text-[11px] font-medium">{label}</span>
     </div>
   );
 }
 
-function MiniStat({ icon: Icon, value, label }: { icon: React.ElementType; value: number | string; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <Icon className="h-3.5 w-3.5 text-muted-foreground/50" />
-      <span className="text-[13px] font-bold text-foreground">{value}</span>
-      <span className="text-[12px] text-muted-foreground">{label}</span>
-    </div>
-  );
-}
+/* ═══ CINEMATIC EMPLOYEE AVATAR ═══ */
+function StudioEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
+  const persona = getPersona(emp.code);
+  const sg = STATUS_GLOW[emp.status] ?? STATUS_GLOW.idle;
+  const repScore = Math.round((emp.reputationScore ?? 0) * 100);
+  const successPct = Math.round((emp.successRate ?? 0) * 100);
+  const roleName = ROLE_OPTIONS.find(r => r.code === emp.code)?.label ?? emp.code;
+  const mbti = emp.mbtiCode ? getMBTI(emp.mbtiCode) : null;
+  const nation = emp.nationalityCode ? getNationality(emp.nationalityCode) : null;
+  const perfColor = repScore >= 80 ? "ring-green-500/50" : repScore >= 50 ? "ring-amber-500/50" : "ring-red-500/50";
 
-const STATUS_CHIP: Record<string, { label: string; cls: string; dotCls: string }> = {
-  working:   { label: "Working",   cls: "bg-status-amber/10 text-status-amber",       dotCls: "bg-status-amber animate-pulse" },
-  reviewing: { label: "Reviewing", cls: "bg-lifecycle-review/10 text-lifecycle-review", dotCls: "bg-lifecycle-review" },
-  blocked:   { label: "Blocked",   cls: "bg-destructive/10 text-destructive",           dotCls: "bg-destructive" },
-  idle:      { label: "Idle",      cls: "bg-secondary text-muted-foreground",           dotCls: "bg-muted-foreground/25" },
-};
-
-/* ═══ ENRICHED EMPLOYEE CARD WITH MBTI + NATIONALITY + TOOLTIP ═══ */
-function OfficeEmployeeCard({ employee, onClick }: { employee: any; onClick: () => void }) {
-  const persona = getPersona(employee.code);
-  const chip = STATUS_CHIP[employee.status] ?? STATUS_CHIP.idle;
-  const repScore = Math.round((employee.reputationScore ?? 0) * 100);
-  const successPct = Math.round((employee.successRate ?? 0) * 100);
-  const perfColor = repScore >= 80 ? "text-status-green" : repScore >= 50 ? "text-status-amber" : "text-destructive";
-  const perfRing = repScore >= 80 ? "border-status-green/40" : repScore >= 50 ? "border-status-amber/40" : "border-destructive/40";
-  const roleName = ROLE_OPTIONS.find(r => r.code === employee.code)?.label ?? employee.code;
-  const mbti = employee.mbtiCode ? getMBTI(employee.mbtiCode) : null;
-  const nation = employee.nationalityCode ? getNationality(employee.nationalityCode) : null;
-  const isProbation = employee.empStatus === "probation";
-  const isOnboarding = employee.empStatus === "onboarding";
-  const bugPct = Math.round((employee.bugRate ?? 0) * 100);
+  const STATE_LABEL: Record<string, string> = {
+    in_progress: "In Progress",
+    waiting_review: "In Review",
+    blocked: "Blocked",
+  };
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div onClick={onClick}
-            className={`group flex flex-col items-center text-center px-5 py-5 rounded-2xl border bg-card hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer ${
-              isProbation ? "border-status-amber/30 bg-status-amber/[0.02]" : "border-border"
-            }`}>
-            {/* Avatar with perf ring */}
-            <div className="relative mb-3">
-              <div className={`rounded-2xl border-[3px] ${perfRing} p-1`}>
-                <img src={persona.avatar} alt={employee.name}
-                  className={`h-[100px] w-[100px] rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
-                  width={100} height={100} loading="lazy" />
+            className="group flex flex-col items-center text-center w-[110px] cursor-pointer transition-all duration-200 hover:-translate-y-1"
+          >
+            {/* Avatar with performance ring */}
+            <div className="relative mb-2">
+              <div className={cn(
+                "rounded-2xl p-[3px] ring-2 ring-offset-2 ring-offset-[#0E1116] transition-all duration-200",
+                perfColor,
+                emp.status !== "idle" && sg.ring,
+              )}>
+                <img src={persona.avatar} alt={emp.name}
+                  className="h-[72px] w-[72px] rounded-xl object-cover"
+                  width={72} height={72} loading="lazy" />
               </div>
-              <span className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-card ${chip.dotCls}`} />
-              {isProbation && (
-                <span className="absolute -top-1 -right-1">
-                  <AlertTriangle className="h-4 w-4 text-status-amber" />
-                </span>
-              )}
+              {/* Status dot */}
+              <span className={cn(
+                "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0E1116]",
+                sg.dot, sg.anim,
+                emp.status !== "idle" && "shadow-[0_0_6px_currentColor]",
+              )} />
             </div>
 
-            {/* Name + Role */}
-            <h5 className="text-[16px] font-bold text-foreground leading-tight">{employee.name}</h5>
-            <p className="text-[12px] text-muted-foreground mt-0.5 font-medium">{roleName}</p>
+            {/* Name */}
+            <p className="text-[12px] font-bold text-white/80 leading-tight truncate max-w-full group-hover:text-white transition-colors">{emp.name}</p>
+            <p className="text-[10px] text-white/25 truncate max-w-full mt-0.5">{roleName}</p>
 
-            {/* Tags row: MBTI + Flag + Seniority */}
-            <div className="flex items-center gap-1.5 mt-2.5 flex-wrap justify-center">
-              {mbti && (
-                <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0 h-5 border-border">
-                  {mbti.code}
-                </Badge>
-              )}
-              {nation && (
-                <span className="text-[14px] leading-none">{nation.flag}</span>
-              )}
-              {employee.seniority && (
-                <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0 h-5">
-                  {employee.seniority}
-                </Badge>
-              )}
-              {isOnboarding && (
-                <Badge className="text-[9px] font-bold px-1.5 py-0 h-5 bg-status-blue/10 text-status-blue border-status-blue/20">
-                  Onboarding
-                </Badge>
-              )}
-            </div>
+            {/* Status label */}
+            <span className={cn(
+              "text-[9px] font-bold px-2 py-0.5 rounded-full mt-1.5 transition-colors",
+              emp.status === "working" && "bg-green-500/15 text-green-400",
+              emp.status === "reviewing" && "bg-amber-500/15 text-amber-400",
+              emp.status === "blocked" && "bg-red-500/15 text-red-400",
+              emp.status === "idle" && "bg-white/5 text-white/20",
+            )}>
+              {sg.label}
+            </span>
 
-            {/* Status + Score */}
-            <span className={`mt-2.5 text-[11px] font-bold px-3 py-1 rounded-full ${chip.cls}`}>{chip.label}</span>
-            <div className="flex items-center gap-3 mt-2.5">
-              <span className={`text-[20px] font-bold font-mono tabular-nums ${perfColor}`}>{repScore}</span>
-              <span className="text-[11px] text-muted-foreground">score</span>
-            </div>
-
-            {/* Stack pills */}
-            {employee.primaryStack?.length > 0 && (
-              <div className="flex gap-1 mt-2 flex-wrap justify-center">
-                {employee.primaryStack.slice(0, 3).map((s: string) => (
-                  <Badge key={s} variant="outline" className="text-[9px] font-bold px-1 py-0 h-4 border-border/50">{s}</Badge>
-                ))}
+            {/* Floating task card */}
+            {emp.taskTitle && (
+              <div className="mt-2 w-full px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-left">
+                <p className="text-[9px] text-white/40 line-clamp-1">{emp.taskTitle}</p>
+                {emp.taskState && (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <div className={cn("h-1.5 w-1.5 rounded-full",
+                      emp.taskState === "in_progress" && "bg-amber-400",
+                      emp.taskState === "waiting_review" && "bg-violet-400",
+                      emp.taskState === "blocked" && "bg-red-400",
+                    )} />
+                    <span className="text-[8px] text-white/25 font-medium">{STATE_LABEL[emp.taskState] ?? emp.taskState}</span>
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Current task */}
-            {employee.taskTitle && (
-              <p className="text-[11px] text-muted-foreground mt-2 line-clamp-1 max-w-full italic">"{employee.taskTitle}"</p>
-            )}
-
-            <div className="mt-2.5 flex items-center gap-1 text-[11px] text-muted-foreground/30 group-hover:text-primary transition-colors">
-              <span>View Profile</span>
-              <ChevronRight className="h-3 w-3" />
-            </div>
           </div>
         </TooltipTrigger>
 
-        {/* ═══ HOVER TOOLTIP ═══ */}
-        <TooltipContent side="right" className="max-w-[320px] p-4 space-y-2.5">
-          <div className="flex items-center gap-2.5">
-            <img src={persona.avatar} alt={employee.name} className="h-8 w-8 rounded-lg object-cover" width={32} height={32} />
+        {/* ═══ HOVER PROFILE CARD ═══ */}
+        <TooltipContent side="right" sideOffset={12}
+          className="max-w-[300px] p-4 space-y-2.5 bg-[#1a1f28] border-white/10 text-white shadow-2xl shadow-black/40"
+        >
+          <div className="flex items-center gap-3">
+            <img src={persona.avatar} alt={emp.name} className="h-10 w-10 rounded-xl object-cover" width={40} height={40} />
             <div>
-              <p className="text-[14px] font-bold text-foreground">{employee.name}</p>
-              <p className="text-[12px] text-muted-foreground">{roleName}{employee.seniority ? ` · ${employee.seniority}` : ""}</p>
+              <p className="text-[14px] font-bold text-white">{emp.name}</p>
+              <p className="text-[11px] text-white/40">{roleName}{emp.seniority ? ` · ${emp.seniority}` : ""}</p>
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-2 border-t border-white/[0.06]">
+            <HoverStat label="Success" value={`${successPct}%`} />
+            <HoverStat label="Score" value={`${repScore}`} />
+            <HoverStat label="Bug rate" value={`${Math.round((emp.bugRate ?? 0) * 100)}%`} />
+            {emp.riskTolerance && <HoverStat label="Risk" value={emp.riskTolerance} />}
+          </div>
+
           {mbti && (
-            <div className="pt-1 border-t border-border/20">
-              <p className="text-[12px] font-bold text-foreground">{mbti.label}</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{mbti.shortDesc}</p>
-              <p className="text-[10px] text-muted-foreground/70 italic mt-0.5">{mbti.collaborationStyle}</p>
+            <div className="pt-2 border-t border-white/[0.06]">
+              <p className="text-[11px] font-bold text-white/70">{mbti.code} — {mbti.label}</p>
+              <p className="text-[10px] text-white/30 mt-0.5 leading-relaxed">{mbti.shortDesc}</p>
             </div>
           )}
 
           {nation && (
             <div className="flex items-center gap-2">
-              <span className="text-[16px]">{nation.flag}</span>
-              <div>
-                <p className="text-[12px] font-bold text-foreground">{nation.label}</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{nation.workStyle}</p>
-              </div>
+              <span className="text-[14px]">{nation.flag}</span>
+              <p className="text-[11px] text-white/40">{nation.label}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 border-t border-border/20">
-            <div className="text-[11px]"><span className="text-muted-foreground">Success:</span> <strong className="text-foreground">{successPct}%</strong></div>
-            <div className="text-[11px]"><span className="text-muted-foreground">Score:</span> <strong className={perfColor}>{repScore}</strong></div>
-            <div className="text-[11px]"><span className="text-muted-foreground">Bug rate:</span> <strong className="text-foreground">{bugPct}%</strong></div>
-            {employee.riskTolerance && (
-              <div className="text-[11px]"><span className="text-muted-foreground">Risk:</span> <strong className="text-foreground capitalize">{employee.riskTolerance}</strong></div>
-            )}
-          </div>
-
-          {employee.primaryStack?.length > 0 && (
-            <div className="pt-1 border-t border-border/20">
-              <p className="text-[11px] text-muted-foreground">Stack: <strong className="text-foreground">{employee.primaryStack.join(", ")}</strong></p>
+          {emp.primaryStack?.length > 0 && (
+            <div className="pt-2 border-t border-white/[0.06]">
+              <p className="text-[10px] text-white/30">Stack: <strong className="text-white/60">{emp.primaryStack.join(", ")}</strong></p>
             </div>
           )}
 
-          {employee.taskTitle && (
-            <div className="pt-1 border-t border-border/20">
-              <p className="text-[11px] text-muted-foreground">Current: <strong className="text-foreground">{employee.taskTitle}</strong></p>
+          {emp.taskTitle && (
+            <div className="pt-2 border-t border-white/[0.06]">
+              <p className="text-[10px] text-white/30">Current: <strong className="text-white/60">{emp.taskTitle}</strong></p>
             </div>
           )}
         </TooltipContent>
@@ -598,39 +530,11 @@ function OfficeEmployeeCard({ employee, onClick }: { employee: any; onClick: () 
   );
 }
 
-const STATE_DOT: Record<string, string> = {
-  ready: "bg-status-blue",
-  assigned: "bg-status-blue/60",
-  in_progress: "bg-status-amber",
-  waiting_review: "bg-lifecycle-review",
-  blocked: "bg-destructive",
-  escalated: "bg-lifecycle-escalated",
-  rework_required: "bg-lifecycle-rework",
-  validated: "bg-status-green",
-};
-
-function DeptTaskRow({ task, onClick }: { task: any; onClick: () => void }) {
-  const persona = task.roleCode ? getPersona(task.roleCode) : null;
-  const dot = STATE_DOT[task.state] ?? "bg-muted-foreground/25";
-  const isRunning = task.latestRunState === "running" || task.latestRunState === "preparing";
-
+function HoverStat({ label, value }: { label: string; value: string }) {
   return (
-    <div onClick={onClick}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-card transition-colors cursor-pointer group">
-      <div className={`h-2 w-2 rounded-full shrink-0 ${dot} ${isRunning ? "animate-pulse" : ""}`} />
-      {persona && (
-        <img src={persona.avatar} alt="" className="h-6 w-6 rounded-md object-cover shrink-0" width={24} height={24} loading="lazy" />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-foreground truncate">{task.title}</p>
-      </div>
-      <span className="text-[11px] text-muted-foreground/50 truncate max-w-[80px] shrink-0">{task.projectName}</span>
-      {task.employeeName && (
-        <span className="text-[11px] text-muted-foreground/40 truncate max-w-[80px] shrink-0">{task.employeeName}</span>
-      )}
-      {isRunning && <Play className="h-3 w-3 text-status-blue shrink-0" />}
-      {task.hasPendingReview && <Eye className="h-3 w-3 text-lifecycle-review shrink-0" />}
-      <ChevronRight className="h-3 w-3 text-muted-foreground/15 group-hover:text-muted-foreground/50 transition-colors shrink-0" />
+    <div className="text-[11px]">
+      <span className="text-white/30">{label}: </span>
+      <strong className="text-white/70">{value}</strong>
     </div>
   );
 }
