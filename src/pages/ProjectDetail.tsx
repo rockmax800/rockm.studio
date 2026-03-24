@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
