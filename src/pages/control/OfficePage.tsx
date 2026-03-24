@@ -499,7 +499,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
               </div>
             </div>
 
-            {/* Active task */}
+            {/* Active task — shows role-based ownership */}
             {emp.taskTitle && (
               <div className="mt-2 px-2 py-1.5 rounded-lg bg-muted/30 border border-border/20">
                 <p className="text-[10px] text-muted-foreground line-clamp-1 leading-relaxed">{emp.taskTitle}</p>
@@ -511,6 +511,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
                       emp.taskState === "blocked" && "bg-destructive",
                     )} />
                     <span className="text-[9px] text-muted-foreground/50 font-medium">{STATE_LABEL[emp.taskState] ?? emp.taskState}</span>
+                    <span className="text-[9px] text-muted-foreground/25 ml-auto">via role</span>
                   </div>
                 )}
               </div>
