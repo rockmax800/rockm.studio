@@ -69,7 +69,10 @@ export default function ProjectsPage() {
                 </div>
                 <h2 className="text-[22px] font-bold text-foreground tracking-tight">No projects yet</h2>
                 <p className="text-[14px] text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                  Projects are created through a structured initiation flow. Begin with a Company Lead consultation to define scope, or go directly to intake.
+                  Projects are created through the production pipeline. Start with a Company Lead consultation to define scope and get a cost estimate, then proceed to structured intake and blueprint approval.
+                </p>
+                <p className="text-[12px] text-muted-foreground/40 mt-1.5 max-w-sm mx-auto leading-relaxed italic">
+                  Projects cannot be created directly — they are the output of the intake → blueprint → approval flow.
                 </p>
                 <div className="flex items-center gap-3 justify-center mt-8">
                   <Link to="/lead">
