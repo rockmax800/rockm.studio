@@ -294,7 +294,18 @@ export class HandoffService {
         data: { status: "completed", closed_at: now },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "handoff.completed",
+        aggregateType: "handoff",
+        aggregateId: handoffId,
+        payload: { task_id: handoff.task_id },
+        actorType: "agent_role",
+        actorRef: actorRoleId,
+        idempotencyKey: `handoff:${handoffId}:completed`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
