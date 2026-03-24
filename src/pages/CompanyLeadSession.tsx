@@ -384,8 +384,8 @@ export default function CompanyLeadSession() {
               {isEarlyPhase && (
                 <div className="flex flex-col items-center pt-4 mb-4 animate-slide-up">
                   {/* Speech bubble */}
-                  <div className="ls-speech-bubble relative rounded-2xl px-7 py-5 max-w-xl text-center mb-4" style={{ background: "hsl(0 0% 100%)", boxShadow: "0 2px 16px -4px hsl(220 20% 20% / 0.08), 0 1px 4px -1px hsl(220 20% 20% / 0.04)" }}>
-                    <p className="text-[15px] leading-[1.7]" style={{ color: "hsl(222 32% 14%)" }}>
+                  <div className="ls-speech-bubble relative rounded-2xl px-7 py-5 max-w-xl text-center mb-4 bg-card shadow-[var(--shadow-card)]">
+                    <p className="text-[15px] leading-[1.7] text-foreground">
                       {latestLeadMessage?.content}
                     </p>
                   </div>
