@@ -320,6 +320,13 @@ export default function SystemPage() {
             </Suspense>
           </TabsContent>
 
+          {/* EXECUTION — Global Execution Defaults */}
+          <TabsContent value="execution">
+            <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading execution settings…</div>}>
+              <ExecutionPolicyPanel />
+            </Suspense>
+          </TabsContent>
+
           {/* DOCS */}
           <TabsContent value="docs">
             <Card className="border-none shadow-sm">
