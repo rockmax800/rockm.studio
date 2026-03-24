@@ -282,6 +282,7 @@ export default function TeamRoom() {
               <p className="text-[20px] font-bold text-foreground">
                 Start session with {selectedEmp.name}
               </p>
+              <p className="text-[13px] text-muted-foreground/50 italic">{getPersona(selectedEmp.role_code).specialty}</p>
               <p className="text-[14px] text-muted-foreground mt-1 max-w-[480px] mx-auto">
                 Begin a structured conversation to extract scope, architecture, and task breakdowns.
               </p>
