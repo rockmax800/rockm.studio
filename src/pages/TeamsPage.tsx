@@ -33,7 +33,6 @@ export default function TeamsPage() {
   const [expandedDeptId, setExpandedDeptId] = useState<string | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const { data: departments = [], isLoading: deptLoading } = useDepartments();
-  const { data: hrData } = useHRDashboard();
 
   const { data: allEmployees = [] } = useQuery({
     queryKey: ["all-employees-full"],
