@@ -489,7 +489,7 @@ export default function EmployeeProfile() {
                   </div>
                 </div>
               ) : (
-                <TrainingLab employeeName={employee.name} roleName={roleName} />
+                <TrainingLab employeeId={id} employeeName={employee.name} roleName={roleName} />
               )}
             </div>
           </section>
