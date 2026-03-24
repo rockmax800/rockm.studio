@@ -560,9 +560,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
               </div>
-              <p className="text-[11px] mt-2 text-center text-muted-foreground">
-                Press Enter to send · Shift+Enter for new line
-              </p>
+              <div className="flex items-center justify-between mt-2 px-1">
+                <p className="text-[10px] text-muted-foreground/50">
+                  {phase === "discovery"
+                    ? `Question ${Math.min(questionIndex + 1, LEAD_QUESTIONS.length)} of ${LEAD_QUESTIONS.length} · guided briefing`
+                    : `Phase: ${PHASE_LABELS[phase]}`}
+                </p>
+                <p className="text-[10px] text-muted-foreground/50">
+                  Enter to send · Shift+Enter for new line
+                </p>
+              </div>
             </div>
           </div>
         </div>
