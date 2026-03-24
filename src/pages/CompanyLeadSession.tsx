@@ -658,7 +658,7 @@ export default function CompanyLeadSession() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SUB-COMPONENTS — Light theme
+   SUB-COMPONENTS — Theme-aware
    ═══════════════════════════════════════════════════════════ */
 
 function LightMessageBubble({ message }: { message: ChatMessage }) {
@@ -668,7 +668,7 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
   if (isSystem) {
     return (
       <div className="flex justify-center animate-slide-up">
-        <div className="px-4 py-2 rounded-full text-[11px] font-medium" style={{ background: "hsl(220 20% 96%)", color: "hsl(220 10% 64%)" }}>
+        <div className="px-4 py-2 rounded-full text-[11px] font-medium bg-muted text-muted-foreground">
           {message.content}
         </div>
       </div>
@@ -677,30 +677,27 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
 
   return (
     <div className={cn("flex items-start gap-3 animate-slide-up", !isLead && "flex-row-reverse")}>
-      {/* Avatar */}
       {isLead ? (
         <img src={leadAvatar} alt="Lead" width={36} height={36} className="rounded-xl shrink-0" style={{ imageRendering: "auto" }} />
       ) : (
-        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "hsl(217 91% 60%)", color: "white" }}>
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-status-blue text-white">
           <span className="text-[13px] font-bold">Y</span>
         </div>
       )}
 
-      {/* Bubble */}
       <div
-        className={cn("rounded-2xl px-5 py-3.5 max-w-[80%]")}
-        style={isLead
-          ? { background: "hsl(0 0% 100%)", border: "1px solid hsl(220 14% 92%)", boxShadow: "0 1px 4px -1px hsl(220 20% 20% / 0.04)" }
-          : { background: "hsl(217 91% 60%)", color: "white" }
-        }
+        className={cn(
+          "rounded-2xl px-5 py-3.5 max-w-[80%]",
+          isLead ? "bg-card border border-border shadow-[var(--shadow-card)]" : "bg-status-blue text-white"
+        )}
       >
         {isLead && (
-          <span className="text-[10px] font-semibold block mb-1.5" style={{ color: "hsl(220 10% 72%)" }}>Company Lead</span>
+          <span className="text-[10px] font-semibold block mb-1.5 text-muted-foreground">Company Lead</span>
         )}
-        <p className="text-[14px] leading-[1.65] whitespace-pre-wrap" style={isLead ? { color: "hsl(222 32% 14%)" } : { color: "white" }}>
+        <p className={cn("text-[14px] leading-[1.65] whitespace-pre-wrap", isLead ? "text-foreground" : "text-white")}>
           {message.content}
         </p>
-        <span className="text-[10px] mt-2 block" style={{ color: isLead ? "hsl(220 10% 78%)" : "hsl(0 0% 100% / 0.5)" }}>
+        <span className={cn("text-[10px] mt-2 block", isLead ? "text-muted-foreground" : "text-white/50")}>
           {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
@@ -712,18 +709,18 @@ function LightThinkingIndicator() {
   return (
     <div className="flex items-start gap-3 animate-slide-up">
       <img src={leadAvatar} alt="Lead" width={36} height={36} className="rounded-xl shrink-0" />
-      <div className="rounded-2xl px-5 py-4" style={{ background: "hsl(0 0% 100%)", border: "1px solid hsl(220 14% 92%)", boxShadow: "0 1px 4px -1px hsl(220 20% 20% / 0.04)" }}>
+      <div className="rounded-2xl px-5 py-4 bg-card border border-border shadow-[var(--shadow-card)]">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
-                className="h-2 w-2 rounded-full ls-thinking-dot"
-                style={{ background: "hsl(217 91% 60% / 0.4)", animationDelay: `${i * 0.15}s` }}
+                className="h-2 w-2 rounded-full ls-thinking-dot bg-status-blue/40"
+                style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
-          <span className="text-[11px] font-medium ml-1" style={{ color: "hsl(220 10% 72%)" }}>Analyzing...</span>
+          <span className="text-[11px] font-medium ml-1 text-muted-foreground">Analyzing...</span>
         </div>
       </div>
     </div>
@@ -732,9 +729,9 @@ function LightThinkingIndicator() {
 
 function RailCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-4 space-y-3 animate-slide-up" style={{ background: "hsl(0 0% 100%)", border: "1px solid hsl(220 14% 92%)", boxShadow: "0 1px 6px -2px hsl(220 20% 20% / 0.05)" }}>
-      <h3 className="text-[12px] font-bold tracking-tight flex items-center gap-2" style={{ color: "hsl(222 32% 14%)" }}>
-        <Icon className="h-3.5 w-3.5" style={{ color: "hsl(220 10% 72%)" }} />
+    <div className="rounded-2xl p-4 space-y-3 animate-slide-up bg-card border border-border shadow-[var(--shadow-card)]">
+      <h3 className="text-[12px] font-bold tracking-tight flex items-center gap-2 text-foreground">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         {title}
       </h3>
       <div className="space-y-2.5">
@@ -747,8 +744,8 @@ function RailCard({ title, icon: Icon, children }: { title: string; icon: React.
 function ExtRow({ label, value, children }: { label: string; value?: string; children?: React.ReactNode }) {
   return (
     <div>
-      <span className="text-[10px] font-semibold uppercase tracking-wider block mb-0.5" style={{ color: "hsl(220 10% 64%)" }}>{label}</span>
-      {children ?? <span className="text-[12px] font-medium" style={{ color: "hsl(222 32% 24%)" }}>{value}</span>}
+      <span className="text-[10px] font-semibold uppercase tracking-wider block mb-0.5 text-muted-foreground">{label}</span>
+      {children ?? <span className="text-[12px] font-medium text-foreground/80">{value}</span>}
     </div>
   );
 }
@@ -758,11 +755,11 @@ function LightConsultationCard({ entry }: { entry: ConsultationEntry }) {
   return (
     <div className="rounded-xl px-3.5 py-3 space-y-1.5" style={{ border: `1px solid ${cfg.border}`, background: cfg.bg }}>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold" style={{ color: "hsl(222 32% 24%)" }}>{entry.agent}</span>
+        <span className="text-[11px] font-bold text-foreground">{entry.agent}</span>
         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
       </div>
-      <p className="text-[11px] leading-snug" style={{ color: "hsl(222 32% 34%)" }}>{entry.concern}</p>
-      <p className="text-[10px] italic leading-snug" style={{ color: "hsl(220 10% 56%)" }}>{entry.recommendation}</p>
+      <p className="text-[11px] leading-snug text-foreground/80">{entry.concern}</p>
+      <p className="text-[10px] italic leading-snug text-muted-foreground">{entry.recommendation}</p>
     </div>
   );
 }
