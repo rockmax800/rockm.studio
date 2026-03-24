@@ -72,6 +72,9 @@ export default function TeamsPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
+      qc.invalidateQueries({ queryKey: ["office"] });
+      qc.invalidateQueries({ queryKey: ["office-roles-profile"] });
       toast.success("Employee moved");
     },
   });
