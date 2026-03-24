@@ -56,6 +56,7 @@ const App = () => (
 
           {/* LEGACY DEEP LINKS (preserved for backward compat) */}
           <Route path="/docs" element={<DocsWorkspace />} />
+          <Route path="/smm" element={<SMMCapability />} />
           <Route path="/departments/:slug" element={<DepartmentDetail />} />
           <Route path="/departments/:slug/presales/:id" element={<PresaleDetail />} />
           <Route path="/control/projects/:id" element={<ControlProjectDetail />} />
