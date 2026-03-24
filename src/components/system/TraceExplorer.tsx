@@ -46,8 +46,12 @@ function formatTimestamp(ts: string) {
   return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-export default function TraceExplorer() {
-  const [filters, setFilters] = useState<TraceFilters>({});
+interface TraceExplorerProps {
+  initialFilters?: Partial<TraceFilters>;
+}
+
+export default function TraceExplorer({ initialFilters }: TraceExplorerProps = {}) {
+  const [filters, setFilters] = useState<TraceFilters>(() => initialFilters ?? {});
   const [searchText, setSearchText] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data: projects = [] } = useProjectsForFilter();

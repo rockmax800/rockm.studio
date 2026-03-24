@@ -312,7 +312,7 @@ export default function SystemPage() {
           {/* AUDIT — Operational Trace Explorer */}
           <TabsContent value="audit">
             <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading trace explorer…</div>}>
-              <TraceExplorer />
+              <TraceExplorer initialFilters={traceInitialFilters} />
             </Suspense>
           </TabsContent>
 

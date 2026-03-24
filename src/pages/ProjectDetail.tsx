@@ -268,6 +268,11 @@ export default function ProjectDetail() {
                 <MetricChip label="domains" value={domainBindings.length} />
                 <MetricChip label="CI" value={ciFailed ? "FAIL" : ciPassed ? "PASS" : "—"} alert={ciFailed} />
                 <div className="flex-1" />
+                <Link to={`/system?tab=audit&project=${id}`}>
+                  <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1.5 text-muted-foreground hover:text-foreground px-2">
+                    <History className="h-3 w-3" /> Trace history
+                  </Button>
+                </Link>
                 <div className="flex items-center gap-2 text-[12px] text-muted-foreground/40">
                   <Zap className="h-3.5 w-3.5" />
                   <span className="font-mono font-bold text-foreground/40">—</span>

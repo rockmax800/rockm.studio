@@ -254,15 +254,35 @@ export default function FounderPage() {
             ) : (
               <ScrollArea className="flex-1 -mr-1 pr-1">
                 <div className="space-y-2">
-                  {filteredItems.map((item) => (
-                    <DecisionCard
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedId === item.id}
-                      onSelect={() => setSelectedId(item.id)}
-                      onNavigate={() => navigate(item.linkTo)}
-                    />
-                  ))}
+                  {filteredItems.map((item) => {
+                    // Build trace link from the raw approval/entity data
+                    const rawId = item.id.replace(/^(approval|escalation|retry|provider)-/, "");
+                    const traceProject = projects.find((p) => p.name === item.projectName)?.id;
+                    const traceParams = new URLSearchParams({ tab: "audit" });
+                    if (traceProject) traceParams.set("project", traceProject);
+                    if (item.entityType) traceParams.set("entityType", item.entityType);
+                    const traceLink = `/system?${traceParams.toString()}`;
+
+                    return (
+                      <div key={item.id} className="relative group">
+                        <DecisionCard
+                          item={item}
+                          isSelected={selectedId === item.id}
+                          onSelect={() => setSelectedId(item.id)}
+                          onNavigate={() => navigate(item.linkTo)}
+                        />
+                        <Link
+                          to={traceLink}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Open operational trace"
+                        >
+                          <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[10px] gap-1 text-muted-foreground hover:text-foreground">
+                            <History className="h-3 w-3" /> Trace
+                          </Button>
+                        </Link>
+                      </div>
+                    );
+                  })}
                 </div>
               </ScrollArea>
             )}
