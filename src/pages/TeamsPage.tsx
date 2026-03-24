@@ -457,7 +457,7 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
                   <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
                   <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
                   {riskTol && <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${riskCls}`}>{riskTol} risk</Badge>}
-                  {mbtiType && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{mbtiType}</Badge>}
+                  {seniority && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{seniority}</Badge>}
                   {teamName && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{teamName}</Badge>}
                 </div>
                 {/* Stack badges */}
