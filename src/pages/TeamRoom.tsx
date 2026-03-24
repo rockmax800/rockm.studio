@@ -1,29 +1,22 @@
 import { useState, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useDepartments, type Department } from "@/hooks/use-department-data";
+import { useDepartments } from "@/hooks/use-department-data";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPersona, getStatusMeta } from "@/lib/personas";
 import {
-  Building2, ArrowLeft, Users, TrendingUp, Gauge,
-  AlertTriangle, Zap, MessageSquare, Send, SkipForward,
+  ArrowLeft, Users, MessageSquare, Send, SkipForward,
   Snowflake, Square, Coins, ChevronDown, ChevronUp,
-  Target, Layers, ListChecks, HelpCircle, BarChart3, Pencil,
-  FolderKanban, Clock, ChevronRight, Brain, BookOpen,
-  ShieldAlert, Lightbulb, XCircle, Smartphone, Bot, Globe, Cpu,
+  Target, Layers, ListChecks, HelpCircle, BarChart3,
+  Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
+  AlertTriangle, ArrowUpRight, Play, User, Zap,
 } from "lucide-react";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-
-const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2, Cpu };
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
@@ -49,30 +42,31 @@ const SEED_EXTRACTION: ExtractionState = {
 };
 
 const TYPE_LABEL: Record<EntryType, string> = { scope: "Scope", architecture: "Architecture", risk: "Risk", question: "Question", task: "Task", general: "Note" };
+const TYPE_COLOR: Record<EntryType, string> = { scope: "bg-primary/10 text-primary", architecture: "bg-blue-100 text-blue-700", risk: "bg-destructive/10 text-destructive", question: "bg-status-amber/10 text-status-amber", task: "bg-lifecycle-validated/10 text-lifecycle-validated", general: "bg-secondary text-muted-foreground" };
 const CONFIDENCE_DOT: Record<string, string> = { high: "bg-status-green", medium: "bg-status-amber", low: "bg-destructive" };
 
-const STATUS_CHIP: Record<string, { label: string; cls: string; dotCls: string }> = {
-  active:    { label: "Working",   cls: "bg-status-amber/10 text-status-amber",       dotCls: "bg-status-amber animate-pulse" },
-  idle:      { label: "Idle",      cls: "bg-secondary text-muted-foreground",           dotCls: "bg-muted-foreground/25" },
-  reviewing: { label: "Reviewing", cls: "bg-lifecycle-review/10 text-lifecycle-review", dotCls: "bg-lifecycle-review" },
-  blocked:   { label: "Blocked",   cls: "bg-destructive/10 text-destructive",           dotCls: "bg-destructive" },
+const SESSION_STATUS: Record<string, { label: string; dot: string; text: string }> = {
+  listening:   { label: "Listening",   dot: "bg-status-green animate-pulse", text: "text-status-green" },
+  thinking:    { label: "Thinking",    dot: "bg-status-amber animate-pulse", text: "text-status-amber" },
+  responding:  { label: "Responding",  dot: "bg-primary animate-pulse",      text: "text-primary" },
+  idle:        { label: "Idle",        dot: "bg-muted-foreground/30",         text: "text-muted-foreground" },
 };
 
 /* ================================================================
-   MAIN — 3-phase flow: Select dept → Select employee → Session
+   MAIN — reads ?dept= and ?emp= from URL params (entered from Teams)
    ================================================================ */
 export default function TeamRoom() {
-  const { data: departments = [], isLoading: deptLoading } = useDepartments();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { data: departments = [] } = useDepartments();
 
-  const [selectedDeptId, setSelectedDeptId] = useState<string | null>(null);
-  const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
+  const urlDept = searchParams.get("dept");
+  const urlEmp = searchParams.get("emp");
+
+  const [selectedEmpId, setSelectedEmpId] = useState<string | null>(urlEmp);
   const [sessionActive, setSessionActive] = useState(false);
-  const [memoryOpen, setMemoryOpen] = useState(false);
 
-  const selectedDept = departments.find((d) => d.id === selectedDeptId) ?? null;
-
-  // ── Employees query ─────────────────────────────────────
+  // ── Employees query
   const { data: employees = [] } = useQuery({
     queryKey: ["team-room-employees"],
     queryFn: async () => {
@@ -101,231 +95,158 @@ export default function TeamRoom() {
     },
   });
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ["team-room-tasks"],
-    queryFn: async () => {
-      const { data } = await supabase.from("tasks").select("id, title, state, owner_role_id")
-        .not("state", "in", "(done,cancelled)");
-      return data ?? [];
-    },
-  });
+  // Resolve department from URL slug
+  const selectedDept = departments.find((d) => d.slug === urlDept) ?? null;
+  const deptName = selectedDept?.name ?? teams.find((t) => t.id === urlDept)?.name ?? "Team";
 
-  // Filter employees by selected department (team)
-  const filteredEmployees = useMemo(() => {
-    if (!selectedDeptId) return employees.filter((e) => e.status === "active");
-    // match by team_id
-    return employees.filter((e) => e.status === "active" && e.team_id === selectedDeptId);
-  }, [employees, selectedDeptId]);
-
-  // If filtering by dept yields nothing, also try matching by team from roles
+  // Filter employees by department
   const displayEmployees = useMemo(() => {
-    if (filteredEmployees.length > 0) return filteredEmployees;
-    if (!selectedDeptId) return employees.filter((e) => e.status === "active");
-    // fallback: match roles in that team, then find employees by role_id
-    const teamRoleIds = new Set(roles.filter((r) => r.team_id === selectedDeptId).map((r) => r.id));
-    return employees.filter((e) => e.status === "active" && e.role_id && teamRoleIds.has(e.role_id));
-  }, [filteredEmployees, employees, roles, selectedDeptId]);
+    const active = employees.filter((e) => e.status === "active");
+    if (!selectedDept && !urlDept) return active;
+    const deptId = selectedDept?.id ?? urlDept;
+    const byTeam = active.filter((e) => e.team_id === deptId);
+    if (byTeam.length > 0) return byTeam;
+    const teamRoleIds = new Set(roles.filter((r) => r.team_id === deptId).map((r) => r.id));
+    return active.filter((e) => e.role_id && teamRoleIds.has(e.role_id));
+  }, [employees, roles, selectedDept, urlDept]);
 
-  const selectedEmp = displayEmployees.find((e) => e.id === selectedEmpId) ?? null;
+  const selectedEmp = employees.find((e) => e.id === selectedEmpId) ?? null;
 
-  // Stats
-  const activeEmps = displayEmployees;
-  const avgSuccess = activeEmps.length > 0
-    ? Math.round(activeEmps.reduce((s, e) => s + ((e.success_rate as number) ?? 0), 0) / activeEmps.length * 100) : 0;
-
-  // Department dropdown items — use teams or departments
-  const deptOptions = teams.length > 0
-    ? teams.map((t) => ({ id: t.id, name: t.name ?? "Team" }))
-    : departments.map((d) => ({ id: d.id, name: d.name }));
-
-  // ── Session active state ─────────────────────────────────
+  // ── Session active state
   if (sessionActive && selectedEmp) {
     return (
       <SessionWorkspace
         emp={selectedEmp}
         roles={roles}
-        deptName={selectedDept?.name ?? deptOptions.find((d) => d.id === selectedDeptId)?.name ?? "Team"}
+        deptName={deptName}
         onBack={() => setSessionActive(false)}
-        onMemory={() => setMemoryOpen(true)}
       />
     );
   }
 
-  // ── Main: Department selector + Employee grid ────────────
+  // ── Pre-session: employee selection grid
   return (
     <AppLayout title="Team Room">
-      {/* Memory modal */}
-      <MemoryModal open={memoryOpen} onClose={() => setMemoryOpen(false)} employee={selectedEmp} />
+      <ScrollArea className="h-full">
+        <div className="px-8 py-6 max-w-[1200px] space-y-6">
 
-      <div className="grid-content space-y-5 pb-8">
+          {/* Back to Teams */}
+          <Link to="/teams" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to Teams
+          </Link>
 
-        {/* ═══ TOP BAR ═════════════════════════════════════════ */}
-        <div className="flex items-center gap-4 flex-wrap">
-          {/* Department selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">Department</span>
-            <Select value={selectedDeptId ?? "__all"} onValueChange={(v) => { setSelectedDeptId(v === "__all" ? null : v); setSelectedEmpId(null); setSessionActive(false); }}>
-              <SelectTrigger className="h-9 w-[220px] text-[13px] font-semibold">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all">All Departments</SelectItem>
-                {deptOptions.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Header */}
+          <div>
+            <h1 className="text-[28px] font-bold text-foreground tracking-tight">{deptName}</h1>
+            <p className="text-[14px] text-muted-foreground mt-1">
+              Select an employee to start a working session.
+            </p>
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-5 ml-4 text-[13px]">
-            <MiniStat icon={Users} value={activeEmps.length} label="members" />
-            <MiniStat icon={TrendingUp} value={`${avgSuccess}%`} label="success" />
-          </div>
-
-          {/* Session status */}
-          <div className="ml-auto flex items-center gap-3">
-            {selectedEmp && (
-              <>
-                <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5" onClick={() => setMemoryOpen(true)}>
-                  <Brain className="h-3.5 w-3.5" /> View Memory
-                </Button>
-                <Button size="sm" className="h-8 text-[12px] gap-1.5 bg-foreground text-background hover:bg-foreground/90"
-                  onClick={() => setSessionActive(true)}>
-                  <MessageSquare className="h-3.5 w-3.5" /> Start Session
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ═══ EMPLOYEE GRID ═══════════════════════════════════ */}
-        <div>
-          <h2 className="text-[22px] font-bold text-foreground tracking-tight mb-4">
-            {selectedDept?.name ?? deptOptions.find((d) => d.id === selectedDeptId)?.name ?? "All Team Members"}
-          </h2>
-
-          {deptLoading ? (
-            <p className="text-[14px] text-muted-foreground">Loading…</p>
-          ) : displayEmployees.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center">
-              <Building2 className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
-              <p className="text-[16px] font-bold text-foreground">No team members found.</p>
-              <p className="text-[13px] text-muted-foreground mt-1">Select a different department or add employees.</p>
+          {/* Employee grid */}
+          {displayEmployees.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-10 text-center">
+              <Users className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-[16px] font-bold text-foreground">No team members found</p>
+              <p className="text-[13px] text-muted-foreground mt-1">This capability has no active employees.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {displayEmployees.map((emp) => {
                 const isSelected = selectedEmpId === emp.id;
+                const persona = getPersona(emp.role_code);
+                const meta = getStatusMeta(emp.status);
+                const roleName = roles.find((r: any) => r.code === emp.role_code)?.name ?? emp.role_code;
+                const perfScore = Math.round(((emp.reputation_score as number) ?? 0) * 100);
+                const perfColor = perfScore >= 80 ? "text-status-green" : perfScore >= 50 ? "text-status-amber" : "text-destructive";
+                const perfRing = perfScore >= 80 ? "border-status-green/40" : perfScore >= 50 ? "border-status-amber/40" : "border-destructive/40";
+
                 return (
-                  <EmployeeCard
+                  <div
                     key={emp.id}
-                    employee={emp}
-                    roles={roles}
-                    tasks={tasks}
-                    selected={isSelected}
                     onClick={() => setSelectedEmpId(isSelected ? null : emp.id)}
-                    onProfile={() => navigate(`/employees/${emp.id}`)}
-                  />
+                    className={`rounded-2xl border bg-card p-5 cursor-pointer transition-all duration-200 ${
+                      isSelected
+                        ? "border-primary shadow-lg ring-2 ring-primary/20 -translate-y-1"
+                        : "border-border hover:shadow-md hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Avatar */}
+                      <div className="relative shrink-0">
+                        <div className={`rounded-xl border-[3px] ${isSelected ? "border-primary/50" : perfRing} p-0.5`}>
+                          <img src={persona.avatar} alt={emp.name}
+                            className={`h-16 w-16 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
+                            width={64} height={64} loading="lazy" />
+                        </div>
+                        <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${meta.dot}`} />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[17px] font-bold text-foreground leading-tight">{emp.name}</h3>
+                        <p className="text-[13px] text-muted-foreground mt-0.5">{roleName}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${meta.chipBg}`}>{meta.label}</Badge>
+                          <span className={`text-[13px] font-bold font-mono ${perfColor}`}>{perfScore}</span>
+                          <span className="text-[11px] font-mono text-muted-foreground">{Math.round(((emp.success_rate as number) ?? 0) * 100)}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions when selected */}
+                    {isSelected && (
+                      <div className="mt-4 pt-3 border-t border-border/30 flex items-center gap-3">
+                        <Button className="h-10 flex-1 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"
+                          onClick={(e) => { e.stopPropagation(); setSessionActive(true); }}>
+                          <Play className="h-4 w-4" /> Start Working Session
+                        </Button>
+                        <Link to={`/employees/${emp.id}`} onClick={(e) => e.stopPropagation()}>
+                          <Button variant="outline" className="h-10 text-[12px] gap-1.5 rounded-xl">
+                            <User className="h-3.5 w-3.5" /> Profile
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
           )}
+
+          {/* Large start button when employee selected but not yet started */}
+          {selectedEmp && !sessionActive && (
+            <div className="rounded-2xl border-2 border-dashed border-primary/20 bg-primary/[0.02] p-8 text-center">
+              <p className="text-[20px] font-bold text-foreground">
+                Start Working Session with {selectedEmp.name}
+              </p>
+              <p className="text-[14px] text-muted-foreground mt-1">
+                Begin a structured conversation to extract scope, architecture, and task breakdowns.
+              </p>
+              <Button className="mt-5 h-12 px-8 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"
+                onClick={() => setSessionActive(true)}>
+                <Play className="h-4 w-4" /> Begin Session
+              </Button>
+            </div>
+          )}
         </div>
-      </div>
+      </ScrollArea>
     </AppLayout>
   );
 }
 
 /* ================================================================
-   EMPLOYEE CARD — Large, clear, clickable
+   SESSION WORKSPACE — 8/4 split
    ================================================================ */
-function EmployeeCard({ employee, roles, tasks, selected, onClick, onProfile }: {
-  employee: any; roles: any[]; tasks: any[]; selected: boolean; onClick: () => void; onProfile: () => void;
-}) {
-  const persona = getPersona(employee.role_code);
-  const meta = getStatusMeta(employee.status);
-  const roleName = roles.find((r: any) => r.code === employee.role_code)?.name ?? employee.role_code;
-  const perfScore = Math.round(((employee.reputation_score as number) ?? 0) * 100);
-  const perfColor = perfScore >= 80 ? "text-status-green" : perfScore >= 50 ? "text-status-amber" : "text-destructive";
-  const perfRing = perfScore >= 80 ? "border-status-green/40" : perfScore >= 50 ? "border-status-amber/40" : "border-destructive/40";
-  const successPct = Math.round(((employee.success_rate as number) ?? 0) * 100);
-
-  // Find active task
-  const roleObj = roles.find((r: any) => r.code === employee.role_code);
-  const activeTask = roleObj ? tasks.find((t: any) => t.owner_role_id === roleObj.id && ["in_progress", "waiting_review", "blocked"].includes(t.state)) : null;
-
-  return (
-    <div
-      onClick={onClick}
-      className={`group flex flex-col items-center text-center px-5 py-6 rounded-2xl border bg-card transition-all duration-200 cursor-pointer ${
-        selected
-          ? "border-primary shadow-lg ring-2 ring-primary/20 -translate-y-1"
-          : "border-border hover:shadow-lg hover:-translate-y-1"
-      }`}
-    >
-      {/* Avatar with perf ring */}
-      <div className="relative mb-3">
-        <div className={`rounded-2xl border-[3px] ${selected ? "border-primary/50" : perfRing} p-1`}>
-          <img src={persona.avatar} alt={employee.name}
-            className={`h-[120px] w-[120px] rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
-            width={120} height={120} loading="lazy" />
-        </div>
-        <span className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-card ${meta.dot}`} />
-      </div>
-
-      {/* Name & role */}
-      <h5 className="text-[18px] font-bold text-foreground leading-tight">{employee.name}</h5>
-      <p className="text-[13px] text-muted-foreground mt-0.5 font-medium">{roleName}</p>
-      <span className="text-[11px] text-muted-foreground/50 mt-0.5">{persona.tag}</span>
-
-      {/* Status */}
-      <span className={`mt-3 text-[11px] font-bold px-3 py-1 rounded-full ${meta.chipBg}`}>{meta.label}</span>
-
-      {/* Performance + success */}
-      <div className="flex items-center gap-4 mt-3">
-        <div className="flex items-center gap-1">
-          <span className={`text-[20px] font-bold font-mono tabular-nums ${perfColor}`}>{perfScore}</span>
-          <span className="text-[10px] text-muted-foreground">perf</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-[14px] font-bold font-mono tabular-nums text-foreground">{successPct}%</span>
-          <span className="text-[10px] text-muted-foreground">success</span>
-        </div>
-      </div>
-
-      {/* Current task */}
-      {activeTask && (
-        <p className="text-[12px] text-muted-foreground mt-2 line-clamp-1 max-w-full">{activeTask.title}</p>
-      )}
-
-      {/* Actions */}
-      <div className="mt-3 flex items-center gap-3">
-        {selected && (
-          <span className="text-[11px] font-bold text-primary">✓ Selected</span>
-        )}
-        <button
-          onClick={(e) => { e.stopPropagation(); onProfile(); }}
-          className="text-[11px] text-muted-foreground/40 hover:text-primary transition-colors flex items-center gap-1"
-        >
-          View Profile <ChevronRight className="h-3 w-3" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ================================================================
-   SESSION WORKSPACE — 7/5 split
-   ================================================================ */
-function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
-  emp: any; roles: any[]; deptName: string; onBack: () => void; onMemory: () => void;
+function SessionWorkspace({ emp, roles, deptName, onBack }: {
+  emp: any; roles: any[]; deptName: string; onBack: () => void;
 }) {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>(SEED_TRANSCRIPT);
   const [extraction] = useState<ExtractionState>(SEED_EXTRACTION);
   const [founderInput, setFounderInput] = useState("");
   const [meetingStatus, setMeetingStatus] = useState<"active" | "frozen" | "ended">("active");
   const [showHistory, setShowHistory] = useState(false);
+  const [empStatus] = useState<"listening" | "thinking" | "responding" | "idle">("listening");
 
   const totalTokens = transcript.reduce((s, e) => s + e.tokenCost, 0);
   const lastEntry = transcript[transcript.length - 1];
@@ -333,6 +254,10 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
 
   const persona = getPersona(emp.role_code);
   const roleName = roles.find((r: any) => r.code === emp.role_code)?.name ?? emp.role_code;
+  const perfScore = Math.round(((emp.reputation_score as number) ?? 0) * 100);
+  const perfColor = perfScore >= 80 ? "text-status-green" : perfScore >= 50 ? "text-status-amber" : "text-destructive";
+  const perfRingColor = perfScore >= 80 ? "border-status-green" : perfScore >= 50 ? "border-status-amber" : "border-destructive";
+  const statusInfo = SESSION_STATUS[empStatus];
 
   const handleSend = useCallback(() => {
     if (!founderInput.trim() || meetingStatus !== "active") return;
@@ -344,37 +269,48 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
     setFounderInput("");
   }, [founderInput, meetingStatus, emp.role_code]);
 
+  // Memory counts (seed)
+  const memoryCounts = { coreRules: 4, learnedPatterns: 3, failures: 2 };
+
   return (
     <AppLayout title={`${deptName} — Session`} fullHeight>
       <div className="flex flex-col h-full overflow-hidden">
 
-        {/* ═══ SESSION TOP BAR ═══════════════════════════════ */}
-        <div className="px-6 py-3 border-b border-border/40 bg-secondary/10">
+        {/* ═══ COMPACT TOP STRIP ═══════════════════════════════ */}
+        <div className="px-6 py-2.5 border-b border-border/40 bg-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button onClick={onBack} className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="h-3.5 w-3.5" /> Back
               </button>
-              <span className="text-border">|</span>
-              <span className="text-[14px] font-bold text-foreground">{deptName}</span>
-              <Badge variant={meetingStatus === "active" ? "default" : "secondary"} className="text-[10px] h-6 px-2 font-semibold gap-1.5">
-                {meetingStatus === "active" && <span className="w-2 h-2 rounded-full bg-status-green animate-pulse" />}
-                {meetingStatus === "active" ? "Active" : meetingStatus === "frozen" ? "Frozen" : "Ended"}
-              </Badge>
+              <span className="w-px h-4 bg-border" />
+              <span className="text-[13px] font-bold text-foreground">{deptName}</span>
+              <span className="w-px h-4 bg-border" />
+              <span className="text-[13px] font-semibold text-muted-foreground">{emp.name}</span>
+              <span className="w-px h-4 bg-border" />
+
+              {/* Session status dot */}
+              <div className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${meetingStatus === "active" ? "bg-status-green animate-pulse" : meetingStatus === "frozen" ? "bg-status-amber" : "bg-muted-foreground/30"}`} />
+                <span className="text-[12px] font-semibold text-muted-foreground">
+                  {meetingStatus === "active" ? "Active" : meetingStatus === "frozen" ? "Frozen" : "Ended"}
+                </span>
+              </div>
             </div>
+
             <div className="flex items-center gap-3">
               <span className="text-[11px] text-muted-foreground font-mono flex items-center gap-1.5">
-                <Coins className="h-3.5 w-3.5" /> {totalTokens.toLocaleString()} tokens
+                <Coins className="h-3 w-3" /> {totalTokens.toLocaleString()}
               </span>
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground" disabled={meetingStatus !== "active"}>
+              <div className="flex items-center gap-0.5">
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground px-2" disabled={meetingStatus !== "active"}>
                   <SkipForward className="h-3 w-3" /> Skip
                 </Button>
-                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground"
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground px-2"
                   onClick={() => setMeetingStatus("frozen")} disabled={meetingStatus !== "active"}>
                   <Snowflake className="h-3 w-3" /> Freeze
                 </Button>
-                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-destructive"
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-destructive px-2"
                   onClick={() => setMeetingStatus("ended")} disabled={meetingStatus === "ended"}>
                   <Square className="h-3 w-3" /> End
                 </Button>
@@ -383,49 +319,68 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
           </div>
         </div>
 
-        {/* ═══ MAIN 7/5 SPLIT ═══════════════════════════════ */}
+        {/* ═══ MAIN 8/4 SPLIT ═══════════════════════════════ */}
         <div className="flex-1 grid grid-cols-12 gap-0 min-h-0 overflow-hidden">
 
-          {/* LEFT 7 cols — Conversation */}
-          <div className="col-span-7 border-r border-border/30 flex flex-col min-h-0">
+          {/* ──────────────────────────────────────────────────
+              LEFT 8 cols — Working Session
+              ────────────────────────────────────────────────── */}
+          <div className="col-span-8 border-r border-border/30 flex flex-col min-h-0">
 
-            {/* Selected employee header */}
-            <div className="px-6 py-4 border-b border-border/20 bg-card flex items-center gap-4">
-              <img src={persona.avatar} alt={emp.name}
-                className={`h-12 w-12 rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
-                width={48} height={48} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[16px] font-bold text-foreground">{emp.name}</span>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-2">{roleName}</Badge>
+            {/* Employee header */}
+            <div className="px-6 py-4 border-b border-border/20 bg-card/50">
+              <div className="flex items-center gap-4">
+                {/* Large avatar with perf ring */}
+                <div className="relative shrink-0">
+                  <div className={`rounded-2xl border-[3px] ${perfRingColor}/40 p-0.5`}>
+                    <img src={persona.avatar} alt={emp.name}
+                      className={`h-16 w-16 rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
+                      width={64} height={64} />
+                  </div>
+                  {/* Perf score overlay */}
+                  <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-md bg-card border border-border flex items-center justify-center`}>
+                    <span className={`text-[10px] font-bold font-mono ${perfColor}`}>{perfScore}</span>
+                  </div>
                 </div>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
-                  {meetingStatus === "active" ? "Listening…" : meetingStatus === "frozen" ? "Session paused" : "Session ended"}
-                </p>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-[20px] font-bold text-foreground leading-tight">{emp.name}</h2>
+                    <Badge variant="secondary" className="text-[11px] h-6 px-2 font-semibold">{roleName}</Badge>
+                  </div>
+                  {/* Status */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`w-2 h-2 rounded-full ${statusInfo.dot}`} />
+                    <span className={`text-[13px] font-semibold ${statusInfo.text}`}>{statusInfo.label}</span>
+                  </div>
+                </div>
+
+                <Link to={`/employees/${emp.id}`}>
+                  <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 rounded-lg">
+                    <User className="h-3.5 w-3.5" /> View Full Profile
+                  </Button>
+                </Link>
               </div>
-              <Button size="sm" variant="outline" className="h-8 text-[11px] gap-1.5" onClick={onMemory}>
-                <Brain className="h-3.5 w-3.5" /> Memory
-              </Button>
             </div>
 
-            {/* Hero message */}
+            {/* ── Current message (hero) ── */}
             {lastEntry && (
-              <div className="px-6 py-5 border-b border-border/20">
+              <div className="px-6 py-5 border-b border-border/15">
                 <div className="flex items-center gap-2.5 mb-3">
                   <img src={getPersona(lastEntry.roleCode).avatar} alt=""
                     className={`h-8 w-8 rounded-lg object-cover ring-1 ${getPersona(lastEntry.roleCode).ringClass} ring-offset-1 ring-offset-background`}
                     width={32} height={32} />
                   <span className="text-[14px] font-bold text-foreground">{roles.find((r: any) => r.code === lastEntry.roleCode)?.name ?? lastEntry.roleCode}</span>
-                  <Badge variant="secondary" className="text-[9px] h-5 px-1.5">{TYPE_LABEL[lastEntry.type]}</Badge>
-                  <span className="text-[10px] text-muted-foreground/40 ml-auto">
+                  <Badge className={`text-[9px] h-5 px-1.5 border-0 ${TYPE_COLOR[lastEntry.type]}`}>{TYPE_LABEL[lastEntry.type]}</Badge>
+                  <span className="text-[11px] text-muted-foreground/40 ml-auto font-mono">
                     {new Date(lastEntry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
-                <p className="text-[14px] text-foreground leading-[1.7] max-w-[620px]">{lastEntry.content}</p>
+                <p className="text-[16px] text-foreground leading-[1.75] max-w-[680px] font-medium">{lastEntry.content}</p>
               </div>
             )}
 
-            {/* History toggle */}
+            {/* ── History toggle ── */}
             <button onClick={() => setShowHistory(!showHistory)}
               className="px-6 py-2 border-b border-border/10 text-[12px] text-muted-foreground hover:text-foreground hover:bg-secondary/20 transition-colors flex items-center gap-2 w-full text-left">
               {showHistory ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -441,12 +396,13 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
                       <div key={entry.id} className="px-6 py-3 hover:bg-secondary/10 transition-colors">
                         <div className="flex items-center gap-2.5">
                           <img src={ep.avatar} alt="" className="h-6 w-6 rounded-lg object-cover" width={24} height={24} />
-                          <span className="text-[12px] font-semibold text-foreground/70">{roles.find((r: any) => r.code === entry.roleCode)?.name ?? entry.roleCode}</span>
-                          <span className="text-[10px] text-muted-foreground/40 ml-auto">
+                          <span className="text-[13px] font-semibold text-foreground/70">{roles.find((r: any) => r.code === entry.roleCode)?.name ?? entry.roleCode}</span>
+                          <Badge className={`text-[9px] h-4 px-1 border-0 ${TYPE_COLOR[entry.type]}`}>{TYPE_LABEL[entry.type]}</Badge>
+                          <span className="text-[11px] text-muted-foreground/40 ml-auto font-mono">
                             {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
-                        <p className="text-[12px] text-muted-foreground line-clamp-2 mt-1 pl-8 leading-relaxed">{entry.content}</p>
+                        <p className="text-[13px] text-muted-foreground leading-relaxed mt-1 pl-8">{entry.content}</p>
                       </div>
                     );
                   })}
@@ -456,7 +412,7 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
 
             {!showHistory && <div className="flex-1" />}
 
-            {/* Input area — visually larger */}
+            {/* ── Input area ── */}
             <div className="border-t border-border/30 px-6 py-4 bg-card">
               <div className="flex items-center gap-3">
                 <Input
@@ -467,23 +423,26 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
                   disabled={meetingStatus !== "active"}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 />
-                <Button className="h-12 px-6 gap-2 text-[13px] font-bold rounded-xl" onClick={handleSend}
+                <Button className="h-12 px-6 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90" onClick={handleSend}
                   disabled={meetingStatus !== "active" || !founderInput.trim()}>
                   <Send className="h-4 w-4" /> Send
-                </Button>
-                <Button size="sm" variant="outline" className="h-12 px-4 text-[12px] rounded-xl" onClick={handleSend}
-                  disabled={meetingStatus !== "active" || !founderInput.trim()}>
-                  Clarify
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* RIGHT 5 cols — Structured Output */}
-          <div className="col-span-5 flex flex-col min-h-0 bg-secondary/5">
+          {/* ──────────────────────────────────────────────────
+              RIGHT 4 cols — Structured Context + Memory
+              ────────────────────────────────────────────────── */}
+          <div className="col-span-4 flex flex-col min-h-0 bg-secondary/5">
+
+            {/* Structured context header */}
             <div className="px-5 py-3 border-b border-border/30">
-              <h3 className="text-[15px] font-bold text-foreground">Structured Output</h3>
+              <h3 className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <Target className="h-4 w-4 text-muted-foreground" /> Structured Context
+              </h3>
             </div>
+
             <ScrollArea className="flex-1">
               <div className="p-5 space-y-0 divide-y divide-border/20">
                 <ExtractionSection title="Scope" icon={<Target className="h-4 w-4 text-muted-foreground" />} items={extraction.scope} />
@@ -498,6 +457,32 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
                   <p className="text-[13px] text-muted-foreground leading-relaxed">{extraction.estimatedComplexity}</p>
                 </div>
               </div>
+
+              {/* ── Memory Snapshot ── */}
+              <div className="mx-5 mb-5 rounded-xl border border-border bg-card p-4">
+                <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2 mb-3">
+                  <Brain className="h-4 w-4 text-primary/60" /> Employee Memory Snapshot
+                </h4>
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="text-center">
+                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.coreRules}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Core Rules</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.learnedPatterns}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Patterns</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.failures}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Failures</p>
+                  </div>
+                </div>
+                <Link to={`/employees/${emp.id}`}>
+                  <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg">
+                    <Brain className="h-3.5 w-3.5" /> Open Full Memory
+                  </Button>
+                </Link>
+              </div>
             </ScrollArea>
           </div>
         </div>
@@ -507,49 +492,7 @@ function SessionWorkspace({ emp, roles, deptName, onBack, onMemory }: {
 }
 
 /* ================================================================
-   MEMORY MODAL
-   ================================================================ */
-function MemoryModal({ open, onClose, employee }: { open: boolean; onClose: () => void; employee: any }) {
-  if (!employee) return null;
-  const persona = getPersona(employee.role_code);
-
-  const memSections = [
-    { title: "Core Knowledge", icon: BookOpen, items: ["Role contract boundaries", "Allowed file paths", "Domain restrictions", "Output format requirements"] },
-    { title: "Project Memory", icon: FolderKanban, items: ["Last 5 task outcomes", "Preferred architecture patterns", "Client-specific constraints"] },
-    { title: "Learned Rules", icon: Lightbulb, items: ["Always validate schema before PR", "Use semantic tokens only", "Max 3 files per commit"] },
-    { title: "Failure Memory", icon: XCircle, items: ["Bug #42: missed edge case in auth flow", "Review rejection: insufficient test coverage"] },
-  ];
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <img src={persona.avatar} alt="" className="h-8 w-8 rounded-lg object-cover" width={32} height={32} />
-            <span>{employee.name} — Memory</span>
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-5 mt-2">
-          {memSections.map((sec) => (
-            <div key={sec.title}>
-              <h4 className="text-[14px] font-bold text-foreground flex items-center gap-2 mb-2">
-                <sec.icon className="h-4 w-4 text-muted-foreground" /> {sec.title}
-              </h4>
-              <ul className="space-y-1.5 pl-6">
-                {sec.items.map((item, i) => (
-                  <li key={i} className="text-[13px] text-muted-foreground list-disc">{item}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/* ================================================================
-   EXTRACTION SECTION
+   EXTRACTION SECTION — collapsible
    ================================================================ */
 function ExtractionSection({ title, icon, items, emptyText, critical }: {
   title: string; icon: React.ReactNode; items: ExtractionItem[]; emptyText?: string; critical?: boolean;
@@ -579,17 +522,6 @@ function ExtractionSection({ title, icon, items, emptyText, critical }: {
           <p className="text-[12px] text-muted-foreground/40">{emptyText ?? "—"}</p>
         )
       )}
-    </div>
-  );
-}
-
-/* ═══ Helper ═══ */
-function MiniStat({ icon: Icon, value, label }: { icon: React.ElementType; value: number | string; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <Icon className="h-3.5 w-3.5 text-muted-foreground/50" />
-      <span className="text-[13px] font-bold text-foreground">{value}</span>
-      <span className="text-[12px] text-muted-foreground">{label}</span>
     </div>
   );
 }
