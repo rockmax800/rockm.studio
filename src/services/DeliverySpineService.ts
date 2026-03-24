@@ -1,8 +1,10 @@
 // Delivery Spine Service — Manages Repository, Workspace, PR, CheckSuite, Deployment entities.
 // Additive layer: no modifications to existing workflow engine.
 // All entities traceable to Project → Task → Run.
+// All mutations emit canonical event_log entries.
 
 import { GuardError } from "@/guards/GuardError";
+import { writeEventLog } from "@/lib/eventLogWriter";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -77,7 +79,23 @@ export class DeliverySpineService {
         },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "workspace.created",
+        aggregateType: "repo_workspace",
+        aggregateId: workspace.id,
+        payload: {
+          project_id: params.projectId,
+          task_id: params.taskId,
+          run_id: params.runId,
+          repository_id: params.repositoryId,
+          branch_name: params.branchName,
+        },
+        actorType: "system",
+        idempotencyKey: `workspace:${workspace.id}:created`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
@@ -123,7 +141,24 @@ export class DeliverySpineService {
         },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "pull_request.opened",
+        aggregateType: "pull_request",
+        aggregateId: pr.id,
+        payload: {
+          project_id: params.projectId,
+          task_id: params.taskId,
+          run_id: params.runId,
+          repository_id: params.repositoryId,
+          source_branch: params.sourceBranch,
+          target_branch: params.targetBranch,
+        },
+        actorType: "system",
+        idempotencyKey: `pr:${pr.id}:opened`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",

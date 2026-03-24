@@ -53,98 +53,155 @@ event_log
 
 ---
 
-## 4 — Event Taxonomy
+## 4 — Complete Event Taxonomy
 
 ### 4.1 — Project Events
 
-| Event | Trigger |
-|-------|---------|
-| `project.created` | Project entity created |
-| `project.activated` | Blueprint approved, work begins |
-| `project.completed` | All milestones done |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `project.scoped` | Brief approved, project scoped | OrchestrationService |
+| `project.active` | Founder approval, work begins | OrchestrationService |
+| `project.blocked` | Blocker recorded | OrchestrationService |
+| `project.in_review` | Milestone artifacts submitted | OrchestrationService |
+| `project.paused` | Founder pauses project | OrchestrationService |
+| `project.completed` | All tasks terminal, founder approved | OrchestrationService |
+| `project.archived` | Founder archives | OrchestrationService |
 
 ### 4.2 — Task Events
 
-| Event | Trigger |
-|-------|---------|
-| `task.created` | Task decomposed from project |
-| `task.assigned` | Agent role assigned |
-| `task.validated` | Output verified |
-| `task.done` | Task fully complete |
-| `task.blocked` | Dependency or resource block |
-| `task.escalated` | Escalated to founder |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `task.ready` | Spec complete (title, goal, acceptance_criteria, requested_outcome, risk_class) | OrchestrationService |
+| `task.assigned` | Owner role selected, handoff created | OrchestrationService |
+| `task.in_progress` | Run starts, context available | OrchestrationService |
+| `task.waiting_review` | Artifact submitted for review | OrchestrationService |
+| `task.rework_required` | Review verdict = rejected | OrchestrationService |
+| `task.validated` | Review verdict ∈ {approved, approved_with_notes} | OrchestrationService |
+| `task.done` | All reviews closed, no pending approvals | OrchestrationService |
+| `task.blocked` | Blocker recorded | OrchestrationService |
+| `task.escalated` | Escalation reason recorded | OrchestrationService |
+| `task.cancelled` | Founder cancels task | OrchestrationService |
 
 ### 4.3 — Run Events
 
-| Event | Trigger |
-|-------|---------|
-| `run.created` | Run entity created |
-| `run.preparing` | Context pack assembled |
-| `run.running` | Provider execution started |
-| `run.produced_output` | Output received |
-| `run.failed` | Execution error |
-| `run.stalled` | Heartbeat timeout |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `run.preparing` | Task and agent exist, setup starts | OrchestrationService |
+| `run.running` | Context pack available, execution started | OrchestrationService |
+| `run.produced_output` | At least one artifact produced | OrchestrationService |
+| `run.failed` | Execution error, failure reason recorded | OrchestrationService |
+| `run.timed_out` | Runtime exceeded, timeout recorded | OrchestrationService |
+| `run.cancelled` | Manual stop, cancellation recorded | OrchestrationService |
+| `run.superseded` | Replacement run created | OrchestrationService |
+| `run.finalized` | Outcome classification recorded | OrchestrationService |
+| `run.stalled` | Heartbeat timeout detected (detection event, not lifecycle) | StalledRunDetector |
 
-### 4.4 — Review Events
+### 4.4 — Artifact Events
 
-| Event | Trigger |
-|-------|---------|
-| `review.created` | Review requested |
-| `review.resolved` | Verdict rendered |
-| `review.closed` | Review lifecycle complete |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `artifact.classified` | Source task/run exists, type assigned | OrchestrationService |
+| `artifact.submitted` | Target review/consumer exists | OrchestrationService |
+| `artifact.under_review` | Review record created | OrchestrationService |
+| `artifact.accepted` | Review verdict ∈ {approved, approved_with_notes} | OrchestrationService |
+| `artifact.rejected` | Review verdict = rejected | OrchestrationService |
+| `artifact.frozen` | Freeze reason recorded (canonical lock) | OrchestrationService |
+| `artifact.superseded` | Replacement artifact linked | OrchestrationService |
+| `artifact.archived` | Archival reason recorded | OrchestrationService |
 
-### 4.5 — Approval Events
+### 4.5 — Review Events
 
-| Event | Trigger |
-|-------|---------|
-| `approval.created` | Approval requested |
-| `approval.decided` | Founder decision made |
-| `approval.closed` | Approval lifecycle complete |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `review.in_progress` | Target artifact exists, evaluation starts | OrchestrationService |
+| `review.resolved` | Verdict set (approved/approved_with_notes/rejected/escalated) | OrchestrationService |
+| `review.closed` | Review lifecycle complete | OrchestrationService |
 
-### 4.6 — Handoff Events
+### 4.6 — Approval Events
 
-| Event | Trigger |
-|-------|---------|
-| `handoff.created` | Role-to-role transfer initiated |
-| `handoff.acknowledged` | Target role accepted |
-| `handoff.completed` | Handoff closed |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `approval.decided` | Founder decision (approved/rejected/deferred) + note | OrchestrationService |
+| `approval.expired` | Expiration reason recorded | OrchestrationService |
+| `approval.closed` | Linked action exists, lifecycle complete | OrchestrationService |
 
-### 4.7 — Delivery Events
+### 4.7 — Handoff Events
 
-| Event | Trigger |
-|-------|---------|
-| `pull_request.opened` | PR created |
-| `pull_request.merged` | PR merged to target branch |
-| `ci.started` | Check suite started |
-| `ci.passed` | All checks passed |
-| `ci.failed` | Check suite failed |
-| `deployment.started` | Deploy initiated |
-| `deployment.live` | Deploy successful |
-| `deployment.failed` | Deploy failed |
-| `deployment.rolled_back` | Rollback executed |
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `handoff.created` | Role-to-role transfer initiated | HandoffService |
+| `handoff.acknowledged` | Target role accepted | HandoffService |
+| `handoff.completed` | Work finished successfully | HandoffService |
+| `handoff.cancelled` | Task cancelled/reassigned | HandoffService |
+
+### 4.8 — Delivery Events
+
+| Event | Trigger | Emitted By |
+|-------|---------|-----------|
+| `workspace.created` | Repo workspace created for run | DeliverySpineService |
+| `pull_request.opened` | PR created after validation | DeliverySpineService |
+| `pull_request.merged` | PR merged to target branch | DeliverySpineService |
+| `pull_request.closed` | PR closed without merge | DeliverySpineService |
+| `ci.started` | Check suite started | DeliverySpineService |
+| `ci.passed` | All checks passed | DeliverySpineService |
+| `ci.failed` | Check suite failed | DeliverySpineService |
+| `deployment.started` | Deploy initiated | DeliverySpineService |
+| `deployment.live` | Deploy successful | DeliverySpineService |
+| `deployment.failed` | Deploy failed | DeliverySpineService |
+| `deployment.rolled_back` | Rollback executed | DeliverySpineService |
+| `domain.bound` | Domain binding active | DeliverySpineService |
+| `domain.misconfigured` | DNS/TLS verification failed | DeliverySpineService |
 
 ---
 
-## 5 — Correlation & Causation
+## 5 — Lifecycle → Event Coverage Matrix
 
-### 5.1 — correlation_id
+### 5.1 — Guarantee: Every Lifecycle Transition Has a Corresponding Event
+
+| Entity | Lifecycle States | Event Coverage |
+|--------|-----------------|----------------|
+| Project | draft → scoped → active → blocked/in_review/paused → completed → archived | ✅ All transitions emit `project.{toState}` |
+| Task | draft → ready → assigned → in_progress → waiting_review → validated/rework_required → done/cancelled | ✅ All transitions emit `task.{toState}` |
+| Run | created → preparing → running → produced_output/failed/timed_out/cancelled → finalized/superseded | ✅ All transitions emit `run.{toState}` |
+| Artifact | created → classified → submitted → under_review → accepted/rejected → frozen/superseded → archived | ✅ All transitions emit `artifact.{toState}` |
+| Review | created → in_progress → needs_clarification → resolved → closed | ✅ All transitions emit `review.{toState}` |
+| Approval | pending → decided/expired → closed | ✅ All transitions emit `approval.{toState}` |
+| Handoff | created → acknowledged → completed/cancelled | ✅ All transitions emit `handoff.{status}` |
+
+### 5.2 — Non-Lifecycle Events (Detection / Domain Events)
+
+| Event | Type | Emitter |
+|-------|------|---------|
+| `run.stalled` | Detection | StalledRunDetector |
+| `workspace.created` | Domain | DeliverySpineService |
+| `domain.bound` | Domain | DeliverySpineService |
+| `domain.misconfigured` | Domain | DeliverySpineService |
+
+These are NOT lifecycle state transitions but are recorded in `event_log` for complete audit trail.
+
+---
+
+## 6 — Correlation & Causation
+
+### 6.1 — correlation_id
 
 Links all events belonging to the same logical operation. Example: a single task execution produces events across Run, Artifact, Review — all share the same `correlation_id`.
 
-### 5.2 — causation_id
+### 6.2 — causation_id
 
 Points to the specific event that directly caused this event. Forms a causal chain:
 
 ```
 task.assigned (id: A)
-  → run.created (causation_id: A, id: B)
+  → run.preparing (causation_id: A, id: B)
     → run.running (causation_id: B, id: C)
-      → run.produced_output (causation_id: C)
+      → run.produced_output (causation_id: C, id: D)
+        → artifact.accepted (causation_id: D)
 ```
 
 ---
 
-## 6 — Projection Rule
+## 7 — Projection Rule
 
 All UI surfaces (Office, Founder Dashboard, Client Portal) SHOULD read from projections derived from `event_log`, not by directly inferring transitions from entity state fields.
 
@@ -154,7 +211,7 @@ All UI surfaces (Office, Founder Dashboard, Client Portal) SHOULD read from proj
 
 ---
 
-## 7 — Replay Potential
+## 8 — Replay Potential
 
 Because `event_log` is append-only and ordered by `created_at`, the full history of any aggregate can be reconstructed:
 
@@ -172,7 +229,7 @@ This enables:
 
 ---
 
-## 8 — Write Path
+## 9 — Write Path
 
 All event_log writes happen **inside the same database transaction** as the state change:
 
@@ -188,15 +245,30 @@ BEGIN TRANSACTION (Serializable)
 COMMIT
 ```
 
-If the transaction fails, no event is written. If it succeeds, all three event stores are consistent.
+If the transaction fails, no event is written. If it succeeds, all event stores are consistent.
 
 ---
 
-## 9 — Relationship to Other Documents
+## 10 — Event Emitter Responsibility
+
+| Service | Events Emitted |
+|---------|---------------|
+| OrchestrationService | All lifecycle state transitions (project, task, run, artifact, review, approval) |
+| HandoffService | handoff.created, handoff.acknowledged, handoff.completed, handoff.cancelled |
+| DeliverySpineService | workspace.created, pull_request.*, ci.*, deployment.*, domain.* |
+| StalledRunDetector | run.stalled |
+
+**Rule:** Every service that writes `activity_events` MUST also write `event_log` in the same transaction.
+
+---
+
+## 11 — Relationship to Other Documents
 
 | Document | Relationship |
 |----------|-------------|
-| `core/03-state-machine.md` | event_log records all state transitions |
-| `core/06-orchestration-use-cases.md` | Each UC produces events |
+| `core/03-state-machine.md` | event_log records all state transitions defined here |
+| `core/05-guard-matrix.md` | Guards execute before events are written |
+| `core/06-orchestration-use-cases.md` | Each UC produces one or more events |
+| `core/13-operational-planes.md` | event_log is a Delivery Plane entity |
 | `delivery/delivery-lane.md` | Delivery events tracked in log |
 | `00-system-overview.md` | Event log is Core Engine primitive |

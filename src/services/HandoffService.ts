@@ -1,7 +1,8 @@
 // Handoff Service — First-class domain entity for role-to-role collaboration
-// All handoff lifecycle changes emit ActivityEvents for audit trail.
+// All handoff lifecycle changes emit ActivityEvents and canonical event_log entries.
 
 import { GuardError } from "@/guards/GuardError";
+import { writeEventLog } from "@/lib/eventLogWriter";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -147,7 +148,24 @@ export class HandoffService {
         data: { current_handoff_id: handoff.id, updated_at: now },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "handoff.created",
+        aggregateType: "handoff",
+        aggregateId: handoff.id,
+        payload: {
+          task_id: params.taskId,
+          source_role_id: params.sourceRoleId,
+          target_role_id: params.targetRoleId,
+          requested_outcome: params.requestedOutcome,
+          urgency: params.urgency ?? "normal",
+        },
+        actorType: "system",
+        actorRef: params.sourceRoleId,
+        idempotencyKey: `handoff:${handoff.id}:created`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
@@ -211,7 +229,21 @@ export class HandoffService {
         data: { status: "acknowledged", acknowledged_at: now },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "handoff.acknowledged",
+        aggregateType: "handoff",
+        aggregateId: handoffId,
+        payload: {
+          task_id: handoff.task_id,
+          target_role_id: actorRoleId,
+        },
+        actorType: "agent_role",
+        actorRef: actorRoleId,
+        idempotencyKey: `handoff:${handoffId}:acknowledged`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
@@ -262,7 +294,18 @@ export class HandoffService {
         data: { status: "completed", closed_at: now },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "handoff.completed",
+        aggregateType: "handoff",
+        aggregateId: handoffId,
+        payload: { task_id: handoff.task_id },
+        actorType: "agent_role",
+        actorRef: actorRoleId,
+        idempotencyKey: `handoff:${handoffId}:completed`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
@@ -316,7 +359,22 @@ export class HandoffService {
         data: { status: "cancelled", closed_at: now },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "handoff.cancelled",
+        aggregateType: "handoff",
+        aggregateId: handoffId,
+        payload: {
+          task_id: handoff.task_id,
+          reason: reason ?? "cancelled",
+          from_status: handoff.status,
+        },
+        actorType: actorType,
+        actorRef: actorRoleId ?? null,
+        idempotencyKey: `handoff:${handoffId}:cancelled`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
