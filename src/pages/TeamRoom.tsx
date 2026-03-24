@@ -353,6 +353,34 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
+  // ── Published training prompt query
+  const { data: activeGuidance } = useQuery({
+    queryKey: ["active-guidance", emp.id],
+    queryFn: async () => {
+      // Find active/draft session for employee
+      const { data: sessions } = await supabase
+        .from("employee_training_sessions" as any)
+        .select("id")
+        .eq("employee_id", emp.id)
+        .in("status", ["draft", "active"])
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      if (!sessions || (sessions as any[]).length === 0) return null;
+      const sessionId = (sessions as any[])[0].id;
+      // Find published draft
+      const { data: drafts } = await supabase
+        .from("employee_prompt_drafts" as any)
+        .select("id, version_number, prompt_markdown, created_at, is_published")
+        .eq("session_id", sessionId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (!drafts || (drafts as any[]).length === 0) return null;
+      return (drafts as any[])[0] as { id: string; version_number: number; prompt_markdown: string; created_at: string; is_published: boolean };
+    },
+    staleTime: 30_000,
+  });
+
   const totalTokens = transcript.reduce((s, e) => s + e.tokenCost, 0);
   const lastEntry = transcript[transcript.length - 1];
   const previousEntries = transcript.slice(0, -1);
@@ -375,6 +403,30 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
 
   // Memory counts (seed)
   const memoryCounts = { coreRules: 4, learnedPatterns: 3, failures: 2 };
+
+  // Extract top guidance sections from published prompt markdown
+  const guidanceSections = useMemo(() => {
+    if (!activeGuidance?.prompt_markdown) return [];
+    const lines = activeGuidance.prompt_markdown.split("\n");
+    const sections: { title: string; preview: string }[] = [];
+    let currentTitle = "";
+    let currentContent = "";
+    for (const line of lines) {
+      if (line.startsWith("## ")) {
+        if (currentTitle && currentContent.trim()) {
+          sections.push({ title: currentTitle, preview: currentContent.trim().slice(0, 80) });
+        }
+        currentTitle = line.replace("## ", "").trim();
+        currentContent = "";
+      } else {
+        currentContent += line + " ";
+      }
+    }
+    if (currentTitle && currentContent.trim()) {
+      sections.push({ title: currentTitle, preview: currentContent.trim().slice(0, 80) });
+    }
+    return sections.slice(0, 3);
+  }, [activeGuidance]);
 
   const meetingDot = meetingStatus === "active" ? "bg-status-green animate-pulse" : meetingStatus === "frozen" ? "bg-status-amber" : "bg-muted-foreground/30";
   const meetingLabel = meetingStatus === "active" ? "Live" : meetingStatus === "frozen" ? "Frozen" : "Ended";
