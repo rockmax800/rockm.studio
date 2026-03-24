@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { getStatusVariant } from "@/lib/status";
 import { AlertTriangle, OctagonX } from "lucide-react";
 
-// PART 1 — Role-specific sprite mapping
 const ROLE_SPRITES: Record<string, string> = {
   product_strategist: "/pixel/desk.png",
   solution_architect: "/pixel/board.png",
@@ -55,58 +54,38 @@ export function PixelAgent({
   const isEscalated = state === "escalated";
   const isRunning = latestRunState === "running" || latestRunState === "preparing";
   const isInProgress = state === "in_progress";
-  const isWaitingReview = state === "waiting_review";
 
   const sprite = (roleCode && ROLE_SPRITES[roleCode]) || "/pixel/agent.png";
 
-  // PART 6 — Reputation-based tint (overrides role success rate)
-  let perfOverlay = "";
-  if (employeeReputation !== null && employeeReputation !== undefined) {
-    if (employeeReputation < 0.2) perfOverlay = "bg-red-500/15";
-    else if (employeeReputation > 0.5) perfOverlay = "bg-emerald-500/10";
-  } else if (successRate !== null && successRate !== undefined) {
-    if (successRate < 0.4) perfOverlay = "bg-red-500/15";
-    else if (successRate >= 0.8) perfOverlay = "bg-emerald-500/10";
-  }
-
-  // PART 8 — Prediction border
-  const predictionBorder = hasPrediction
-    ? "ring-2 ring-amber-400/60 animate-[prediction-pulse_2s_ease-in-out_infinite]"
-    : "";
-
-  // PART 6 — Inactive fade for soft-fired employees
   const isInactive = employeeStatus === "inactive";
 
   return (
     <div
       onClick={onClick}
-      className={`relative flex flex-col items-center cursor-pointer group transition-all duration-500 hover:scale-105 ${isInactive ? "opacity-30 grayscale" : ""}`}
+      className={`relative flex flex-col items-center cursor-pointer group transition-colors duration-150 ${isInactive ? "opacity-30 grayscale" : ""}`}
       style={{ width: 68 }}
     >
-      {/* Visual indicators above sprite */}
+      {/* Status indicators */}
       <div className="h-4 flex items-center justify-center gap-0.5">
         {isRunning && (
           <div className="flex gap-[2px]">
-            <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-            <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-            <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+            <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
+            <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
+            <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
           </div>
         )}
-        {isEscalated && <AlertTriangle className="h-3 w-3 text-amber-500 animate-ping" />}
+        {isEscalated && <AlertTriangle className="h-3 w-3 text-destructive" />}
         {isBlocked && <OctagonX className="h-3 w-3 text-destructive" />}
-        {/* Prediction warning icon */}
         {hasPrediction && !isEscalated && !isBlocked && (
-          <span className="text-[10px] animate-pulse" title={predictionType ?? "predicted delay"}>⚠️</span>
+          <AlertTriangle className="h-3 w-3 text-status-amber" />
         )}
       </div>
 
-      {/* Agent sprite with overlays */}
+      {/* Agent sprite */}
       <div
         className={`
-          relative w-10 h-10 rounded overflow-hidden
-          ${isBlocked ? "ring-2 ring-destructive/60 grayscale" : ""}
-          ${isWaitingReview ? "ring-2 ring-purple-400/50 shadow-[0_0_8px_hsl(270,60%,50%,0.3)]" : ""}
-          ${predictionBorder}
+          relative w-10 h-10 rounded-lg overflow-hidden border
+          ${isBlocked ? "border-destructive/40 grayscale" : "border-border/40"}
         `}
       >
         <img
@@ -116,13 +95,11 @@ export function PixelAgent({
           style={{ imageRendering: "pixelated" }}
           loading="lazy"
         />
-        {isBlocked && <div className="absolute inset-0 bg-muted/40 rounded" />}
-        {perfOverlay && <div className={`absolute inset-0 ${perfOverlay} rounded pointer-events-none`} />}
+        {isBlocked && <div className="absolute inset-0 bg-muted/30 rounded-lg" />}
         {isInProgress && !isRunning && (
           <div className="absolute bottom-0 right-0 flex gap-[1px] p-[2px]">
-            <span className="w-[3px] h-[3px] rounded-full bg-foreground/60 animate-pulse" style={{ animationDelay: "0ms" }} />
-            <span className="w-[3px] h-[3px] rounded-full bg-foreground/60 animate-pulse" style={{ animationDelay: "200ms" }} />
-            <span className="w-[3px] h-[3px] rounded-full bg-foreground/60 animate-pulse" style={{ animationDelay: "400ms" }} />
+            <span className="w-[3px] h-[3px] rounded-full bg-muted-foreground/60 animate-pulse" style={{ animationDelay: "0ms" }} />
+            <span className="w-[3px] h-[3px] rounded-full bg-muted-foreground/60 animate-pulse" style={{ animationDelay: "200ms" }} />
           </div>
         )}
       </div>
@@ -130,31 +107,21 @@ export function PixelAgent({
       {/* Labels */}
       <div className="mt-0.5 flex flex-col items-center max-w-[68px]">
         {isNewHire && (
-          <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
-            NEW HIRE
-          </Badge>
+          <Badge variant="secondary" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5">NEW</Badge>
         )}
         {isExperiment && !isNewHire && (
-          <Badge variant="secondary" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5">
-            EXPERIMENT
-          </Badge>
+          <Badge variant="secondary" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5">EXP</Badge>
         )}
         {isTopPerformer && !isNewHire && (
-          <Badge variant="default" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5 bg-emerald-600 text-white">
-            ⭐ TOP
-          </Badge>
+          <Badge variant="secondary" className="text-[6px] px-0.5 py-0 h-2.5 mb-0.5">⭐ TOP</Badge>
         )}
         {employeeName && (
-          <span className="text-[8px] font-bold text-foreground truncate max-w-full">
-            {employeeName}
-          </span>
+          <span className="text-[8px] font-bold text-foreground truncate max-w-full">{employeeName}</span>
         )}
         {!employeeName && roleName && (
-          <span className="text-[8px] font-medium text-muted-foreground truncate max-w-full">
-            {roleName}
-          </span>
+          <span className="text-[8px] font-medium text-muted-foreground truncate max-w-full">{roleName}</span>
         )}
-        <span className="text-[8px] font-medium text-foreground/80 truncate max-w-full leading-tight">
+        <span className="text-[8px] font-medium text-muted-foreground/60 truncate max-w-full leading-tight">
           {taskTitle.length > 14 ? taskTitle.slice(0, 14) + "…" : taskTitle}
         </span>
         <Badge variant={getStatusVariant(state)} className="text-[7px] px-1 py-0 h-3 mt-0.5 scale-90">
