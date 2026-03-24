@@ -138,6 +138,27 @@ export async function executeRun(
       });
     }
 
+    // PART 14 — Role Contract pre-execution enforcement
+    const contractEnforcement = new RoleContractEnforcementService(prisma);
+    let roleContract: any = null;
+    let taskSpecForRun: any = null;
+
+    if (run.agent_role_id && task.domain) {
+      try {
+        const enforcement = await contractEnforcement.enforcePreExecution({
+          runId,
+          roleId: run.agent_role_id,
+          taskId: run.task_id,
+          taskDomain: task.domain,
+        });
+        roleContract = enforcement.contract;
+        taskSpecForRun = enforcement.taskSpec;
+      } catch (e) {
+        if (e instanceof GuardError) throw e;
+        // Best-effort — do not block execution if contract lookup fails
+      }
+    }
+
     // PART 13 — Resolve sandbox policy for isolated execution
     const sandboxExecutor = new SandboxExecutorService(prisma);
     const sandboxPolicy = await sandboxExecutor.resolvePolicy(runId);
