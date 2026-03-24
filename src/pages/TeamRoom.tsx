@@ -13,6 +13,8 @@ import { getPersona, getStatusMeta } from "@/lib/personas";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import { cn } from "@/lib/utils";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
+import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
+import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 import {
   ArrowLeft, Users, MessageSquare, Send, SkipForward,
   Snowflake, Square, Coins, ChevronDown, ChevronUp,
@@ -348,6 +350,8 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
   const [meetingStatus, setMeetingStatus] = useState<"active" | "frozen" | "ended">("active");
   const [showHistory, setShowHistory] = useState(false);
   const [empStatus] = useState<"listening" | "thinking" | "responding" | "idle">("listening");
+  const { policy: globalPolicy } = useExecutionPolicy();
+  const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
   const totalTokens = transcript.reduce((s, e) => s + e.tokenCost, 0);
   const lastEntry = transcript[transcript.length - 1];
@@ -399,7 +403,12 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
               <span className="text-[12px] font-bold text-muted-foreground">{meetingLabel}</span>
               </div>
               <span className="w-px h-5 bg-border/40" />
-              <ExecutionPolicyBadge label="Current execution environment" />
+              <ExecutionPolicyBadge
+                label="Current execution environment"
+                policyOverride={execOverride.enabled ? execOverride.policy : null}
+                isOverride={execOverride.enabled}
+              />
+              <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
             </div>
 
             <div className="flex items-center gap-4">

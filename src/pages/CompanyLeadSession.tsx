@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
+import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
+import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -221,6 +223,8 @@ export default function CompanyLeadSession() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [phase, setPhase] = useState<"discovery" | "consultation" | "estimate" | "decision">("discovery");
   const [isThinking, setIsThinking] = useState(false);
+  const { policy: globalPolicy } = useExecutionPolicy();
+  const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
   useQuery({
     queryKey: ["departments"],
@@ -350,7 +354,14 @@ export default function CompanyLeadSession() {
         </div>
 
         {/* Execution context */}
-        <ExecutionPolicyBadge label="The team will execute with" />
+        <div className="flex items-center gap-2">
+          <ExecutionPolicyBadge
+            label="The team will execute with"
+            policyOverride={execOverride.enabled ? execOverride.policy : null}
+            isOverride={execOverride.enabled}
+          />
+          <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
+        </div>
 
         {showEstimate && (
           <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono" style={{ background: "hsl(217 91% 60% / 0.06)", color: "hsl(217 91% 60%)" }}>
