@@ -46,52 +46,51 @@ export function HeroComposer() {
 
   return (
     <>
-      <div className="relative rounded-2xl border border-border/50 bg-card overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-status-blue/[0.015] pointer-events-none" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
+      <div className="relative rounded-xl border border-border bg-card overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/40 via-transparent to-transparent pointer-events-none" />
 
-        <div className="relative px-10 py-12">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-glass border border-border/30 mb-5">
-              <Sparkles className="h-3.5 w-3.5 text-muted-foreground/50" strokeWidth={1.8} />
-              <span className="text-[11px] font-semibold text-muted-foreground/60 tracking-[0.02em]">
-                AI Production Studio
+        <div className="relative px-8 py-10 lg:px-12 lg:py-14">
+          <div className="max-w-xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary border border-border/50 mb-5">
+              <Sparkles className="h-3 w-3 text-muted-foreground/60" strokeWidth={1.8} />
+              <span className="text-[10px] font-bold text-muted-foreground/60 tracking-[0.06em] uppercase">
+                Production Studio
               </span>
             </div>
 
-            <h1 className="text-[36px] font-bold tracking-[-0.03em] text-foreground leading-[1.1]">
+            <h1 className="text-[28px] lg:text-[34px] font-bold tracking-[-0.025em] text-foreground leading-[1.15]">
               What are we building?
             </h1>
-            <p className="text-[15px] text-muted-foreground mt-3 leading-relaxed max-w-lg mx-auto">
-              Every project starts here. Begin with a Company Lead consultation to define scope and get a cost estimate, then proceed to structured intake.
+            <p className="text-[14px] text-muted-foreground mt-3 leading-relaxed max-w-md mx-auto">
+              Start with a Company Lead consultation to define scope, then proceed to structured intake.
             </p>
 
             <div className="flex items-center gap-3 justify-center mt-8">
               <Button
                 onClick={() => setLeadOpen(true)}
-                className="h-12 px-7 gap-2.5 text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-elevated"
+                className="h-11 px-6 gap-2 text-[13px] font-bold bg-secondary border border-border-strong text-foreground hover:bg-accent rounded-lg transition-colors"
               >
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 Talk to Company Lead
-                <ArrowRight className="h-3.5 w-3.5 ml-0.5 opacity-60" />
+                <ArrowRight className="h-3.5 w-3.5 ml-0.5 text-muted-foreground/50" />
               </Button>
               <Link to="/presale/new">
-                <Button variant="outline" className="h-12 px-6 gap-2.5 text-[14px] font-semibold border-border/60 text-foreground hover:bg-surface-glass rounded-xl">
-                  <FileText className="h-4 w-4 opacity-60" />
-                  Skip to Structured Intake
+                <Button variant="outline" className="h-11 px-5 gap-2 text-[13px] font-medium border-border text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+                  <FileText className="h-4 w-4 opacity-50" />
+                  Structured Intake
                 </Button>
               </Link>
             </div>
 
             {/* Path explanation */}
-            <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-muted-foreground/40 font-medium">
-              <span className="px-2 py-0.5 rounded bg-foreground/5">Consultation</span>
-              <ArrowRight className="h-3 w-3" />
-              <span className="px-2 py-0.5 rounded bg-foreground/5">Structured Intake</span>
-              <ArrowRight className="h-3 w-3" />
-              <span className="px-2 py-0.5 rounded bg-foreground/5">Blueprint</span>
-              <ArrowRight className="h-3 w-3" />
-              <span className="px-2 py-0.5 rounded bg-foreground/5">Project</span>
+            <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground/35 font-medium">
+              <span className="px-2 py-0.5 rounded bg-secondary border border-border/30">Consultation</span>
+              <ArrowRight className="h-2.5 w-2.5" />
+              <span className="px-2 py-0.5 rounded bg-secondary border border-border/30">Intake</span>
+              <ArrowRight className="h-2.5 w-2.5" />
+              <span className="px-2 py-0.5 rounded bg-secondary border border-border/30">Blueprint</span>
+              <ArrowRight className="h-2.5 w-2.5" />
+              <span className="px-2 py-0.5 rounded bg-secondary border border-border/30">Project</span>
             </div>
           </div>
         </div>
