@@ -487,85 +487,52 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
         <div className="flex-1 grid grid-cols-12 gap-0 min-h-0 overflow-hidden">
 
           {/* ── LEFT 8 cols — Working Session ── */}
-          <div className="col-span-8 border-r border-border/20 flex flex-col min-h-0 bg-background">
+          <div className="col-span-8 border-r border-border/15 flex flex-col min-h-0 bg-background">
 
-            {/* Specialist header — briefing identity */}
-            <div className="px-6 py-5 border-b border-border/15 bg-card/30">
-              <div className="flex items-start gap-5">
-                <div className="relative shrink-0">
-                  <img src={persona.avatar} alt={emp.name}
-                    className={cn("h-[72px] w-[72px] rounded-2xl object-cover ring-2 ring-offset-[3px] ring-offset-background", persona.ringClass)}
-                    width={72} height={72} />
-                  <div className="absolute -bottom-1.5 -right-1.5 h-7 w-7 rounded-lg bg-card border border-border/40 flex items-center justify-center shadow-sm">
-                    <span className={cn("text-[11px] font-bold font-mono", perfColor)}>{perfScore}</span>
-                  </div>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-[22px] font-bold text-foreground leading-tight">{emp.name}</h2>
-                    <Badge variant="secondary" className="text-[11px] h-6 px-2.5 font-semibold rounded-lg">{roleName}</Badge>
-                  </div>
-                  <p className="text-[12px] text-muted-foreground/40 mt-0.5 italic">{persona.specialty}</p>
-
-                  {/* Intro bubble — briefing feel */}
-                  <div className="mt-2.5 rounded-xl bg-secondary/60 border border-border/30 px-4 py-2.5 max-w-[520px]">
-                    <p className="text-[13px] text-foreground/70 leading-[160%]">
-                      {(() => {
-                        const intros: Record<string, string> = {
-                          product_strategist: "Let's clarify the scope and make sure we're solving the right problem.",
-                          solution_architect: "I'll map the architecture — let's define layers and boundaries.",
-                          frontend_builder: "Ready to translate specs into clean, maintainable interfaces.",
-                          reviewer: "I'll check for correctness, security gaps, and contract compliance.",
-                          qa_agent: "Let's identify edge cases and make sure nothing slips through.",
-                        };
-                        return intros[emp.role_code] ?? "Session active. Let's work through this together.";
-                      })()}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
-                      <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground/30">·</span>
-                    <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1 bg-secondary/50 px-2 py-0.5 rounded-md border border-border/20">
-                      <GraduationCap className="h-3 w-3" /> This session can produce training guidance
-                    </span>
-                    <span className="text-[11px] text-muted-foreground/30">·</span>
-                    <span className="text-[12px] text-muted-foreground/50 italic">{persona.nickname}</span>
-                    {persona.chips.slice(0, 2).map((chip) => (
-                      <span key={chip} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground/60">{chip}</span>
-                    ))}
-                  </div>
-                </div>
-
+            {/* Founder helper note */}
+            <div className="px-6 py-2 border-b border-border/10 bg-secondary/20 shrink-0 flex items-center justify-between">
+              <p className="text-[11px] text-muted-foreground/50 flex items-center gap-2">
+                <Eye className="h-3 w-3 shrink-0" />
+                Observe discussion, clarify direction, freeze when ready.
+                <span className="text-muted-foreground/25">·</span>
+                <span className="text-[10px] text-muted-foreground/30 flex items-center gap-1">
+                  <GraduationCap className="h-2.5 w-2.5" /> This session can produce training guidance
+                </span>
+              </p>
+              <div className="flex items-center gap-1">
                 <Link to={`/employees/${emp.id}`}>
-                  <Button size="sm" variant="outline" className="h-9 text-[12px] gap-1.5 rounded-xl border-border/50">
-                    <User className="h-3.5 w-3.5" /> Full Profile
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground/40 hover:text-foreground">
+                    <User className="h-3 w-3" /> Profile
+                  </Button>
+                </Link>
+                <Link to={`/employees/${emp.id}`}>
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground/40 hover:text-foreground">
+                    <BookOpen className="h-3 w-3" /> Training
                   </Button>
                 </Link>
               </div>
             </div>
 
-            {/* ── Hero message ── */}
+            {/* ── Hero message — current speaker ── */}
             {lastEntry && (
-              <div className="px-6 py-6 border-b border-border/10">
+              <div className="px-6 py-5 border-b border-border/10 bg-card/20">
                 <div className="flex items-start gap-4">
                   <img src={getPersona(lastEntry.roleCode).avatar} alt=""
-                    className={cn("h-10 w-10 rounded-xl object-cover ring-1 ring-offset-2 ring-offset-background shrink-0 mt-0.5", getPersona(lastEntry.roleCode).ringClass)}
-                    width={40} height={40} />
+                    className={cn("h-9 w-9 rounded-xl object-cover ring-1 ring-offset-2 ring-offset-background shrink-0 mt-0.5", getPersona(lastEntry.roleCode).ringClass)}
+                    width={36} height={36} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 mb-2">
-                      <span className="text-[14px] font-bold text-foreground">{roles.find((r: any) => r.code === lastEntry.roleCode)?.name ?? lastEntry.roleCode}</span>
-                      <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", TYPE_COLOR[lastEntry.type])}>{TYPE_LABEL[lastEntry.type]}</span>
-                      <span className="text-[11px] text-muted-foreground/30 ml-auto font-mono flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[13px] font-bold text-foreground">{roles.find((r: any) => r.code === lastEntry.roleCode)?.name ?? lastEntry.roleCode}</span>
+                      <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-md", TYPE_COLOR[lastEntry.type])}>{TYPE_LABEL[lastEntry.type]}</span>
+                      <span className="text-[10px] text-muted-foreground/25 ml-auto font-mono">
                         {new Date(lastEntry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
-                    <p className="text-[16px] text-foreground leading-[1.8] max-w-[640px] font-medium">{lastEntry.content}</p>
+                    <p className="text-[15px] text-foreground leading-[1.75] max-w-[600px]">{lastEntry.content}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={cn("w-1.5 h-1.5 rounded-full", statusInfo.dot)} />
+                      <span className={cn("text-[11px] font-medium", statusInfo.text)}>{statusInfo.label}</span>
+                    </div>
                   </div>
                 </div>
               </div>
