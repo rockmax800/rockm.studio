@@ -10,6 +10,7 @@ import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness"
 import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
 import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
+import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
   AlertTriangle, CheckCircle2, FileText, ChevronRight,
-  Layers, Activity, Package, History, Columns3,
+  Layers, Activity, Package, History, Columns3, Settings2,
 } from "lucide-react";
 
 const RISK_COLORS = {
@@ -101,6 +102,26 @@ export default function ProjectDetail() {
       return data ?? [];
     },
     enabled: tasks.length > 0,
+  });
+
+  const { data: repositories = [] } = useQuery({
+    queryKey: ["project-repos", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("repositories").select("id, repo_name, repo_owner, provider, status")
+        .eq("project_id", id!).limit(5);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: pullRequests = [] } = useQuery({
+    queryKey: ["project-prs", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("pull_requests").select("id, status")
+        .eq("project_id", id!).limit(50);
+      return data ?? [];
+    },
+    enabled: !!id,
   });
 
   /* ── Loading / Not found ── */
@@ -393,7 +414,38 @@ export default function ProjectDetail() {
             </div>
           </div>
 
-          {/* ══ ROW 3 — EVIDENCE & LOGS ══ */}
+          {/* ══ ROW 3 — PROJECT SETUP ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Settings2} title="Project Setup" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Infrastructure connections required for production delivery — repo, server, and domain.
+            </p>
+            <ProjectSetupPanel
+              repo={{
+                hasRepo: repositories.length > 0,
+                repoName: repositories[0] ? `${repositories[0].repo_owner}/${repositories[0].repo_name}` : undefined,
+                provider: repositories[0]?.provider,
+                prCount: pullRequests.length,
+                ciStatus: checkSuites.some((c: any) => c.status === "failed") ? "failed"
+                  : checkSuites.some((c: any) => c.status === "passed") ? "passed"
+                  : checkSuites.length > 0 ? "pending" : null,
+              }}
+              deploy={{
+                hasStaging: deployments.some((d: any) => d.environment === "staging"),
+                hasProduction: deployments.some((d: any) => d.environment === "production"),
+                stagingStatus: deployments.find((d: any) => d.environment === "staging")?.status,
+                productionStatus: deployments.find((d: any) => d.environment === "production")?.status,
+                environmentCount: new Set(deployments.map((d: any) => d.environment)).size,
+              }}
+              domain={{
+                hasDomain: domainBindings.length > 0,
+                domains: domainBindings.map((d: any) => ({ domain: d.domain, status: d.status })),
+              }}
+              projectId={id!}
+            />
+          </div>
+
+          {/* ══ ROW 4 — EVIDENCE & LOGS ══ */}
           <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
             <SectionHeader icon={Package} title="Evidence & Deployments" count={artifacts.length + deployments.length} />
             <EvidencePanel
