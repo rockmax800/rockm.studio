@@ -7,20 +7,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDepartments } from "@/hooks/use-department-data";
 import { useHRDashboard } from "@/hooks/use-hr-data";
 import { useHiringMarket } from "@/hooks/use-hiring-market";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { getPersona, getStatusMeta } from "@/lib/personas";
+import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
+import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
+import { toast } from "sonner";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
   ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy, Star,
-  Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight,
+  Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight, Plus,
+  ArrowLeftRight, Trash2, UserMinus,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
 
 export default function TeamsPage() {
+  const qc = useQueryClient();
   const [expandedDeptId, setExpandedDeptId] = useState<string | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
   const { data: departments = [], isLoading: deptLoading } = useDepartments();
   const { data: hrData } = useHRDashboard();
   const { data: marketData } = useHiringMarket();
@@ -55,32 +61,81 @@ export default function TeamsPage() {
     },
   });
 
+  // Remove employee mutation
+  const removeEmployee = useMutation({
+    mutationFn: async (empId: string) => {
+      const { error } = await supabase.from("ai_employees").update({ status: "terminated" }).eq("id", empId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      toast.success("Employee removed");
+    },
+  });
+
+  // Move employee mutation
+  const moveEmployee = useMutation({
+    mutationFn: async ({ empId, newTeamId }: { empId: string; newTeamId: string }) => {
+      const { error } = await supabase.from("ai_employees").update({ team_id: newTeamId }).eq("id", empId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      toast.success("Employee moved");
+    },
+  });
+
   const activeEmployees = allEmployees.filter((e) => e.status === "active");
-  const underperforming = allEmployees.filter((e) => (e.success_rate ?? 0) < 0.6 || (e.bug_rate ?? 0) > 0.3);
+  const underperforming = allEmployees.filter((e) => e.status === "active" && ((e.success_rate ?? 0) < 0.6 || (e.bug_rate ?? 0) > 0.3));
   const suggestions = hrData?.suggestions?.filter((s: any) => !s.resolved) ?? [];
+
+  const hasNoSetup = departments.length === 0 && activeEmployees.length === 0;
 
   /* ── Pool metrics per department ── */
   const getPoolMetrics = (deptId: string) => {
+    const deptEmployees = activeEmployees.filter((e) => e.team_id === deptId);
     const deptRoles = allRoles.filter((r) => r.team_id === deptId);
-    const teamSize = deptRoles.length;
-    const avgSuccess = deptRoles.length > 0
-      ? Math.round(deptRoles.reduce((s, r) => s + (r.success_rate ?? 0), 0) / deptRoles.length * 100) : 0;
+    const teamSize = deptEmployees.length || deptRoles.length;
+    const avgSuccess = deptEmployees.length > 0
+      ? Math.round(deptEmployees.reduce((s, e) => s + ((e.success_rate as number) ?? 0), 0) / deptEmployees.length * 100) : 0;
     const totalCap = deptRoles.reduce((s, r) => s + (r.capacity_score ?? 1), 0);
     const usedCap = deptRoles.reduce((s, r) => s + Math.min(r.total_runs ?? 0, r.capacity_score ?? 1), 0);
     const loadPct = totalCap > 0 ? Math.round((usedCap / totalCap) * 100) : 0;
     return { teamSize, avgSuccess, loadPct };
   };
 
-  /* ── Fallback pool metrics (global) ── */
-  const getGlobalMetrics = () => {
-    const teamSize = allRoles.length;
-    const avgSuccess = allRoles.length > 0
-      ? Math.round(allRoles.reduce((s, r) => s + (r.success_rate ?? 0), 0) / allRoles.length * 100) : 0;
-    const totalCap = allRoles.reduce((s, r) => s + (r.capacity_score ?? 1), 0);
-    const usedCap = allRoles.reduce((s, r) => s + Math.min(r.total_runs ?? 0, r.capacity_score ?? 1), 0);
-    const loadPct = totalCap > 0 ? Math.round((usedCap / totalCap) * 100) : 0;
-    return { teamSize, avgSuccess, loadPct };
-  };
+  // ── FIRST TIME: Show setup wizard
+  if (hasNoSetup || showWizard) {
+    return (
+      <AppLayout title="AI Teams">
+        <ScrollArea className="h-full">
+          <div className="px-8 py-8">
+            {!showWizard && hasNoSetup ? (
+              <div className="max-w-[700px] mx-auto text-center py-12">
+                <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-6">
+                  <Zap className="h-10 w-10 text-primary/40" />
+                </div>
+                <h1 className="text-[32px] font-bold text-foreground tracking-tight">Set Up Your AI Team</h1>
+                <p className="text-[16px] text-muted-foreground mt-3 leading-relaxed max-w-[460px] mx-auto">
+                  Create your first capability pool and add AI employees to start production.
+                </p>
+                <Button onClick={() => setShowWizard(true)}
+                  className="mt-8 h-12 px-8 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                  <Plus className="h-4 w-4" /> Start Team Setup
+                </Button>
+              </div>
+            ) : (
+              <TeamSetupWizard
+                onComplete={() => { setShowWizard(false); qc.invalidateQueries({ queryKey: ["departments"] }); }}
+                onCancel={departments.length > 0 ? () => setShowWizard(false) : undefined}
+              />
+            )}
+          </div>
+        </ScrollArea>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="AI Teams">
@@ -88,11 +143,17 @@ export default function TeamsPage() {
         <div className="px-8 py-6 space-y-8 max-w-[1400px]">
 
           {/* ── Page header ── */}
-          <div>
-            <h1 className="text-[28px] font-bold text-foreground tracking-tight">AI Teams</h1>
-            <p className="text-[14px] text-muted-foreground mt-1 leading-relaxed max-w-[500px]">
-              Manage your production capabilities, team members, and learning pipeline.
-            </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] font-bold text-foreground tracking-tight">AI Teams</h1>
+              <p className="text-[14px] text-muted-foreground mt-1 leading-relaxed max-w-[500px]">
+                Manage your production capabilities, team members, and learning pipeline.
+              </p>
+            </div>
+            <Button onClick={() => setShowWizard(true)}
+              className="h-10 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0">
+              <Plus className="h-4 w-4" /> New Capability
+            </Button>
           </div>
 
           {/* ── Summary strip ── */}
@@ -131,19 +192,14 @@ export default function TeamsPage() {
             <div className="mt-4">
               {deptLoading ? (
                 <p className="text-[13px] text-muted-foreground">Loading…</p>
-              ) : departments.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-8 text-center">
-                  <Building2 className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-[15px] font-semibold text-foreground">No capabilities configured</p>
-                  <p className="text-[13px] text-muted-foreground mt-1">Create your first capability pool to organize your AI team.</p>
-                </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {departments.map((dept) => {
                     const Icon = DEPT_ICONS[dept.icon] || Building2;
-                    const m = dept.id ? getPoolMetrics(dept.id) : getGlobalMetrics();
+                    const m = dept.id ? getPoolMetrics(dept.id) : { teamSize: 0, avgSuccess: 0, loadPct: 0 };
                     const isExpanded = expandedDeptId === dept.id;
                     const loadColor = m.loadPct > 85 ? "text-destructive" : m.loadPct < 30 ? "text-status-amber" : "text-status-green";
+                    const deptEmployees = activeEmployees.filter((e) => e.team_id === dept.id);
 
                     return (
                       <div key={dept.id} className={`rounded-2xl border overflow-hidden transition-all ${
@@ -173,6 +229,9 @@ export default function TeamsPage() {
                           {/* Load bar + actions */}
                           <div className="flex items-center gap-3 mt-3">
                             <Progress value={m.loadPct} className="h-1.5 flex-1" />
+                            <AddEmployeeDialog teamId={dept.id} teamName={dept.name}
+                              trigger={<Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 px-3 font-bold rounded-lg shrink-0"><Plus className="h-3 w-3" /> Add</Button>}
+                            />
                             <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 px-4 font-semibold rounded-lg shrink-0"
                               onClick={() => setExpandedDeptId(isExpanded ? null : dept.id)}>
                               {isExpanded ? <><ChevronDown className="h-3 w-3" /> Collapse</> : <><ChevronRight className="h-3 w-3" /> View Team</>}
@@ -188,7 +247,24 @@ export default function TeamsPage() {
                         {/* Expanded: team members */}
                         {isExpanded && (
                           <div className="px-5 pb-5 pt-2 border-t border-border/30">
-                            <EmployeeGrid employees={allEmployees} allRoles={allRoles} filterTeamId={dept.id} />
+                            {deptEmployees.length === 0 ? (
+                              <div className="text-center py-6">
+                                <Users className="h-8 w-8 text-muted-foreground/15 mx-auto mb-2" />
+                                <p className="text-[14px] font-bold text-foreground">No members yet</p>
+                                <p className="text-[13px] text-muted-foreground mt-1">Add employees to this capability pool.</p>
+                                <AddEmployeeDialog teamId={dept.id} teamName={dept.name}
+                                  trigger={<Button className="mt-3 h-9 gap-2 text-[12px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"><Plus className="h-3.5 w-3.5" /> Add First Member</Button>}
+                                />
+                              </div>
+                            ) : (
+                              <EmployeeGrid
+                                employees={deptEmployees}
+                                allRoles={allRoles}
+                                departments={departments}
+                                onRemove={(id) => removeEmployee.mutate(id)}
+                                onMove={(id, teamId) => moveEmployee.mutate({ empId: id, newTeamId: teamId })}
+                              />
+                            )}
                           </div>
                         )}
                       </div>
@@ -203,10 +279,27 @@ export default function TeamsPage() {
               SECTION 2 — ALL TEAM MEMBERS
               ════════════════════════════════════════════════════════ */}
           <section>
-            <SectionHeader icon={<Users className="h-5 w-5" />} title="All Team Members"
-              subtitle={`${allEmployees.length} agents across all capabilities`} />
+            <div className="flex items-center justify-between">
+              <SectionHeader icon={<Users className="h-5 w-5" />} title="All Team Members"
+                subtitle={`${activeEmployees.length} active agents across all capabilities`} />
+              <AddEmployeeDialog teamName="Unassigned" />
+            </div>
             <div className="mt-4">
-              <EmployeeGrid employees={allEmployees} allRoles={allRoles} />
+              {activeEmployees.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-10 text-center">
+                  <Users className="h-10 w-10 text-muted-foreground/15 mx-auto mb-3" />
+                  <p className="text-[16px] font-bold text-foreground">No team members</p>
+                  <p className="text-[13px] text-muted-foreground mt-1">Use the setup wizard or "Add Employee" to create your first agent.</p>
+                </div>
+              ) : (
+                <EmployeeGrid
+                  employees={activeEmployees}
+                  allRoles={allRoles}
+                  departments={departments}
+                  onRemove={(id) => removeEmployee.mutate(id)}
+                  onMove={(id, teamId) => moveEmployee.mutate({ empId: id, newTeamId: teamId })}
+                />
+              )}
             </div>
           </section>
 
@@ -223,7 +316,7 @@ export default function TeamsPage() {
                   <AlertTriangle className="h-4 w-4 text-destructive/60" /> At Risk
                 </h3>
                 {underperforming.length === 0 ? (
-                  <p className="text-[13px] text-muted-foreground/50">No underperforming agents.</p>
+                  <p className="text-[13px] text-muted-foreground/50">All agents performing well.</p>
                 ) : (
                   <div className="space-y-2">
                     {underperforming.slice(0, 5).map((emp) => (
@@ -308,22 +401,20 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
   );
 }
 
-function EmployeeGrid({ employees, allRoles, filterTeamId }: { employees: any[]; allRoles: any[]; filterTeamId?: string }) {
+function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
+  employees: any[]; allRoles: any[]; departments: any[];
+  onRemove?: (id: string) => void;
+  onMove?: (id: string, teamId: string) => void;
+}) {
   const roleMap = Object.fromEntries(allRoles.map((r) => [r.id, r]));
 
-  let filtered = employees;
-  if (filterTeamId) {
-    const teamRoleIds = new Set(allRoles.filter((r) => r.team_id === filterTeamId).map((r) => r.id));
-    filtered = employees.filter((e) => e.role_id && teamRoleIds.has(e.role_id));
-  }
-
-  if (filtered.length === 0) {
+  if (employees.length === 0) {
     return <p className="text-[13px] text-muted-foreground/50 py-4">No team members found.</p>;
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-      {filtered.map((emp) => {
+      {employees.map((emp) => {
         const persona = getPersona(emp.role_code);
         const st = getStatusMeta(emp.status);
         const role = emp.role_id ? roleMap[emp.role_id] : null;
@@ -332,36 +423,52 @@ function EmployeeGrid({ employees, allRoles, filterTeamId }: { employees: any[];
         const repScore = emp.reputation_score ?? 0;
         const perfColor = repScore >= 0.8 ? "text-status-green" : repScore >= 0.5 ? "text-status-amber" : "text-destructive";
         const perfRing = repScore >= 0.8 ? "border-status-green/30" : repScore >= 0.5 ? "border-status-amber/30" : "border-destructive/30";
+        const teamName = departments.find((d: any) => d.id === emp.team_id)?.name;
 
         return (
-          <Link key={emp.id} to={`/employees/${emp.id}`}>
-            <div className="rounded-xl border border-border bg-card p-4 hover:shadow-md hover:-translate-y-px transition-all group cursor-pointer">
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <div className={`rounded-xl border-[3px] ${perfRing} p-0.5`}>
-                    <img src={persona.avatar} alt={emp.name}
-                      className={`h-14 w-14 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
-                      width={56} height={56} />
-                  </div>
-                  <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${st.dot}`} />
+          <div key={emp.id} className="rounded-xl border border-border bg-card p-4 hover:shadow-md hover:-translate-y-px transition-all group">
+            <div className="flex items-start gap-3">
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                <div className={`rounded-xl border-[3px] ${perfRing} p-0.5`}>
+                  <img src={persona.avatar} alt={emp.name}
+                    className={`h-14 w-14 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
+                    width={56} height={56} />
                 </div>
+                <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${st.dot}`} />
+              </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-bold text-foreground truncate leading-tight">{emp.name}</p>
-                  <p className="text-[12px] text-muted-foreground truncate mt-0.5">{roleName}</p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${st.chipBg}`}>{st.label}</Badge>
-                    <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
-                    <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
-                  </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <Link to={`/employees/${emp.id}`}>
+                  <p className="text-[15px] font-bold text-foreground truncate leading-tight hover:underline">{emp.name}</p>
+                </Link>
+                <p className="text-[12px] text-muted-foreground truncate mt-0.5">{roleName}</p>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${st.chipBg}`}>{st.label}</Badge>
+                  <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
+                  <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
+                  {teamName && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{teamName}</Badge>}
                 </div>
+              </div>
 
-                <ArrowUpRight className="h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors shrink-0 mt-1" />
+              {/* Actions */}
+              <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                {onMove && departments.length > 1 && (
+                  <select className="text-[10px] font-bold text-muted-foreground bg-secondary border-0 rounded px-1.5 py-0.5 cursor-pointer w-16"
+                    value="" onChange={(e) => { if (e.target.value) onMove(emp.id, e.target.value); }}>
+                    <option value="">Move</option>
+                    {departments.filter((d: any) => d.id !== emp.team_id).map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                )}
+                {onRemove && (
+                  <button onClick={() => onRemove(emp.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors p-0.5" title="Remove">
+                    <UserMinus className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
-          </Link>
+          </div>
         );
       })}
     </div>
