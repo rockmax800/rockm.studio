@@ -1173,6 +1173,50 @@ export type Database = {
           },
         ]
       }
+      domain_binding_specs: {
+        Row: {
+          created_at: string
+          domain: string
+          environment: string
+          expected_health_endpoint: string | null
+          id: string
+          project_id: string
+          rollback_domain: string | null
+          ssl_required: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          environment?: string
+          expected_health_endpoint?: string | null
+          id?: string
+          project_id: string
+          rollback_domain?: string | null
+          ssl_required?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          environment?: string
+          expected_health_endpoint?: string | null
+          id?: string
+          project_id?: string
+          rollback_domain?: string | null
+          ssl_required?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_binding_specs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_bindings: {
         Row: {
           dns_status: string
@@ -1213,6 +1257,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "domain_bindings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enforcement_metrics: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metric_type: string
+          project_id: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metric_type: string
+          project_id: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metric_type?: string
+          project_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enforcement_metrics_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
