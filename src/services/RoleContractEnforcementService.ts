@@ -294,7 +294,8 @@ export class RoleContractEnforcementService {
 
   /**
    * Post-execution validation: check changed files against boundaries.
-   * Returns violations but does NOT throw — caller decides enforcement.
+   * As of v1.2: violations are HARD BLOCKS — caller must prevent merge.
+   * Use HardEnforcementService.enforceMergeGate() for combined gate.
    */
   validateChangedFiles(
     changedFiles: string[],
@@ -308,7 +309,7 @@ export class RoleContractEnforcementService {
     const result = this.validatePaths(changedFiles, contract, taskSpec);
 
     if (!result.valid) {
-      logInfo("role_contract_path_violations", {
+      logInfo("role_contract_path_violations_HARD_BLOCK", {
         violations: result.violations,
         checkedPaths: result.checkedPaths,
       });
