@@ -201,6 +201,7 @@ export class ApprovalService {
       await tx.approvals.update({
         where: { id: approvalId },
         data: {
+          decision: decision,
           founder_decision_note: decisionNote,
           decided_at: now,
           updated_at: now,
