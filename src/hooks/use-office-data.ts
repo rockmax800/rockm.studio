@@ -109,7 +109,7 @@ export function useOfficeData() {
         Object.entries(roleEmployeesByRoleId).map(([k, v]) => [k, v[0]])
       );
 
-      // Experiment lookup by role_id
+      const companySettings = (companyRes.data ?? [])[0] ?? null;
       const experiments = experimentsRes.data ?? [];
       const experimentRoleIds = new Set(experiments.map((e: any) => e.role_id));
 
