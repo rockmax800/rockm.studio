@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Shield, Search, ExternalLink, Info, Clock, Database, AlertTriangle } from "lucide-react";
+import { Shield, Search, ExternalLink, Info, Clock, Database, AlertTriangle, Cpu, Zap, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useOperationalTrace, useProjectsForFilter, type TraceItem, type TraceFilters } from "@/hooks/use-operational-trace";
 import { cn } from "@/lib/utils";
+import { ExecutionTraceLegend } from "@/components/system/ExecutionTraceLegend";
 
 const ENTITY_TYPES = [
   { value: "all", label: "All entities" },
