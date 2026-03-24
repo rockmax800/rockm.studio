@@ -1,32 +1,34 @@
-# AI Production Studio v2.1 — Structural Integration
+# AI Production Studio v2.2 — Adaptive Intelligence
 
-Deterministic AI-powered software delivery operating system for a solo product founder.
+Deterministic AI-powered software delivery operating system with adaptive evolution for a solo product founder.
 
 ---
 
 ## What This Is
 
-A production-grade orchestration system that routes client briefs through a deterministic pipeline — from intake to deployment — using AI agents under strict founder control.
+A production-grade orchestration system that routes client briefs through a deterministic pipeline — from Company Lead discussion to deployment — using AI agents under strict founder control. The system can formally reason about its own rules and run controlled experiments to improve, but never self-modifies without founder approval.
 
-**Production Mode is the default.** Experimental features are gated behind feature flags and disabled in production.
+**Production Mode is the default.** Experimental and evolution features are gated behind feature flags.
 
 ---
 
-## Architecture: Four Operational Planes
+## Architecture: Four Operational Planes + Evolution Layer
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  EXPERIENCE    Founder Dashboard, Pixel Office, Client Portal│
+│  EVOLUTION     Gödel proposals, Darwin experiments, Feedback │
+├─────────────────────────────────────────────────────────────┤
+│  EXPERIENCE    Founder Dashboard, Spatial Office, Client     │
 ├─────────────────────────────────────────────────────────────┤
 │  KNOWLEDGE     Scoring, proposals, prompt versions, learning │
 ├─────────────────────────────────────────────────────────────┤
 │  DELIVERY      Tasks, Runs, Artifacts, Reviews, CI/CD, Deploy│
 ├─────────────────────────────────────────────────────────────┤
-│  INTENT        Intake, Blueprints, Estimates, Launch Gates   │
+│  INTENT        Company Lead, Intake, Blueprints, Estimates   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Dependency rule:** Intent → Delivery → Knowledge → Experience. No reverse writes.
+**Dependency rule:** Intent → Delivery → Knowledge → Experience → Evolution. No reverse writes. Evolution proposes only — never mutates delivery state directly.
 
 ---
 
@@ -35,9 +37,10 @@ A production-grade orchestration system that routes client briefs through a dete
 ### Operations
 | Page | Route | Purpose |
 |------|-------|---------|
-| Command Center | `/` | Production pipeline overview, founder inbox, intake launch |
+| Command Center | `/` | Production pipeline overview, founder inbox, project initiation |
+| Company Lead | `/lead` | AI Delivery Director — first contact for new projects |
 | Projects | `/projects` | Project list and project cockpit |
-| Office | `/office` | Capability rooms with employee visualization |
+| Office | `/office` | Spatial capability rooms with employee visualization |
 | Founder | `/founder` | Decision queue (approvals, escalations, risk) |
 | System | `/system` | Health, providers, mode, audit, docs |
 
@@ -45,6 +48,7 @@ A production-grade orchestration system that routes client briefs through a dete
 | Page | Route | Purpose |
 |------|-------|---------|
 | Teams | `/teams` | Capability pools, team members, hiring & performance |
+| Evolution | `/evolution` | Gödel proposals, Darwin experiments, feedback triggers |
 | Content | `/smm` | AI-generated content from production events |
 
 ### Deep Links
@@ -61,26 +65,48 @@ A production-grade orchestration system that routes client briefs through a dete
 ## Single Production Path
 
 ```
-Command Center → Start Intake → Select Capability → Add/Select Employee
-→ Start Team Session → Freeze Blueprint → Create Project
-→ Project Cockpit → Office (monitoring) → Founder Approval → Deploy
-→ SMM Content Draft
+Command Center → Talk to Company Lead → Scope Discussion → Internal Consultation
+→ Cost/Token Estimate → Founder Decision → Create Blueprint
+→ Select Capability → Add/Select Employee → Team Session
+→ Freeze Blueprint → Create Project → Project Cockpit
+→ Office (monitoring) → Founder Approval → Deploy → SMM Content
 ```
 
-No alternative paths. All production begins at Command Center.
+No alternative paths. All production begins at Command Center via Company Lead.
+
+---
+
+## Company Lead (AI Delivery Director)
+
+The Company Lead is the single entry point for all new projects:
+
+1. **Discovery** — structured conversation extracting goals, constraints, scope, modules, risks
+2. **Internal Consultation** — simulated feedback from Architect, QA, Reviewer agents
+3. **Estimate** — module breakdown with token budgets, cost estimates, timeline, required team
+4. **Founder Decision** — Approve & Create Blueprint / Revise Scope / Cancel
+
+Layout: 8/4 asymmetric grid — chat on left, live extraction panel on right.
 
 ---
 
 ## Core Capabilities
 
 ### Front Office (Intent Plane)
-Intake → Blueprint Contract → Estimate Report → Launch Decision → Project
+Company Lead → Intake → Blueprint Contract → Estimate Report → Launch Decision → Project
 
 ### Deterministic Delivery Core
 Task → Run → Artifact → Review → Approval (with rework loop)
 
 ### Execution Spine
 Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBinding
+
+### AI Evolution Layer
+- **Gödel Mode** — formal self-modification proposals with constraint proofs
+- **Darwin Mode** — controlled mutation experiments with baseline comparison
+- **Cybernetic Loop** — anomaly detection generating correction proposals
+- **Capability Evolution** — stability scoring and high-performer cloning
+
+All evolution requires evaluation rail pass + founder approval. No silent mutations.
 
 ### Infrastructure
 - **Event Log** — append-only canonical truth (immutable, never updated)
@@ -93,6 +119,7 @@ Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBi
 - Mandatory artifact gates (Implementation Patch, Review Report, QA Evidence)
 - CI pass required for PR merge
 - DomainBindingSpec + staging confirmation required for production deploy
+- Evolution layer cannot modify task/run state, trigger deploys, or bypass approvals
 
 ### Governance
 - Unified Approval model (no direct boolean flags)
@@ -100,21 +127,22 @@ Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBi
 - Role Contracts with enforceable path boundaries
 - Typed Artifact evidence model (10 categories)
 - Client Portal (read-only project visibility)
+- Full versioning and rollback for prompts, contracts, traits, rubrics, guards
 
 ### Operating Modes
 - **Production (MSOM)** — default. Minimal stable operating mode.
-- **Experimental** — enables shadow testing, prompt A/B, model competition.
+- **Experimental** — enables shadow testing, prompt A/B, model competition, evolution experiments.
 
 ---
 
 ## Teams & Employee Model
 
 ### Capability Pools
-Functional groupings (formerly "departments") that organize AI employees by competency area. Each pool tracks team size, average success rate, and load percentage.
+Functional groupings organizing AI employees by competency area. Each pool tracks team size, average success rate, and load percentage. High-performing capabilities can be cloned via CapabilityTemplate.
 
 ### AI Employees
 Each employee has:
-- **Identity**: Name, role, seniority, capability assignment
+- **Identity**: Name, role, seniority, mandatory capability assignment
 - **Personality**: MBTI type (with tooltip explanations), nationality (with work-style description)
 - **Technical Profile**: Primary/secondary stack, skill levels, DevOps/security awareness
 - **Operational Traits**: Risk tolerance, strictness, speed/quality bias, token efficiency
@@ -124,7 +152,10 @@ Each employee has:
 Created → Active → [Probation | Under Review] → [Active | Terminated]
 
 ### Hiring Flow
-Integrated into Teams page. Manual configuration or AI-generated suggestions. HR proposals appear inline, not on a separate page.
+Integrated into Teams page. Capability selection is mandatory. Supports both creating new employees and assigning existing unassigned employees to capabilities.
+
+### Spatial Office
+Always-on spatial map rendering one room per capability. Rooms render even when empty (with "Add Member" CTA). Employees appear immediately after assignment without page refresh.
 
 ---
 
@@ -162,10 +193,10 @@ prisma/
 ├── migrations/       Prisma migrations
 docs/
 ├── core/             Deterministic engine (Delivery Plane)
-├── front-office/     Intent Plane
+├── front-office/     Intent Plane (including Company Lead)
 ├── delivery/         Execution spine
 ├── company/          Organizational model
-├── autonomy/         Experimental features (gated)
+├── autonomy/         Evolution & experimental features (gated)
 ├── business/         Commercial model
 ├── product/          Product direction
 └── archive/          Superseded documents
@@ -175,4 +206,4 @@ docs/
 
 ## Version
 
-**v2.1 — Structural Integration.** See `VERSION.md` for changelog.
+**v2.2 — Adaptive Intelligence.** See `VERSION.md` for full changelog.
