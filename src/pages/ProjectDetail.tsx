@@ -414,7 +414,38 @@ export default function ProjectDetail() {
             </div>
           </div>
 
-          {/* ══ ROW 3 — EVIDENCE & LOGS ══ */}
+          {/* ══ ROW 3 — PROJECT SETUP ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Settings2} title="Project Setup" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Infrastructure connections required for production delivery — repo, server, and domain.
+            </p>
+            <ProjectSetupPanel
+              repo={{
+                hasRepo: repositories.length > 0,
+                repoName: repositories[0]?.name,
+                provider: repositories[0]?.provider,
+                prCount: pullRequests.length,
+                ciStatus: checkSuites.some((c: any) => c.status === "failed") ? "failed"
+                  : checkSuites.some((c: any) => c.status === "passed") ? "passed"
+                  : checkSuites.length > 0 ? "pending" : null,
+              }}
+              deploy={{
+                hasStaging: deployments.some((d: any) => d.environment === "staging"),
+                hasProduction: deployments.some((d: any) => d.environment === "production"),
+                stagingStatus: deployments.find((d: any) => d.environment === "staging")?.status,
+                productionStatus: deployments.find((d: any) => d.environment === "production")?.status,
+                environmentCount: new Set(deployments.map((d: any) => d.environment)).size,
+              }}
+              domain={{
+                hasDomain: domainBindings.length > 0,
+                domains: domainBindings.map((d: any) => ({ domain: d.domain, status: d.status })),
+              }}
+              projectId={id!}
+            />
+          </div>
+
+          {/* ══ ROW 4 — EVIDENCE & LOGS ══ */}
           <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
             <SectionHeader icon={Package} title="Evidence & Deployments" count={artifacts.length + deployments.length} />
             <EvidencePanel
