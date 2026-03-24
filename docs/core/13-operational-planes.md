@@ -145,10 +145,13 @@ Learning, improvement, and performance measurement. All operations are **advisor
 | Must NOT update task/run/artifact state | No OrchestrationService calls |
 | Must NOT create runs or artifacts | Read-only on Delivery entities |
 | Must NOT trigger deployments | No deployment creation |
+| Must NOT create pull requests | No DeliverySpineService PR calls |
 | May INSERT proposals and scores | Append-only advisory records |
-| Proposals require founder approval | approval gate before execution |
+| Evaluation runs write only to evaluation_runs + learning_proposals | Isolated execution |
+| Proposals require founder approval | Approval entity gate before execution |
 | Learning proposals require ≥3 source runs | Evidence minimum enforced at creation |
 | Promotion requires statistical significance | Enforced by LearningPipelineService |
+| Shadow mode only in experimental mode | SystemModeService check |
 
 ### Interaction with Delivery
 - **Reads:** run results, artifact content, review verdicts, scoring data
