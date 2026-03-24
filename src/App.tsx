@@ -77,6 +77,9 @@ const App = () => (
           <Route path="/agents" element={<Navigate to="/company" replace />} />
           <Route path="/settings" element={<Navigate to="/system" replace />} />
 
+          {/* CLIENT PORTAL (standalone, no layout) */}
+          <Route path="/client/:token" element={<ClientPortal />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
