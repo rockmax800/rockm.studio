@@ -17,8 +17,8 @@ interface StatusStripProps {
 
 export function StatusStrip({ mode, metrics }: StatusStripProps) {
   return (
-    <div className="flex items-center gap-5 px-5 py-3 rounded-xl bg-surface-raised border border-border/40">
-      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/40 font-mono shrink-0">
+    <div className="flex items-center gap-5 px-5 py-2.5 rounded-lg bg-card border border-border">
+      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/50 font-mono shrink-0">
         {mode}
       </span>
       <div className="h-4 w-px bg-border/40" />
