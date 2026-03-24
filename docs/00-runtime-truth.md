@@ -3,7 +3,7 @@ doc_kind: contract
 load_strategy: auto
 layer: cross-cutting
 criticality: critical
-version: v1.0
+version: v2.0
 ---
 
 # AI Production Studio — Runtime Truth
@@ -11,6 +11,7 @@ version: v1.0
 > **Canonical source of truth for the production runtime stack.**
 > All other documents defer to this file for stack decisions.
 > If a document contradicts this file, this file wins.
+> **Architecture is LOCKED. No changes without explicit founder approval.**
 
 ---
 
@@ -18,14 +19,13 @@ version: v1.0
 
 | Layer | Technology | Notes |
 |-------|-----------|-------|
-| **Frontend** | Next.js (App Router) | React, Tailwind CSS, shadcn/ui, TypeScript |
+| **Frontend** | Next.js (App Router) | TypeScript, Tailwind CSS, shadcn/ui |
 | **Client data** | TanStack Query | Server-state cache |
 | **Validation** | Zod | Shared between client and server |
-| **Backend API** | Next.js Route Handlers | App Router `app/api/` |
+| **Backend** | NestJS | Modular monolith, TypeScript |
 | **ORM** | Prisma | Type-safe DB access, migrations |
 | **Database** | PostgreSQL 16+ | Single instance, Docker-managed |
-| **Realtime (UI)** | Supabase Realtime | WebSocket for dashboard refresh only |
-| **Edge Functions** | Supabase Edge Functions | Serverless helpers (blog, predictions, HR) |
+| **Queue** | Redis + BullMQ | Job queue, retry, scheduling |
 | **Worker Runtime** | Node.js (separate process) | RunExecutor, provider calls, sandbox orchestration |
 | **Code Execution** | Docker sandbox | Isolated containers with resource limits |
 | **VCS** | GitHub | Single integration surface |
@@ -42,11 +42,11 @@ version: v1.0
 │  CONTROL PLANE   │                  │ EXECUTION PLANE  │
 │                  │                  │                  │
 │  Next.js UI      │                  │  RunExecutor     │
-│  API Routes      │    PostgreSQL    │  Docker Sandbox  │
+│  NestJS API      │    PostgreSQL    │  Docker Sandbox  │
 │  Orchestration   │◄───────────────►│  Git Operations  │
 │  Dashboards      │   (event_log)   │  CI Tracking     │
-│  Client Portal   │                  │  Deployments     │
-└──────────────────┘                  └──────────────────┘
+│  Client Portal   │      Redis      │  Deployments     │
+└──────────────────┘   (BullMQ)      └──────────────────┘
         │                                     │
         ▼                                     ├──► GitHub
    UI only                                    ├──► VPS (SSH)
@@ -56,7 +56,8 @@ version: v1.0
 
 ### Control Plane
 
-- Next.js App Router (UI + API routes)
+- Next.js App Router (UI)
+- NestJS (API layer, business logic)
 - OrchestrationService (state transitions)
 - Founder Dashboard, Client Portal
 - **Never** executes code, runs Docker, or performs git operations
@@ -68,7 +69,7 @@ version: v1.0
 - Docker sandbox management
 - Git operations (clone, commit, push)
 - CI status tracking, deployment operations
-- Communicates with Control Plane **only via PostgreSQL + event_log**
+- Communicates with Control Plane **via PostgreSQL + event_log + Redis/BullMQ**
 
 ### Database
 
@@ -76,6 +77,12 @@ version: v1.0
 - Prisma ORM for type-safe access
 - event_log as canonical audit trail
 - Transactional outbox for external dispatch
+
+### Queue
+
+- Redis as message broker
+- BullMQ for job scheduling, retry policies, dead-letter handling
+- No pg_cron — all scheduling through BullMQ
 
 ### External Systems
 
@@ -86,7 +93,6 @@ version: v1.0
 | VPS | Execution Plane | Production deploy target |
 | Container Registry | Execution Plane | Image storage |
 | DNS Provider | Execution Plane | Domain binding |
-| Supabase | Control Plane | Realtime UI, Edge Functions |
 | LLM Providers | Execution Plane | AI model calls |
 
 ---
@@ -97,31 +103,31 @@ The following technologies are **explicitly excluded** from the production runti
 
 | Excluded | Reason |
 |----------|--------|
-| Vite (standalone) | Next.js handles bundling; Vite exists only in Lovable dev environment |
-| NestJS | Replaced by Next.js App Router + modular service layer |
-| Redis / BullMQ | Replaced by PostgreSQL-backed job queue + pg_cron |
+| Vite (standalone) | Next.js handles bundling |
+| Supabase client SDK | Not used as runtime ORM — Prisma is primary |
+| Supabase Edge Functions | Not used — NestJS handles all backend logic |
+| Supabase Auth | Not used — internal system, no public users |
+| Supabase Realtime | Not used — replaced by application-level WebSocket if needed |
 | Kafka / RabbitMQ / SQS | Over-engineered for single-server |
 | Kubernetes / ECS | Single VPS deployment only |
 | Multi-cloud | Single VPS target |
 | GraphQL | REST + typed DTOs sufficient |
 | MongoDB / Firebase | PostgreSQL is the only database |
-| Edge-based executor | Docker sandbox on VPS |
-| Microservices | Modular monolith architecture |
+| Nuxt / Vue / Angular | Next.js + React is the only frontend framework |
+| pg_cron | BullMQ handles all scheduling |
 
 ---
 
 ## 4 — Supabase Scope
 
-Supabase is used **selectively**, not as the core architecture:
+Supabase is **NOT used** in the production runtime stack.
 
-| Used | Not Used |
-|------|----------|
-| PostgreSQL hosting (Lovable Cloud) | Supabase Auth (internal system, no public users) |
-| Realtime (WebSocket for UI refresh) | Supabase Storage (not needed in v1) |
-| Edge Functions (serverless helpers) | Supabase client SDK as primary ORM (Prisma is primary) |
+PostgreSQL is hosted and managed directly (Docker on VPS).
+Prisma is the canonical ORM.
+NestJS handles all API and business logic.
+BullMQ handles all job scheduling.
 
-Prisma remains the canonical ORM for all Delivery Plane operations.
-Supabase client SDK is used only for Realtime subscriptions and Edge Function invocations from the frontend.
+If any document references Supabase Edge Functions, Supabase client SDK, or Lovable Cloud as runtime components, that reference is **invalid** and must be corrected.
 
 ---
 
@@ -134,7 +140,7 @@ Supabase client SDK is used only for Realtime subscriptions and Edge Function in
 │  ┌─────────────┐  ┌──────────────┐ │
 │  │ RunExecutor  │  │ProviderAdapter│ │
 │  │             │  │              │ │
-│  │ Poll queue  │──│ Call LLM API │ │
+│  │ Poll BullMQ │──│ Call LLM API │ │
 │  │ Load context│  │ Capture usage│ │
 │  │ Write output│  │ Handle errors│ │
 │  └─────────────┘  └──────────────┘ │
@@ -157,6 +163,7 @@ Supabase client SDK is used only for Realtime subscriptions and Edge Function in
 4. **Secrets never written to event_log.**
 5. **No business decision may rely on a boolean approval flag** — all decisions go through the Approval entity.
 6. **event_log is append-only and immutable.**
+7. **No stack changes without explicit founder approval.**
 
 ---
 
@@ -168,5 +175,6 @@ This document is the **canonical runtime truth**. If any other document referenc
 |----------|-------------|
 | `00-system-overview.md` | Defers to this file for stack |
 | `delivery/backend-architecture.md` | Defers to this file for tech choices |
-| `archive/19-tech-stack-decision-v1.md` | Superseded — historical only |
+| `archive/*` | Superseded — historical only |
 | `delivery/runtime-and-secret-governance.md` | Complements — security detail |
+| `product/constraints.md` | Defers to this file for infrastructure |

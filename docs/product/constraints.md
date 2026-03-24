@@ -18,7 +18,9 @@ load_strategy: auto
 | Container runtime | Docker | Standard, reproducible |
 | VCS | GitHub only | Single integration surface |
 | CI | GitHub Actions only | Integrated with VCS |
-| Database | PostgreSQL (via Lovable Cloud) | Managed, reliable |
+| Database | PostgreSQL + Prisma | Docker-managed, single instance |
+| Backend | NestJS + TypeScript | Modular monolith |
+| Queue | Redis + BullMQ | Job scheduling, retry |
 
 ---
 
