@@ -738,6 +738,56 @@ export type Database = {
           },
         ]
       }
+      capability_templates: {
+        Row: {
+          cloned_count: number
+          created_at: string
+          id: string
+          inherited_contracts: Json
+          inherited_roles: Json
+          inherited_traits: Json
+          name: string
+          performance_snapshot: Json
+          source_team_id: string | null
+          stability_score: number
+          updated_at: string
+        }
+        Insert: {
+          cloned_count?: number
+          created_at?: string
+          id?: string
+          inherited_contracts?: Json
+          inherited_roles?: Json
+          inherited_traits?: Json
+          name: string
+          performance_snapshot?: Json
+          source_team_id?: string | null
+          stability_score?: number
+          updated_at?: string
+        }
+        Update: {
+          cloned_count?: number
+          created_at?: string
+          id?: string
+          inherited_contracts?: Json
+          inherited_roles?: Json
+          inherited_traits?: Json
+          name?: string
+          performance_snapshot?: Json
+          source_team_id?: string | null
+          stability_score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capability_templates_source_team_id_fkey"
+            columns: ["source_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       check_suites: {
         Row: {
           external_run_ref: string | null
@@ -1012,6 +1062,62 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correction_proposals: {
+        Row: {
+          created_at: string
+          id: string
+          resolved_at: string | null
+          severity: string
+          status: Database["public"]["Enums"]["correction_status"]
+          suggested_action: string
+          suggestion_summary: string
+          target_component: Database["public"]["Enums"]["evolution_target_component"]
+          target_entity_id: string | null
+          team_id: string | null
+          trigger_metric_value: number
+          trigger_threshold: number
+          trigger_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: Database["public"]["Enums"]["correction_status"]
+          suggested_action: string
+          suggestion_summary: string
+          target_component: Database["public"]["Enums"]["evolution_target_component"]
+          target_entity_id?: string | null
+          team_id?: string | null
+          trigger_metric_value?: number
+          trigger_threshold?: number
+          trigger_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: Database["public"]["Enums"]["correction_status"]
+          suggested_action?: string
+          suggestion_summary?: string
+          target_component?: Database["public"]["Enums"]["evolution_target_component"]
+          target_entity_id?: string | null
+          team_id?: string | null
+          trigger_metric_value?: number
+          trigger_threshold?: number
+          trigger_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correction_proposals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -1956,6 +2062,100 @@ export type Database = {
           reliability_score?: number
         }
         Relationships: []
+      }
+      mutation_experiments: {
+        Row: {
+          approval_id: string | null
+          base_version: string
+          baseline_pass_rate: number | null
+          cost_delta: number | null
+          created_at: string
+          evaluation_suite_id: string | null
+          id: string
+          mutated_version: string
+          mutation_delta_description: string
+          mutation_type: Database["public"]["Enums"]["mutation_type"]
+          pass_rate: number | null
+          performance_delta: Json | null
+          previous_version_snapshot: Json | null
+          promoted_at: string | null
+          protected_scenarios_passed: boolean | null
+          rolled_back_at: string | null
+          status: Database["public"]["Enums"]["mutation_status"]
+          target_entity_id: string | null
+          team_id: string | null
+          token_delta: number | null
+          updated_at: string
+        }
+        Insert: {
+          approval_id?: string | null
+          base_version: string
+          baseline_pass_rate?: number | null
+          cost_delta?: number | null
+          created_at?: string
+          evaluation_suite_id?: string | null
+          id?: string
+          mutated_version: string
+          mutation_delta_description: string
+          mutation_type: Database["public"]["Enums"]["mutation_type"]
+          pass_rate?: number | null
+          performance_delta?: Json | null
+          previous_version_snapshot?: Json | null
+          promoted_at?: string | null
+          protected_scenarios_passed?: boolean | null
+          rolled_back_at?: string | null
+          status?: Database["public"]["Enums"]["mutation_status"]
+          target_entity_id?: string | null
+          team_id?: string | null
+          token_delta?: number | null
+          updated_at?: string
+        }
+        Update: {
+          approval_id?: string | null
+          base_version?: string
+          baseline_pass_rate?: number | null
+          cost_delta?: number | null
+          created_at?: string
+          evaluation_suite_id?: string | null
+          id?: string
+          mutated_version?: string
+          mutation_delta_description?: string
+          mutation_type?: Database["public"]["Enums"]["mutation_type"]
+          pass_rate?: number | null
+          performance_delta?: Json | null
+          previous_version_snapshot?: Json | null
+          promoted_at?: string | null
+          protected_scenarios_passed?: boolean | null
+          rolled_back_at?: string | null
+          status?: Database["public"]["Enums"]["mutation_status"]
+          target_entity_id?: string | null
+          team_id?: string | null
+          token_delta?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mutation_experiments_approval_id_fkey"
+            columns: ["approval_id"]
+            isOneToOne: false
+            referencedRelation: "approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mutation_experiments_evaluation_suite_id_fkey"
+            columns: ["evaluation_suite_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_suites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mutation_experiments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       office_events: {
         Row: {
@@ -3345,6 +3545,87 @@ export type Database = {
         }
         Relationships: []
       }
+      self_modification_proposals: {
+        Row: {
+          approval_id: string | null
+          constraint_preservation_proof: string | null
+          created_at: string
+          current_version: string
+          evaluation_run_id: string | null
+          expected_improvement: string
+          formal_reasoning_summary: string
+          id: string
+          impact_scope: string[]
+          previous_version_snapshot: Json | null
+          promoted_at: string | null
+          proposed_version: string
+          requires_eval: boolean
+          rolled_back_at: string | null
+          safety_flags: string[]
+          status: Database["public"]["Enums"]["self_mod_status"]
+          target_component: Database["public"]["Enums"]["evolution_target_component"]
+          target_entity_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          approval_id?: string | null
+          constraint_preservation_proof?: string | null
+          created_at?: string
+          current_version?: string
+          evaluation_run_id?: string | null
+          expected_improvement: string
+          formal_reasoning_summary: string
+          id?: string
+          impact_scope?: string[]
+          previous_version_snapshot?: Json | null
+          promoted_at?: string | null
+          proposed_version: string
+          requires_eval?: boolean
+          rolled_back_at?: string | null
+          safety_flags?: string[]
+          status?: Database["public"]["Enums"]["self_mod_status"]
+          target_component: Database["public"]["Enums"]["evolution_target_component"]
+          target_entity_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approval_id?: string | null
+          constraint_preservation_proof?: string | null
+          created_at?: string
+          current_version?: string
+          evaluation_run_id?: string | null
+          expected_improvement?: string
+          formal_reasoning_summary?: string
+          id?: string
+          impact_scope?: string[]
+          previous_version_snapshot?: Json | null
+          promoted_at?: string | null
+          proposed_version?: string
+          requires_eval?: boolean
+          rolled_back_at?: string | null
+          safety_flags?: string[]
+          status?: Database["public"]["Enums"]["self_mod_status"]
+          target_component?: Database["public"]["Enums"]["evolution_target_component"]
+          target_entity_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "self_modification_proposals_approval_id_fkey"
+            columns: ["approval_id"]
+            isOneToOne: false
+            referencedRelation: "approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_modification_proposals_evaluation_run_id_fkey"
+            columns: ["evaluation_run_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           experimental_features: Json
@@ -3677,6 +3958,7 @@ export type Database = {
         | "release"
       check_suite_status: "queued" | "running" | "passed" | "failed"
       ci_provider: "github_actions" | "other"
+      correction_status: "proposed" | "acknowledged" | "applied" | "dismissed"
       deploy_environment: "staging" | "production" | "preview"
       deploy_source_type: "branch" | "pr" | "tag"
       deploy_status: "pending" | "deploying" | "live" | "failed" | "rolled_back"
@@ -3701,6 +3983,15 @@ export type Database = {
         | "artifact"
         | "review"
         | "approval"
+      evolution_target_component:
+        | "prompt"
+        | "rubric"
+        | "guard"
+        | "contract"
+        | "retrieval_rule"
+        | "trait"
+        | "stack"
+        | "routing"
       handoff_outcome:
         | "implementation"
         | "review"
@@ -3709,6 +4000,12 @@ export type Database = {
         | "qa"
         | "release"
       handoff_status: "created" | "acknowledged" | "completed" | "cancelled"
+      mutation_status: "running" | "survived" | "rejected"
+      mutation_type:
+        | "prompt_tweak"
+        | "trait_shift"
+        | "stack_change"
+        | "routing_change"
       pr_status: "opened" | "merged" | "closed"
       project_state:
         | "draft"
@@ -3747,6 +4044,12 @@ export type Database = {
         | "superseded"
         | "finalized"
       sandbox_mode: "isolated" | "host"
+      self_mod_status:
+        | "candidate"
+        | "evaluated"
+        | "approved"
+        | "rejected"
+        | "promoted"
       storage_kind: "db_text" | "file_path" | "github_ref" | "external"
       task_domain:
         | "founder_control"
@@ -3964,6 +4267,7 @@ export const Constants = {
       ],
       check_suite_status: ["queued", "running", "passed", "failed"],
       ci_provider: ["github_actions", "other"],
+      correction_status: ["proposed", "acknowledged", "applied", "dismissed"],
       deploy_environment: ["staging", "production", "preview"],
       deploy_source_type: ["branch", "pr", "tag"],
       deploy_status: ["pending", "deploying", "live", "failed", "rolled_back"],
@@ -3990,6 +4294,16 @@ export const Constants = {
         "review",
         "approval",
       ],
+      evolution_target_component: [
+        "prompt",
+        "rubric",
+        "guard",
+        "contract",
+        "retrieval_rule",
+        "trait",
+        "stack",
+        "routing",
+      ],
       handoff_outcome: [
         "implementation",
         "review",
@@ -3999,6 +4313,13 @@ export const Constants = {
         "release",
       ],
       handoff_status: ["created", "acknowledged", "completed", "cancelled"],
+      mutation_status: ["running", "survived", "rejected"],
+      mutation_type: [
+        "prompt_tweak",
+        "trait_shift",
+        "stack_change",
+        "routing_change",
+      ],
       pr_status: ["opened", "merged", "closed"],
       project_state: [
         "draft",
@@ -4041,6 +4362,13 @@ export const Constants = {
         "finalized",
       ],
       sandbox_mode: ["isolated", "host"],
+      self_mod_status: [
+        "candidate",
+        "evaluated",
+        "approved",
+        "rejected",
+        "promoted",
+      ],
       storage_kind: ["db_text", "file_path", "github_ref", "external"],
       task_domain: [
         "founder_control",
