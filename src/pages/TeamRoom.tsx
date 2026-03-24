@@ -217,9 +217,16 @@ export default function TeamRoom() {
                         {/* Info */}
                         <div className="flex-1 min-w-0 pt-0.5">
                           <h3 className="text-[17px] font-bold text-foreground leading-tight truncate">{emp.name}</h3>
-                          <p className="text-[13px] text-muted-foreground mt-0.5 truncate">{roleName}</p>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <p className="text-[13px] text-muted-foreground truncate">{roleName}</p>
+                            <span className="text-[11px] text-muted-foreground/30">·</span>
+                            <span className="text-[11px] text-muted-foreground/40 italic truncate">{persona.nickname}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", meta.chipBg)}>{meta.label}</span>
+                            {persona.chips.slice(0, 2).map((chip) => (
+                              <span key={chip} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground">{chip}</span>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -275,6 +282,7 @@ export default function TeamRoom() {
               <p className="text-[20px] font-bold text-foreground">
                 Start session with {selectedEmp.name}
               </p>
+              <p className="text-[13px] text-muted-foreground/50 italic">{getPersona(selectedEmp.role_code).specialty}</p>
               <p className="text-[14px] text-muted-foreground mt-1 max-w-[480px] mx-auto">
                 Begin a structured conversation to extract scope, architecture, and task breakdowns.
               </p>
@@ -399,13 +407,17 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                     <h2 className="text-[22px] font-bold text-foreground leading-tight">{emp.name}</h2>
                     <Badge variant="secondary" className="text-[11px] h-6 px-2.5 font-semibold rounded-lg">{roleName}</Badge>
                   </div>
-                  <div className="flex items-center gap-3 mt-1.5">
+                  <p className="text-[12px] text-muted-foreground/40 mt-0.5 italic">{persona.specialty}</p>
+                  <div className="flex items-center gap-3 mt-2">
                     <div className="flex items-center gap-1.5">
                       <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
                       <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
                     </div>
                     <span className="text-[11px] text-muted-foreground/30">·</span>
-                    <span className="text-[12px] text-muted-foreground/50 italic">{persona.tag}</span>
+                    <span className="text-[12px] text-muted-foreground/50 italic">{persona.nickname}</span>
+                    {persona.chips.slice(0, 2).map((chip) => (
+                      <span key={chip} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground/60">{chip}</span>
+                    ))}
                   </div>
                 </div>
 

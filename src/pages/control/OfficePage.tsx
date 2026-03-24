@@ -478,13 +478,24 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-bold text-foreground leading-tight truncate group-hover:text-primary transition-colors">{emp.name}</p>
-                <p className="text-[10px] text-muted-foreground/50 truncate mt-0.5">{roleName}</p>
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-1 mt-0.5">
+                  <p className="text-[10px] text-muted-foreground/50 truncate">{roleName}</p>
+                  <span className="text-[10px] text-muted-foreground/20">·</span>
+                  <p className="text-[9px] text-muted-foreground/35 italic truncate">{persona.nickname}</p>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-md", st.chipCls)}>
                     {st.label}
                   </span>
                   <span className={cn("text-[10px] font-bold font-mono", perfColor)}>{repScore}</span>
                 </div>
+                {persona.chips.length > 0 && (
+                  <div className="flex items-center gap-1 mt-1.5">
+                    {persona.chips.slice(0, 2).map((chip) => (
+                      <span key={chip} className="text-[8px] font-semibold px-1.5 py-0.5 rounded bg-secondary/60 text-muted-foreground/50">{chip}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -514,6 +525,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
             <div>
               <p className="text-[14px] font-bold text-foreground">{emp.name}</p>
               <p className="text-[11px] text-muted-foreground">{roleName}{emp.seniority ? ` · ${emp.seniority}` : ""}</p>
+              <p className="text-[10px] text-muted-foreground/40 italic mt-0.5">{persona.workStyle}</p>
             </div>
           </div>
 
