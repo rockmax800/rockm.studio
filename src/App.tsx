@@ -13,6 +13,7 @@ import IntakeComposer from "./pages/IntakeComposer";
 import ProjectsPage from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
+import TeamRoom from "./pages/TeamRoom";
 
 // Management pages
 import FounderPage from "./pages/FounderPage";
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/office" element={<OfficePage />} />
+          <Route path="/team-room" element={<TeamRoom />} />
 
           {/* MANAGEMENT */}
           <Route path="/founder" element={<FounderPage />} />

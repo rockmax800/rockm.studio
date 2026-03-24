@@ -6,6 +6,7 @@ import {
   Settings,
   Building2,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -27,6 +28,7 @@ const primaryNav = [
   { title: "Command Center", url: "/", icon: Crosshair },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Office", url: "/office", icon: Monitor },
+  { title: "Team Room", url: "/team-room", icon: MessageSquare },
   { title: "Founder", url: "/founder", icon: Crown },
   { title: "System", url: "/system", icon: Settings },
 ];
