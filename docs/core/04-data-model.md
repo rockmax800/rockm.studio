@@ -136,6 +136,8 @@ Defines the core data model supporting project control, task orchestration, exec
 
 ## 8 — Run
 
+### 8.1 Core Fields
+
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | uuid | yes | PK |
@@ -147,7 +149,7 @@ Defines the core data model supporting project control, task orchestration, exec
 | run_number | integer | yes | Unique per task |
 | started_at | timestamp | no | |
 | ended_at | timestamp | no | |
-| duration_ms | integer | no | |
+| duration_ms | integer | no | Computed on completion |
 | status_summary | text | no | |
 | failure_reason | text | no | |
 | output_summary | text | no | |
@@ -156,6 +158,60 @@ Defines the core data model supporting project control, task orchestration, exec
 | version | integer | yes | Optimistic locking |
 | created_at | timestamp | yes | |
 | updated_at | timestamp | yes | |
+
+### 8.2 Execution Context (v2.2)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| provider_id | uuid | no | FK providers — set when entering `running` |
+| provider_model_id | uuid | no | FK provider_models — set when entering `running` |
+| prompt_version_ref | uuid | no | FK prompt_versions |
+| skill_pack_version_ref | text | no | Version identifier for skill pack |
+| tool_policy_ref | text | no | Policy identifier for tool access |
+
+### 8.3 Workspace & Code (v2.2)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| workspace_id | uuid | no | FK repo_workspaces — linked post-creation |
+| branch_name | text | no | Copied from workspace |
+| commit_sha | text | no | Final commit hash |
+
+### 8.4 Execution Control (v2.2)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| lease_owner | text | no | Executor instance ID |
+| heartbeat_at | timestamp | no | Last heartbeat from executor |
+| retry_class | text | no | Classification for retry logic |
+| error_class | text | no | Error classification on failure |
+| exit_code | integer | no | Executor exit code |
+
+### 8.5 Cost & Usage (v2.2)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| input_tokens | integer | no | Tokens sent to provider |
+| output_tokens | integer | no | Tokens received from provider |
+| estimated_cost | decimal | no | USD cost estimate |
+
+### 8.6 Observability (v2.2)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| logs_ref | text | no | Reference to execution logs |
+| correlation_id | uuid | no | Propagated across handoff → run → PR → deployment |
+| causation_id | uuid | no | ID of the run that caused this retry |
+| idempotency_key | text | no | Unique key = task_id + run_number |
+
+### 8.7 Execution Trace Invariants
+
+1. `provider_id` + `provider_model_id` must be set when run enters `running`
+2. `input_tokens` + `output_tokens` must be stored after execution completes
+3. `correlation_id` propagates across handoff → run → PR → deployment
+4. `idempotency_key` prevents duplicate execution (unique index)
+5. `heartbeat_at` enables stalled run detection (soft flag, no auto-transition)
+6. `error_class` is set on failure for retry classification
 
 ---
 
