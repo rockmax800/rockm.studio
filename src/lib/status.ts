@@ -24,7 +24,10 @@ const stateVariantMap: Record<string, StatusVariant> = {
   pending: "amber",
   submitted: "amber",
   // Green
-  approved: "green",
+  validated: "green",
+  resolved: "green",
+  decided: "green",
+  approved: "green",         // verdict/decision value, kept for badge display
   approved_with_notes: "green",
   accepted: "green",
   done: "green",
