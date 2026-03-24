@@ -1,5 +1,5 @@
 // Core entity types for AI Workshop OS
-// v2.1 — Lifecycle/Outcome separation refactor
+// v2.2 — Lifecycle/Outcome separation + Delivery Spine
 
 export type ProjectState = "draft" | "scoped" | "active" | "blocked" | "in_review" | "paused" | "completed" | "archived";
 
