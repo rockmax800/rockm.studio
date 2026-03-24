@@ -601,31 +601,29 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
           </div>
 
           {/* ── RIGHT 4 cols — Structured Context ── */}
-          <div className="col-span-4 flex flex-col min-h-0 bg-muted/10">
+          <div className="col-span-4 flex flex-col min-h-0 bg-card/30">
 
             {/* Rail header */}
-            <div className="px-5 py-3.5 border-b border-border/20 shrink-0">
-              <h3 className="text-[14px] font-bold text-foreground flex items-center gap-2 uppercase tracking-wide">
-                <Target className="h-4 w-4 text-muted-foreground/40" /> Structured Context
+            <div className="px-4 py-2.5 border-b border-border/15 shrink-0">
+              <h3 className="text-[12px] font-bold text-muted-foreground/60 flex items-center gap-1.5 uppercase tracking-wider">
+                <Target className="h-3.5 w-3.5 text-muted-foreground/30" /> Context
               </h3>
             </div>
 
             <ScrollArea className="flex-1">
-              <div className="p-5 space-y-0 divide-y divide-border/15">
-                <ExtractionSection title="Scope" icon={<Target className="h-3.5 w-3.5 text-primary/50" />} items={extraction.scope} />
-                <ExtractionSection title="Architecture" icon={<Layers className="h-3.5 w-3.5 text-status-blue/50" />} items={extraction.architectureNotes} />
-                <ExtractionSection title="Task Breakdown" icon={<ListChecks className="h-3.5 w-3.5 text-status-green/50" />} items={extraction.taskBreakdown} emptyText="No tasks extracted yet" />
-                <ExtractionSection title="Risks" icon={<AlertTriangle className="h-3.5 w-3.5 text-destructive/50" />} items={extraction.risks} critical />
-                <ExtractionSection title="Open Questions" icon={<HelpCircle className="h-3.5 w-3.5 text-status-amber/50" />} items={extraction.openQuestions} />
+              <div className="p-4 space-y-0 divide-y divide-border/10">
+                <ExtractionSection title="Scope" icon={<Target className="h-3 w-3 text-primary/40" />} items={extraction.scope} />
+                <ExtractionSection title="Architecture" icon={<Layers className="h-3 w-3 text-status-blue/40" />} items={extraction.architectureNotes} />
+                <ExtractionSection title="Tasks" icon={<ListChecks className="h-3 w-3 text-status-green/40" />} items={extraction.taskBreakdown} emptyText="No tasks extracted yet" />
+                <ExtractionSection title="Risks" icon={<AlertTriangle className="h-3 w-3 text-destructive/40" />} items={extraction.risks} critical />
+                <ExtractionSection title="Questions" icon={<HelpCircle className="h-3 w-3 text-status-amber/40" />} items={extraction.openQuestions} />
 
-                {/* Complexity */}
-                <div className="py-4">
-                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2 mb-2">
-                    <BarChart3 className="h-3.5 w-3.5 text-muted-foreground/40" /> Complexity
+                {/* Complexity — compact */}
+                <div className="py-3">
+                  <h4 className="text-[11px] font-bold text-foreground/60 flex items-center gap-1.5 mb-1.5">
+                    <BarChart3 className="h-3 w-3 text-muted-foreground/30" /> Complexity
                   </h4>
-                  <div className="rounded-lg bg-status-amber/5 border border-status-amber/15 px-3 py-2">
-                    <p className="text-[12px] text-status-amber font-medium leading-relaxed">{extraction.estimatedComplexity}</p>
-                  </div>
+                  <p className="text-[11px] text-status-amber/80 font-medium leading-relaxed bg-status-amber/[0.04] border border-status-amber/10 rounded-lg px-3 py-1.5">{extraction.estimatedComplexity}</p>
                 </div>
               </div>
 
