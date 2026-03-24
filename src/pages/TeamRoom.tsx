@@ -661,6 +661,51 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                 </div>
               </div>
 
+              {/* ── Active Guidance (Training Prompt) ── */}
+              <div className="mx-5 mb-4 rounded-xl border border-border/30 bg-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
+                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground/40" /> Active Guidance
+                  </h4>
+                </div>
+                {activeGuidance ? (
+                  <div className="p-4 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <BadgeCheck className="h-3.5 w-3.5 text-status-green shrink-0" />
+                      <span className="text-[11px] font-bold text-status-green">Published training prompt</span>
+                      <span className="text-[10px] text-muted-foreground/40 ml-auto font-mono">v{activeGuidance.version_number}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/50">
+                      Last updated {new Date(activeGuidance.created_at).toLocaleDateString()}
+                    </p>
+                    {guidanceSections.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        {guidanceSections.map((s, i) => (
+                          <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
+                            <p className="text-[10px] font-bold text-foreground/70 mb-0.5">{s.title}</p>
+                            <p className="text-[10px] text-muted-foreground leading-relaxed truncate">{s.preview}{s.preview.length >= 80 ? "…" : ""}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Link to={`/employees/${emp.id}`}>
+                      <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg border-border/40 mt-1">
+                        <BookOpen className="h-3.5 w-3.5" /> Open Training Lab
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-[11px] text-muted-foreground/50 mb-2">No active training guidance published</p>
+                    <Link to={`/employees/${emp.id}`}>
+                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5 rounded-lg border-border/40">
+                        <BookOpen className="h-3 w-3" /> Open Training Lab
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               {/* ── Memory Snapshot ── */}
               <div className="mx-5 mb-5 rounded-xl border border-border/30 bg-card overflow-hidden">
                 <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
