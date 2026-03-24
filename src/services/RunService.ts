@@ -45,10 +45,12 @@ const ACTIVE_RUN_STATES = ["created", "preparing", "running"] as const;
 export class RunService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
+  private deliverySpine: DeliverySpineService;
 
   constructor(prisma: PrismaLike, orchestrationService: OrchestrationServiceLike) {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
+    this.deliverySpine = new DeliverySpineService(prisma);
   }
 
   async startRun({
