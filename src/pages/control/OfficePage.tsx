@@ -504,7 +504,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
               {/* Avatar */}
               <div className="relative shrink-0">
                 <img src={persona.avatar} alt={emp.name}
-                  className={cn("h-11 w-11 rounded-lg object-cover ring-1 ring-offset-1 ring-offset-card", persona.ringClass)}
+                  className="h-11 w-11 rounded-lg object-cover ring-1 ring-border/40 ring-offset-1 ring-offset-card"
                   width={44} height={44} loading="lazy" />
                 <span className={cn(
                   "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card",
