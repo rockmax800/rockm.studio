@@ -94,7 +94,7 @@ Events are durable: written in-transaction, dispatched asynchronously. If dispat
 ## 5 — Core Workflow Chain
 
 ```
-UC-02 Assign Task (+ create Handoff)
+UC-02 Assign Task (ready → assigned; sets owner_role_id + creates Handoff)
   → Handoff acknowledged by target role
     → UC-03 Start Run (validates acknowledged handoff)
       → UC-13 Execute Agent Run (Provider)

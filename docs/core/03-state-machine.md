@@ -74,8 +74,8 @@ See `01-project-lifecycle.md` for full project state machine.
 
 | From | To | Trigger | Guard |
 |------|----|---------|-------|
-| draft | ready | Task clarified | Acceptance criteria exist |
-| ready | assigned | Owner selected | Eligible active role exists |
+| draft | ready | Spec complete | Title, goal, acceptance_criteria, requested_outcome, risk_class exist |
+| ready | assigned | Owner selected | owner_role_id set; role active; handoff created |
 | assigned | in_progress | Run starts | Context available |
 | in_progress | waiting_review | Artifact submitted | Output exists |
 | in_progress | blocked | Dependency failure | Blocker recorded |
