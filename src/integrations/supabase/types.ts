@@ -629,6 +629,70 @@ export type Database = {
           },
         ]
       }
+      check_suites: {
+        Row: {
+          external_run_ref: string | null
+          finished_at: string | null
+          id: string
+          logs_ref: string | null
+          project_id: string
+          provider: Database["public"]["Enums"]["ci_provider"]
+          pull_request_id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["check_suite_status"]
+          summary: string | null
+          task_id: string
+        }
+        Insert: {
+          external_run_ref?: string | null
+          finished_at?: string | null
+          id?: string
+          logs_ref?: string | null
+          project_id: string
+          provider?: Database["public"]["Enums"]["ci_provider"]
+          pull_request_id: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["check_suite_status"]
+          summary?: string | null
+          task_id: string
+        }
+        Update: {
+          external_run_ref?: string | null
+          finished_at?: string | null
+          id?: string
+          logs_ref?: string | null
+          project_id?: string
+          provider?: Database["public"]["Enums"]["ci_provider"]
+          pull_request_id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["check_suite_status"]
+          summary?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_suites_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_suites_pull_request_id_fkey"
+            columns: ["pull_request_id"]
+            isOneToOne: false
+            referencedRelation: "pull_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_suites_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_mode_settings: {
         Row: {
           created_at: string
@@ -782,6 +846,66 @@ export type Database = {
         }
         Relationships: []
       }
+      deployments: {
+        Row: {
+          environment: Database["public"]["Enums"]["deploy_environment"]
+          finished_at: string | null
+          id: string
+          logs_ref: string | null
+          preview_url: string | null
+          project_id: string
+          rollback_of_deployment_id: string | null
+          source_ref: string
+          source_type: Database["public"]["Enums"]["deploy_source_type"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["deploy_status"]
+          version_label: string | null
+        }
+        Insert: {
+          environment: Database["public"]["Enums"]["deploy_environment"]
+          finished_at?: string | null
+          id?: string
+          logs_ref?: string | null
+          preview_url?: string | null
+          project_id: string
+          rollback_of_deployment_id?: string | null
+          source_ref: string
+          source_type: Database["public"]["Enums"]["deploy_source_type"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["deploy_status"]
+          version_label?: string | null
+        }
+        Update: {
+          environment?: Database["public"]["Enums"]["deploy_environment"]
+          finished_at?: string | null
+          id?: string
+          logs_ref?: string | null
+          preview_url?: string | null
+          project_id?: string
+          rollback_of_deployment_id?: string | null
+          source_ref?: string
+          source_type?: Database["public"]["Enums"]["deploy_source_type"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["deploy_status"]
+          version_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployments_rollback_of_deployment_id_fkey"
+            columns: ["rollback_of_deployment_id"]
+            isOneToOne: false
+            referencedRelation: "deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           content_markdown: string
@@ -845,6 +969,53 @@ export type Database = {
             columns: ["source_task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      domain_bindings: {
+        Row: {
+          dns_status: string
+          domain: string
+          environment: Database["public"]["Enums"]["deploy_environment"]
+          healthcheck_url: string | null
+          id: string
+          project_id: string
+          status: Database["public"]["Enums"]["domain_binding_status"]
+          target_type: Database["public"]["Enums"]["domain_target_type"]
+          target_value: string
+          tls_status: string
+        }
+        Insert: {
+          dns_status?: string
+          domain: string
+          environment: Database["public"]["Enums"]["deploy_environment"]
+          healthcheck_url?: string | null
+          id?: string
+          project_id: string
+          status?: Database["public"]["Enums"]["domain_binding_status"]
+          target_type?: Database["public"]["Enums"]["domain_target_type"]
+          target_value: string
+          tls_status?: string
+        }
+        Update: {
+          dns_status?: string
+          domain?: string
+          environment?: Database["public"]["Enums"]["deploy_environment"]
+          healthcheck_url?: string | null
+          id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["domain_binding_status"]
+          target_type?: Database["public"]["Enums"]["domain_target_type"]
+          target_value?: string
+          tls_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_bindings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -1672,6 +1843,198 @@ export type Database = {
         }
         Relationships: []
       }
+      pull_requests: {
+        Row: {
+          closed_at: string | null
+          id: string
+          merged_at: string | null
+          opened_at: string
+          pr_number: number | null
+          project_id: string
+          repository_id: string
+          run_id: string
+          source_branch: string
+          status: Database["public"]["Enums"]["pr_status"]
+          target_branch: string
+          task_id: string
+          title: string
+        }
+        Insert: {
+          closed_at?: string | null
+          id?: string
+          merged_at?: string | null
+          opened_at?: string
+          pr_number?: number | null
+          project_id: string
+          repository_id: string
+          run_id: string
+          source_branch: string
+          status?: Database["public"]["Enums"]["pr_status"]
+          target_branch: string
+          task_id: string
+          title: string
+        }
+        Update: {
+          closed_at?: string | null
+          id?: string
+          merged_at?: string | null
+          opened_at?: string
+          pr_number?: number | null
+          project_id?: string
+          repository_id?: string
+          run_id?: string
+          source_branch?: string
+          status?: Database["public"]["Enums"]["pr_status"]
+          target_branch?: string
+          task_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pull_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pull_requests_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pull_requests_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pull_requests_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repo_workspaces: {
+        Row: {
+          branch_name: string
+          created_at: string
+          head_sha: string | null
+          id: string
+          project_id: string
+          released_at: string | null
+          repository_id: string
+          run_id: string
+          sandbox_mode: Database["public"]["Enums"]["sandbox_mode"]
+          status: Database["public"]["Enums"]["workspace_status"]
+          task_id: string
+          worktree_path: string | null
+        }
+        Insert: {
+          branch_name: string
+          created_at?: string
+          head_sha?: string | null
+          id?: string
+          project_id: string
+          released_at?: string | null
+          repository_id: string
+          run_id: string
+          sandbox_mode?: Database["public"]["Enums"]["sandbox_mode"]
+          status?: Database["public"]["Enums"]["workspace_status"]
+          task_id: string
+          worktree_path?: string | null
+        }
+        Update: {
+          branch_name?: string
+          created_at?: string
+          head_sha?: string | null
+          id?: string
+          project_id?: string
+          released_at?: string | null
+          repository_id?: string
+          run_id?: string
+          sandbox_mode?: Database["public"]["Enums"]["sandbox_mode"]
+          status?: Database["public"]["Enums"]["workspace_status"]
+          task_id?: string
+          worktree_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repo_workspaces_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repo_workspaces_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repo_workspaces_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repo_workspaces_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repositories: {
+        Row: {
+          created_at: string
+          default_branch: string
+          id: string
+          project_id: string
+          provider: Database["public"]["Enums"]["repo_provider"]
+          repo_name: string
+          repo_owner: string
+          status: Database["public"]["Enums"]["repo_status"]
+        }
+        Insert: {
+          created_at?: string
+          default_branch?: string
+          id?: string
+          project_id: string
+          provider?: Database["public"]["Enums"]["repo_provider"]
+          repo_name: string
+          repo_owner: string
+          status?: Database["public"]["Enums"]["repo_status"]
+        }
+        Update: {
+          created_at?: string
+          default_branch?: string
+          id?: string
+          project_id?: string
+          provider?: Database["public"]["Enums"]["repo_provider"]
+          repo_name?: string
+          repo_owner?: string
+          status?: Database["public"]["Enums"]["repo_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repositories_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           artifact_id: string
@@ -2234,6 +2597,11 @@ export type Database = {
         | "test"
         | "review"
         | "release"
+      check_suite_status: "queued" | "running" | "passed" | "failed"
+      ci_provider: "github_actions" | "other"
+      deploy_environment: "staging" | "production" | "preview"
+      deploy_source_type: "branch" | "pr" | "tag"
+      deploy_status: "pending" | "deploying" | "live" | "failed" | "rolled_back"
       doc_status: "draft" | "active" | "canonical" | "superseded" | "archived"
       doc_type:
         | "brief"
@@ -2244,6 +2612,8 @@ export type Database = {
         | "ui_spec"
         | "data_model"
         | "other"
+      domain_binding_status: "active" | "misconfigured" | "pending"
+      domain_target_type: "ip" | "cname" | "platform"
       entity_type:
         | "project"
         | "document"
@@ -2261,6 +2631,7 @@ export type Database = {
         | "qa"
         | "release"
       handoff_status: "created" | "acknowledged" | "completed" | "cancelled"
+      pr_status: "opened" | "merged" | "closed"
       project_state:
         | "draft"
         | "scoped"
@@ -2270,6 +2641,8 @@ export type Database = {
         | "paused"
         | "completed"
         | "archived"
+      repo_provider: "github" | "gitea" | "gitlab" | "other"
+      repo_status: "active" | "archived"
       review_state:
         | "created"
         | "in_progress"
@@ -2295,6 +2668,7 @@ export type Database = {
         | "cancelled"
         | "superseded"
         | "finalized"
+      sandbox_mode: "isolated" | "host"
       storage_kind: "db_text" | "file_path" | "github_ref" | "external"
       task_domain:
         | "founder_control"
@@ -2329,6 +2703,7 @@ export type Database = {
         | "cancelled"
         | "validated"
       task_urgency: "normal" | "high" | "blocker"
+      workspace_status: "created" | "active" | "merged" | "discarded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2504,6 +2879,11 @@ export const Constants = {
         "review",
         "release",
       ],
+      check_suite_status: ["queued", "running", "passed", "failed"],
+      ci_provider: ["github_actions", "other"],
+      deploy_environment: ["staging", "production", "preview"],
+      deploy_source_type: ["branch", "pr", "tag"],
+      deploy_status: ["pending", "deploying", "live", "failed", "rolled_back"],
       doc_status: ["draft", "active", "canonical", "superseded", "archived"],
       doc_type: [
         "brief",
@@ -2515,6 +2895,8 @@ export const Constants = {
         "data_model",
         "other",
       ],
+      domain_binding_status: ["active", "misconfigured", "pending"],
+      domain_target_type: ["ip", "cname", "platform"],
       entity_type: [
         "project",
         "document",
@@ -2534,6 +2916,7 @@ export const Constants = {
         "release",
       ],
       handoff_status: ["created", "acknowledged", "completed", "cancelled"],
+      pr_status: ["opened", "merged", "closed"],
       project_state: [
         "draft",
         "scoped",
@@ -2544,6 +2927,8 @@ export const Constants = {
         "completed",
         "archived",
       ],
+      repo_provider: ["github", "gitea", "gitlab", "other"],
+      repo_status: ["active", "archived"],
       review_state: [
         "created",
         "in_progress",
@@ -2572,6 +2957,7 @@ export const Constants = {
         "superseded",
         "finalized",
       ],
+      sandbox_mode: ["isolated", "host"],
       storage_kind: ["db_text", "file_path", "github_ref", "external"],
       task_domain: [
         "founder_control",
@@ -2609,6 +2995,7 @@ export const Constants = {
         "validated",
       ],
       task_urgency: ["normal", "high", "blocker"],
+      workspace_status: ["created", "active", "merged", "discarded"],
     },
   },
 } as const
