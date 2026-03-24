@@ -24,45 +24,45 @@ import {
   RefreshCw, Clock,
 } from "lucide-react";
 
-/* ═══ ROOM TINTS ═══ */
-const ROOM_TINTS = [
-  { bg: "bg-blue-50/30",    accent: "border-l-blue-400",    headerBg: "bg-blue-50/40",    dot: "bg-blue-400" },
-  { bg: "bg-violet-50/30",  accent: "border-l-violet-400",  headerBg: "bg-violet-50/40",  dot: "bg-violet-400" },
-  { bg: "bg-amber-50/30",   accent: "border-l-amber-400",   headerBg: "bg-amber-50/40",   dot: "bg-amber-400" },
-  { bg: "bg-emerald-50/30", accent: "border-l-emerald-400", headerBg: "bg-emerald-50/40", dot: "bg-emerald-400" },
-  { bg: "bg-rose-50/30",    accent: "border-l-rose-400",    headerBg: "bg-rose-50/40",    dot: "bg-rose-400" },
-  { bg: "bg-cyan-50/30",    accent: "border-l-cyan-400",    headerBg: "bg-cyan-50/40",    dot: "bg-cyan-400" },
+/* ═══ ROOM ACCENTS — minimal left-border color only ═══ */
+const ROOM_ACCENTS = [
+  "border-l-status-green",
+  "border-l-status-amber",
+  "border-l-lifecycle-review",
+  "border-l-status-neutral",
+  "border-l-status-red",
+  "border-l-status-cyan",
 ];
 
-const STATUS_STYLE: Record<string, { dot: string; label: string; glow?: string; chipCls: string }> = {
-  working:   { dot: "bg-status-green",        label: "Working",   glow: "shadow-[0_0_12px_-2px] shadow-status-green/25", chipCls: "bg-status-green/10 text-status-green" },
+const STATUS_STYLE: Record<string, { dot: string; label: string; chipCls: string }> = {
+  working:   { dot: "bg-status-green",        label: "Working",   chipCls: "bg-status-green/10 text-status-green" },
   reviewing: { dot: "bg-lifecycle-review",    label: "Reviewing", chipCls: "bg-lifecycle-review/10 text-lifecycle-review" },
-  blocked:   { dot: "bg-destructive",         label: "Blocked",   glow: "shadow-[0_0_12px_-2px] shadow-destructive/25",  chipCls: "bg-destructive/10 text-destructive" },
+  blocked:   { dot: "bg-destructive",         label: "Blocked",   chipCls: "bg-destructive/10 text-destructive" },
   idle:      { dot: "bg-muted-foreground/20", label: "Idle",      chipCls: "bg-muted/60 text-muted-foreground" },
 };
 
 /* ═══ EVENT CONFIG ═══ */
 const EVT: Record<string, { dot: string; label: string; actor?: string }> = {
-  "task.assigned":      { dot: "bg-blue-500",    label: "Task Assigned",       actor: "Architect" },
-  "run.started":        { dot: "bg-amber-500",   label: "Run Started",         actor: "Worker" },
-  "run.completed":      { dot: "bg-green-500",   label: "Run Completed",       actor: "Worker" },
-  "run.failed":         { dot: "bg-red-500",     label: "Run Failed",          actor: "Worker" },
-  "artifact.submitted": { dot: "bg-cyan-500",    label: "Artifact Submitted",  actor: "Builder" },
-  "review.approved":    { dot: "bg-green-500",   label: "Review Approved",     actor: "Reviewer" },
-  "review.rejected":    { dot: "bg-red-500",     label: "Review Rejected",     actor: "Reviewer" },
-  task_assigned:        { dot: "bg-blue-500",    label: "Task Assigned",       actor: "Architect" },
-  run_started:          { dot: "bg-amber-500",   label: "Run Started",         actor: "Worker" },
-  run_completed:        { dot: "bg-green-500",   label: "Run Completed",       actor: "Worker" },
-  run_failed:           { dot: "bg-red-500",     label: "Run Failed",          actor: "Worker" },
-  artifact_submitted:   { dot: "bg-cyan-500",    label: "Artifact Submitted",  actor: "Builder" },
-  review_approved:      { dot: "bg-green-500",   label: "Review Approved",     actor: "Reviewer" },
-  review_rejected:      { dot: "bg-red-500",     label: "Review Rejected",     actor: "Reviewer" },
-  deployment_started:   { dot: "bg-indigo-500",  label: "Deploy Started",      actor: "Release" },
-  deployment_completed: { dot: "bg-green-500",   label: "Deploy Completed",    actor: "Release" },
-  approval_created:     { dot: "bg-amber-500",   label: "Approval Created",    actor: "System" },
-  task_escalated:       { dot: "bg-pink-600",    label: "Task Escalated",      actor: "QA" },
-  handoff_created:      { dot: "bg-blue-400",    label: "Handoff Created",     actor: "System" },
-  pr_created:           { dot: "bg-violet-500",  label: "PR Created",          actor: "Builder" },
+  "task.assigned":      { dot: "bg-status-neutral",  label: "Task Assigned",       actor: "Architect" },
+  "run.started":        { dot: "bg-status-amber",    label: "Run Started",         actor: "Worker" },
+  "run.completed":      { dot: "bg-status-green",    label: "Run Completed",       actor: "Worker" },
+  "run.failed":         { dot: "bg-status-red",      label: "Run Failed",          actor: "Worker" },
+  "artifact.submitted": { dot: "bg-status-cyan",     label: "Artifact Submitted",  actor: "Builder" },
+  "review.approved":    { dot: "bg-status-green",    label: "Review Approved",     actor: "Reviewer" },
+  "review.rejected":    { dot: "bg-status-red",      label: "Review Rejected",     actor: "Reviewer" },
+  task_assigned:        { dot: "bg-status-neutral",  label: "Task Assigned",       actor: "Architect" },
+  run_started:          { dot: "bg-status-amber",    label: "Run Started",         actor: "Worker" },
+  run_completed:        { dot: "bg-status-green",    label: "Run Completed",       actor: "Worker" },
+  run_failed:           { dot: "bg-status-red",      label: "Run Failed",          actor: "Worker" },
+  artifact_submitted:   { dot: "bg-status-cyan",     label: "Artifact Submitted",  actor: "Builder" },
+  review_approved:      { dot: "bg-status-green",    label: "Review Approved",     actor: "Reviewer" },
+  review_rejected:      { dot: "bg-status-red",      label: "Review Rejected",     actor: "Reviewer" },
+  deployment_started:   { dot: "bg-lifecycle-review", label: "Deploy Started",     actor: "Release" },
+  deployment_completed: { dot: "bg-status-green",    label: "Deploy Completed",    actor: "Release" },
+  approval_created:     { dot: "bg-status-amber",    label: "Approval Created",    actor: "System" },
+  task_escalated:       { dot: "bg-destructive",     label: "Task Escalated",      actor: "QA" },
+  handoff_created:      { dot: "bg-status-neutral",  label: "Handoff Created",     actor: "System" },
+  pr_created:           { dot: "bg-lifecycle-review", label: "PR Created",         actor: "Builder" },
 };
 const DEFAULT_EVT = { dot: "bg-muted-foreground/30", label: "Event", actor: "System" };
 
