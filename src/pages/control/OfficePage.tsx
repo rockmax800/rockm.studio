@@ -71,10 +71,21 @@ const DEFAULT_EVT = { dot: "bg-muted-foreground/30", label: "Event", actor: "Sys
    ═══════════════════════════════════════════════════════════════ */
 
 export default function OfficePage() {
-  const { data, isLoading, error } = useOfficeData();
+  const { data, isLoading, error, dataUpdatedAt, isFetching } = useOfficeData();
   useOfficeRealtime();
+  const refreshOffice = useRefreshOffice();
   const navigate = useNavigate();
   const [chatOpen, setChatOpen] = useState(false);
+
+  // Track data freshness
+  const freshnessLabel = useMemo(() => {
+    if (!dataUpdatedAt) return null;
+    const age = Date.now() - dataUpdatedAt;
+    if (age < 5_000) return "just now";
+    if (age < 60_000) return `${Math.round(age / 1000)}s ago`;
+    if (age < 300_000) return `${Math.round(age / 60_000)}m ago`;
+    return "stale";
+  }, [dataUpdatedAt, isFetching]); // isFetching dep forces re-eval on refetch
 
   const { data: allRolesWithProfile = [] } = useQuery({
     queryKey: ["office-roles-profile"],
