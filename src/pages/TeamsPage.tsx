@@ -163,9 +163,9 @@ export default function TeamsPage() {
               <span className="text-muted-foreground">active</span>
             </div>
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-muted-foreground/50" />
+             <Activity className="h-4 w-4 text-muted-foreground/50" />
               <span className="font-bold text-foreground font-mono">{departments.length}</span>
-              <span className="text-muted-foreground">capabilities</span>
+              <span className="text-muted-foreground">teams</span>
             </div>
             {probationCount > 0 && (
               <div className="flex items-center gap-2">
