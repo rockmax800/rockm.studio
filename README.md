@@ -128,17 +128,23 @@ Integrated into Teams page. Manual configuration or AI-generated suggestions. HR
 
 ---
 
-## Technology Stack
+## Technology Stack (LOCKED)
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React + Vite + Tailwind + TypeScript |
-| Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
-| Data Access | Supabase client SDK |
-| State | TanStack React Query |
-| Routing | React Router v6 |
-| CI/CD | GitHub Actions → Docker → VPS |
-| Real-time | Supabase Realtime (WebSocket) |
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Frontend | Next.js (App Router) + TypeScript + Tailwind | Single framework, no standalone Vite |
+| Backend | NestJS + TypeScript | Modular monolith, not route handlers |
+| Database | PostgreSQL + Prisma | Prisma is the only ORM |
+| Queue | Redis + BullMQ | Job queue, retry, scheduling |
+| Worker | Separate Node.js process | RunExecutor, provider calls, sandbox |
+| Sandbox | Docker | Isolated code execution with resource limits |
+| State (client) | TanStack React Query | Server-state cache |
+| Validation | Zod | Shared client + server |
+| CI | GitHub Actions | Automated checks on PRs |
+| Deployment | Docker → VPS | Single-server Docker Compose |
+| VCS | GitHub | Single integration surface |
+
+**Architecture lock active.** No stack changes without explicit founder approval.
 
 ---
 
