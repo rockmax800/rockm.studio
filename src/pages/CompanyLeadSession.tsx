@@ -329,8 +329,8 @@ export default function CompanyLeadSession() {
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-[16px] font-bold" style={{ color: "hsl(222 32% 14%)" }}>Company Lead</h1>
-            <p className="text-[11px]" style={{ color: "hsl(220 10% 64%)" }}>Step 1 — Consultation & scope definition</p>
+            <h1 className="text-[16px] font-bold text-foreground">Company Lead</h1>
+            <p className="text-[11px] text-muted-foreground">Step 1 — Consultation & scope definition</p>
           </div>
         </div>
 
