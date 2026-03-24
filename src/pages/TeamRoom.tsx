@@ -10,13 +10,14 @@ import { useDepartments } from "@/hooks/use-department-data";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPersona, getStatusMeta } from "@/lib/personas";
+import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import {
   ArrowLeft, Users, MessageSquare, Send, SkipForward,
   Snowflake, Square, Coins, ChevronDown, ChevronUp,
   Target, Layers, ListChecks, HelpCircle, BarChart3,
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
-  AlertTriangle, ArrowUpRight, Play, User, Zap,
-} from "lucide-react";
+  AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
+}from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
