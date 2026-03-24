@@ -14,6 +14,7 @@ import ProjectsPage from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
 import TeamRoom from "./pages/TeamRoom";
+import EmployeeProfile from "./pages/EmployeeProfile";
 
 // Management pages
 import FounderPage from "./pages/FounderPage";
