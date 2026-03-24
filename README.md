@@ -103,17 +103,19 @@ This is what runs when you check out the repo and start the dev server.
 
 ---
 
-## Single Production Path
+## Canonical Production Path
 
 ```
-Command Center → Talk to Company Lead → Scope Discussion → Internal Consultation
-→ Cost/Token Estimate → Founder Decision → Create Blueprint
-→ Select Capability → Add/Select Employee → Team Session
-→ Freeze Blueprint → Create Project → Project Cockpit
-→ Office (monitoring) → Founder Approval → Deploy → SMM Content
+Command Center → Talk to Company Lead (consultation, scope, estimate)
+    → Approve Direction → Structured Intake (blueprint extraction)
+    → Freeze Blueprint → Create Project → Project Cockpit
+    → Office (monitoring) → Founder Approval → Deploy → SMM Content
 ```
 
-No alternative paths. All production begins at Command Center via Company Lead.
+**This is the only production path.** All projects originate from this flow.
+The "Skip to Structured Intake" option exists for founders who already know what they want, but the recommended path always starts with Company Lead.
+
+Other routes (Office, Founder, Teams, System) are operational views, not alternative project creation surfaces.
 
 ---
 

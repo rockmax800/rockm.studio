@@ -239,8 +239,8 @@ export default function IntakeComposerV2() {
                   <h3 className="text-[22px] font-semibold text-foreground text-center tracking-tight">
                     Describe what you want to build.
                   </h3>
-                  <p className="text-[14px] text-muted-foreground mt-2 text-center max-w-[400px]">
-                    Navigator will extract a structured brief from your conversation in real time.
+                  <p className="text-[14px] text-muted-foreground mt-2 text-center max-w-[420px]">
+                    This is the structured intake step. Navigator will extract a brief from your conversation, which becomes the blueprint for project creation.
                   </p>
                   <div className="flex flex-wrap gap-2 mt-6 justify-center">
                     {SUGGESTIONS.map((s) => (
