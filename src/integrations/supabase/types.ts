@@ -2955,6 +2955,51 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_nodes: {
+        Row: {
+          active_runs_count: number
+          cpu_usage_pct: number | null
+          created_at: string
+          disk_usage_pct: number | null
+          docker_container_count: number | null
+          hostname: string
+          id: string
+          last_heartbeat_at: string
+          memory_usage_pct: number | null
+          metadata_json: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          active_runs_count?: number
+          cpu_usage_pct?: number | null
+          created_at?: string
+          disk_usage_pct?: number | null
+          docker_container_count?: number | null
+          hostname: string
+          id?: string
+          last_heartbeat_at?: string
+          memory_usage_pct?: number | null
+          metadata_json?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          active_runs_count?: number
+          cpu_usage_pct?: number | null
+          created_at?: string
+          disk_usage_pct?: number | null
+          docker_container_count?: number | null
+          hostname?: string
+          id?: string
+          last_heartbeat_at?: string
+          memory_usage_pct?: number | null
+          metadata_json?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
