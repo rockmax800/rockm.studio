@@ -106,7 +106,7 @@ export function useOfficeData() {
       const marketModelsData = (marketModelsRes.data ?? []) as any[];
       const marketModelsById = Object.fromEntries(marketModelsData.map((m: any) => [m.id, m]));
       const topModelPerTeam: Record<string, string> = {};
-      for (const team of mergedTeams) {
+      for (const team of operationalTeams) {
         const teamBenchmarks = benchmarksData.filter((b: any) => b.team_id === team.id);
         if (teamBenchmarks.length > 0) {
           const best = teamBenchmarks.reduce((a: any, b: any) => a.avg_success_rate > b.avg_success_rate ? a : b);
