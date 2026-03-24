@@ -8,8 +8,8 @@ import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge } from "lucide-react";
-import { Link } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { lazy, Suspense, useMemo } from "react";
 
 const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 
