@@ -145,10 +145,17 @@ export default function TeamRoom() {
 
           {/* Employee grid */}
           {displayEmployees.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-10 text-center">
-              <Users className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
-              <p className="text-[16px] font-bold text-foreground">No team members found</p>
-              <p className="text-[13px] text-muted-foreground mt-1">This capability has no active employees.</p>
+            <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-12 text-center">
+              <Users className="h-12 w-12 text-muted-foreground/15 mx-auto mb-4" />
+              <p className="text-[20px] font-bold text-foreground">Add team members first</p>
+              <p className="text-[14px] text-muted-foreground mt-2 max-w-[400px] mx-auto">
+                This capability has no active employees. Set up your team to start working sessions.
+              </p>
+              <Link to="/teams">
+                <Button className="mt-5 h-11 px-6 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                  <Users className="h-4 w-4" /> Go to Teams Setup
+                </Button>
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
