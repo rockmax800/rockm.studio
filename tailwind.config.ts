@@ -160,6 +160,7 @@ export default {
         elevated: "var(--shadow-elevated)",
         heavy: "var(--shadow-heavy)",
         glow: "var(--shadow-glow)",
+        inset: "var(--shadow-inset)",
       },
       gridTemplateColumns: {
         "12": "repeat(12, minmax(0, 1fr))",
