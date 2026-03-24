@@ -194,6 +194,32 @@ export class ReviewService {
       }
     }
 
+    // PART 10 — Create logical PullRequest on validation (code domains)
+    if (task && run) {
+      const CODE_DOMAINS = ["frontend_delivery", "backend_delivery", "frontend", "backend"];
+      if (task.domain && CODE_DOMAINS.includes(task.domain)) {
+        try {
+          const workspace = await this.deliverySpine.findRunWorkspace(run.id);
+          if (workspace) {
+            const repo = await this.deliverySpine.findProjectRepository(task.project_id);
+            if (repo) {
+              await this.deliverySpine.createPullRequest({
+                projectId: task.project_id,
+                taskId: task.id,
+                runId: run.id,
+                repositoryId: repo.id,
+                sourceBranch: workspace.branch_name,
+                targetBranch: repo.default_branch,
+                title: `[${task.id.slice(0, 8)}] ${task.title ?? "Task delivery"}`,
+              });
+            }
+          }
+        } catch {
+          // Best-effort PR creation — review result stands
+        }
+      }
+    }
+
     return task ?? artifact;
   }
 

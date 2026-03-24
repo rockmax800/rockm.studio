@@ -45,8 +45,8 @@ The deterministic workflow backbone. No HR, no autonomy, no departments.
 |-----|-------|---------|
 | 01 | Project Lifecycle | Project creation, scoping, activation, completion, archival |
 | 02 | Domain Boundaries | 14 domains with isolation rules and interaction contracts |
-| 03 | State Machine | States and transitions for Project, Task, Run, Artifact, Review, Approval |
-| 04 | Data Model | Core entity schema: fields, relationships, invariants |
+| 03 | State Machine | States and transitions for Project, Task, Run, Artifact, Review, Approval, Handoff |
+| 04 | Data Model | Core entity schema + Delivery Spine entities |
 | 05 | Guard Matrix | Transition guards with preconditions, side effects, forbidden states |
 | 06 | Orchestration Use Cases | 26 atomic workflow actions (UC-01 through UC-26) |
 | 07 | Backend Architecture | Service map, guard layer, transaction design, worker layer |
@@ -58,6 +58,14 @@ The deterministic workflow backbone. No HR, no autonomy, no departments.
 Task → Run → Artifact → Review → Approval
   ↑                                  │
   └──── rework loop ────────────────┘
+```
+
+**Delivery spine (additive):**
+```
+Run (code domain) → RepoWorkspace → [execution] → PullRequest → CheckSuite
+                                                                      │
+                                                                      ▼
+                                                              Deployment → DomainBinding
 ```
 
 ---
