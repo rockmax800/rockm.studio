@@ -223,6 +223,8 @@ export default function CompanyLeadSession() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [phase, setPhase] = useState<"discovery" | "consultation" | "estimate" | "decision">("discovery");
   const [isThinking, setIsThinking] = useState(false);
+  const { policy: globalPolicy } = useExecutionPolicy();
+  const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
   useQuery({
     queryKey: ["departments"],
