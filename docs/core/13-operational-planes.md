@@ -127,6 +127,7 @@ Learning, improvement, and performance measurement. All operations are **advisor
 | `prompt_experiments` | A/B testing configurations |
 | `prompt_improvement_suggestions` | AI-generated prompt improvements |
 | `learning_proposals` | Formal improvement proposals with evidence & promotion pipeline |
+| `evaluation_runs` | Isolated execution for shadow testing (never mutates delivery) |
 | `context_snapshots` | Reproducibility snapshots |
 | `context_packs` | Assembled execution context |
 | `model_market` | Available models registry |
@@ -144,10 +145,13 @@ Learning, improvement, and performance measurement. All operations are **advisor
 | Must NOT update task/run/artifact state | No OrchestrationService calls |
 | Must NOT create runs or artifacts | Read-only on Delivery entities |
 | Must NOT trigger deployments | No deployment creation |
+| Must NOT create pull requests | No DeliverySpineService PR calls |
 | May INSERT proposals and scores | Append-only advisory records |
-| Proposals require founder approval | approval gate before execution |
+| Evaluation runs write only to evaluation_runs + learning_proposals | Isolated execution |
+| Proposals require founder approval | Approval entity gate before execution |
 | Learning proposals require ≥3 source runs | Evidence minimum enforced at creation |
 | Promotion requires statistical significance | Enforced by LearningPipelineService |
+| Shadow mode only in experimental mode | SystemModeService check |
 
 ### Interaction with Delivery
 - **Reads:** run results, artifact content, review verdicts, scoring data
@@ -260,7 +264,38 @@ In Production Mode, Knowledge Plane features like prompt A/B testing, model comp
 
 ---
 
-## 10 — Validation Checklist
+## 10 — Governance Invariants (v1.2)
+
+### 10.1 — No Boolean Approval Flags
+
+**Invariant:** No business decision in the system may rely on a boolean `approved_by_founder` flag. All approval decisions MUST go through the canonical Approval entity for:
+
+- Auditability (who decided, when, with what note)
+- Lifecycle tracking (pending → decided → closed)
+- Unified querying (all decisions in one table)
+
+Applies to: BlueprintContract, EstimateReport, Learning Promotion, and all future decision points.
+
+### 10.2 — Knowledge Plane Isolation
+
+**Invariant:** The Knowledge Plane may NEVER mutate:
+
+| Entity | Forbidden Operations |
+|--------|---------------------|
+| tasks | No state changes, no assignments |
+| runs | No creation, no state changes |
+| artifacts | No creation, no state changes |
+| deployments | No creation |
+| pull_requests | No creation |
+| approvals | No creation (reads only to check promotion gates) |
+
+### 10.3 — Evaluation Run Isolation
+
+**Invariant:** `evaluation_runs` are strictly isolated from delivery execution. They cannot produce pull requests, deployments, or modify any delivery plane entity.
+
+---
+
+## 11 — Validation Checklist
 
 When adding new features or entities, verify:
 
@@ -270,3 +305,4 @@ When adding new features or entities, verify:
 - [ ] If Experience Plane: does it only read projections?
 - [ ] If Delivery Plane: does it go through OrchestrationService?
 - [ ] If Intent Plane: does it avoid execution or deployment?
+- [ ] Does the feature avoid boolean approval flags? (Use Approval entity instead)
