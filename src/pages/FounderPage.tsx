@@ -11,6 +11,7 @@ import { FounderStatusStrip } from "@/components/founder/FounderStatusStrip";
 import { DecisionCard, type DecisionItem } from "@/components/founder/DecisionCard";
 import { ContextPreview } from "@/components/founder/ContextPreview";
 import { RiskPanel } from "@/components/founder/RiskPanel";
+import { CalibrationSummary } from "@/components/founder/CalibrationSummary";
 import { PipelineBar, resolveStageIndex, PIPELINE_STAGES, STAGE_COLORS } from "@/components/PipelineBar";
 import {
   Select,
