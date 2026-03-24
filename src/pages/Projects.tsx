@@ -85,7 +85,7 @@ export default function ProjectsPage() {
                   <Link to="/presale/new">
                     <Button variant="outline" className="h-11 px-6 gap-2 text-[13px] font-semibold border-border/60 text-foreground hover:bg-surface-glass rounded-xl">
                       <FileText className="h-4 w-4 opacity-60" />
-                      Start Structured Intake
+                      Skip to Structured Intake
                     </Button>
                   </Link>
                 </div>

@@ -97,22 +97,26 @@ export function HeroComposer() {
 
 export function QuickActions() {
   const actions = [
-    { label: "New Intake", to: "/presale/new", icon: FileText },
     { label: "Resume Project", to: "/projects", icon: FolderOpen },
     { label: "Open Office", to: "/office", icon: Monitor },
     { label: "Founder Queue", to: "/founder", icon: Crown },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-3">
-      {actions.map((a) => (
-        <Link key={a.label} to={a.to}>
-          <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-surface-raised border border-border/30 hover:border-border/60 hover:bg-surface-glass transition-all duration-180 group cursor-pointer">
-            <a.icon className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" strokeWidth={1.8} />
-            <span className="text-[13px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
-          </div>
-        </Link>
-      ))}
+    <div className="space-y-1.5">
+      <span className="text-[10px] font-medium text-muted-foreground/35 tracking-[0.04em] uppercase px-1">
+        Shortcuts
+      </span>
+      <div className="grid grid-cols-3 gap-3">
+        {actions.map((a) => (
+          <Link key={a.label} to={a.to}>
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-surface-raised border border-border/30 hover:border-border/60 hover:bg-surface-glass transition-all duration-180 group cursor-pointer">
+              <a.icon className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+              <span className="text-[13px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
