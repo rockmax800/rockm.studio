@@ -174,7 +174,14 @@ export class RunService {
       });
 
       return { run, task };
-    }, { isolationLevel: "Serializable" });
+    }, { isolationLevel: "Serializable" }) as { run: any; task: any; idempotent?: boolean };
+
+    // If idempotent hit, return existing run without re-transitioning
+    if (result.idempotent) {
+      return result.run;
+    }
+
+    const { run, task } = result;
 
     // Transition Run: created → preparing
     await this.orchestration.transitionEntity({
