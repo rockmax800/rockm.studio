@@ -403,7 +403,13 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
               <span className="text-[12px] font-bold text-muted-foreground">{meetingLabel}</span>
               </div>
               <span className="w-px h-5 bg-border/40" />
-              <ExecutionPolicyBadge label="Current execution environment" />
+              <ExecutionPolicyBadge
+                label="Current execution environment"
+                policyOverride={execOverride.enabled ? execOverride.policy : null}
+                isOverride={execOverride.enabled}
+              />
+              <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
+            </div>
             </div>
 
             <div className="flex items-center gap-4">
