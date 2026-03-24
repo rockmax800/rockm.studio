@@ -2,7 +2,7 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
-version: v3.0
+version: v4.0
 ---
 
 # AI Production Studio — System Overview
@@ -13,59 +13,106 @@ AI Production Studio is an agent-first development workspace for a solo product 
 
 ---
 
-## 2 — Architecture: Four Planes
+## 2 — Architecture: Four Operational Planes
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              PLANE 4 — AUTONOMY LAB                         │
-│  Prompt evolution, model competition, context compression   │
-│  ⚠ Disabled in Production Mode                              │
+│            PLANE 4 — EXPERIENCE                             │
+│  Pixel Office, Founder Dashboard, Client Portal             │
+│  Read-only projections from event_log                       │
 ├─────────────────────────────────────────────────────────────┤
-│              PLANE 3 — COMPANY LAYER                        │
-│  Departments, AI employees, HR, hiring, office, blog        │
+│            PLANE 3 — KNOWLEDGE                              │
+│  Prompt versions, context snapshots, scoring, benchmarks    │
+│  Proposes only — never mutates delivery state               │
 ├─────────────────────────────────────────────────────────────┤
-│              PLANE 2 — DELIVERY CORE                        │
-│  Backend services, providers, execution, CI/CD, deployment  │
+│            PLANE 2 — DELIVERY                               │
+│  Projects, Tasks, Runs, Artifacts, Reviews, Approvals       │
+│  CI/CD, Deployments, Handoffs, Event Log, Outbox            │
+│  Deterministic execution spine                              │
 ├─────────────────────────────────────────────────────────────┤
-│              PLANE 1 — FRONT OFFICE                         │
-│  Intake, blueprints, estimates, launch decisions, portal    │
+│            PLANE 1 — INTENT                                 │
+│  Intake, Blueprints, Estimates, Launch Decisions, TaskSpecs │
+│  Defines WHAT and WHY — never executes                      │
 └─────────────────────────────────────────────────────────────┘
-
-         ┌──────────────────────────────────┐
-          │      CORE ENGINE (Foundation)    │
-          │  Projects, Tasks, Runs, Reviews  │
-          │  State Machine, Guards, Events   │
-          │  Event Log (canonical truth)     │
-          └──────────────────────────────────┘
 ```
 
-**Dependency rule:** Lower planes never depend on upper planes. Core Engine is the shared foundation.
+**Dependency rule:** `Intent → Delivery → Knowledge → Experience`. No reverse dependency allowed.
 
 ---
 
-## 3 — Plane 1: Front Office
+## 3 — Plane 1: Intent
 
-Client-facing lifecycle before project creation.
+Captures the business intent before and during execution. Defines **what** to build and **why**.
 
-| Document | Purpose |
-|----------|---------|
-| `front-office/intake-request.md` | Client brief capture |
-| `front-office/blueprint-contract.md` | Structured scope agreement |
-| `front-office/estimate-report.md` | Cost and timeline projections |
-| `front-office/launch-decision.md` | Founder go/no-go gate |
-| `front-office/presale-session.md` | Lightweight pre-engagement scoping |
-| `front-office/client-portal.md` | Read-only external project view |
+| Entity | Purpose |
+|--------|---------|
+| `intake_requests` | Client brief capture |
+| `blueprint_contracts` | Structured scope agreement |
+| `estimate_reports` | Cost and timeline projections |
+| `launch_decisions` | Founder go/no-go gate |
+| `presale_sessions` | Lightweight pre-engagement scoping |
+| `task_specs` | Structured acceptance criteria per task |
+
+**Constraints:** Intent Plane must NOT execute code, modify repositories, or deploy.
 
 **Flow:**
 ```
 Client Brief → IntakeRequest → BlueprintContract → EstimateReport → LaunchDecision → Project
+                                                                                       ↓
+                                                              TaskSpec ← Task (created in Delivery)
 ```
 
 ---
 
-## 4 — Core Engine
+## 4 — Plane 2: Delivery
 
-The deterministic workflow backbone shared by all planes.
+The deterministic execution engine. Defines **how** things are built.
+
+### 4.1 — Core Workflow Entities
+
+| Entity | Purpose |
+|--------|---------|
+| `projects` | Top-level container with lifecycle |
+| `tasks` | Units of work within a project |
+| `runs` | Execution attempts on a task |
+| `artifacts` | Typed evidence outputs |
+| `reviews` | Quality verification |
+| `approvals` | Founder decision gates |
+| `handoffs` | Role-to-role responsibility transfer |
+
+**Core workflow:**
+```
+Task → Run → Artifact → Review → Approval
+  ↑                                  │
+  └──── rework loop ────────────────┘
+```
+
+### 4.2 — Delivery Spine Entities
+
+| Entity | Purpose |
+|--------|---------|
+| `repo_workspaces` | Isolated git worktrees |
+| `pull_requests` | Code review units |
+| `check_suites` | CI pipeline results |
+| `deployments` | Release to environment |
+| `domain_bindings` | DNS/TLS configuration |
+| `sandbox_policies` | Execution isolation rules |
+
+**Delivery spine:**
+```
+Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBinding
+```
+
+### 4.3 — Event Infrastructure
+
+| Entity | Role |
+|--------|------|
+| `event_log` | **Canonical source of truth** — append-only, immutable |
+| `outbox_events` | Delivery channel for external dispatch |
+| `activity_events` | Backward-compatible projection |
+| `office_events` | Office visualization projection |
+
+### 4.4 — Key Documents
 
 | Document | Purpose |
 |----------|---------|
@@ -76,116 +123,119 @@ The deterministic workflow backbone shared by all planes.
 | `core/05-guard-matrix.md` | Transition guards and preconditions |
 | `core/06-orchestration-use-cases.md` | 26 atomic workflow actions |
 | `core/07-system-mode.md` | Production/Experimental mode |
-| `core/08-feature-flags.md` | Feature flag definitions |
-| `core/09-performance-scoring.md` | All scoring formulas |
-
-**Core workflow:**
-```
-Task → Run → Artifact → Review → Approval
-  ↑                                  │
-  └──── rework loop ────────────────┘
-```
-
----
-
-## 5 — Plane 2: Delivery Core
-
-Execution spine from code to production.
-
-| Document | Purpose |
-|----------|---------|
-| `delivery/backend-architecture.md` | Service map, guards, transactions |
-| `delivery/provider-architecture.md` | Multi-provider routing and fallback |
-| `delivery/delivery-lane.md` | PR → CI → Staging → Production pipeline |
+| `core/10-role-contracts-and-taskspec.md` | Enforceable role boundaries |
+| `core/11-artifact-type-system.md` | Typed evidence model |
+| `core/12-event-log-architecture.md` | Canonical event log |
+| `delivery/delivery-lane.md` | PR → CI → Staging → Production |
 | `delivery/sandbox-and-execution-isolation.md` | Docker-based run isolation |
 | `delivery/failure-classification.md` | Standardized error_class values |
-| `delivery/operational-diagnostics.md` | Worker monitoring and stalled detection |
-| `delivery/context-reproducibility.md` | Snapshot semantics for reproducible runs |
-| `delivery/risk-and-safety-matrix.md` | Risk categorization and mitigation |
-
-**Delivery spine:**
-```
-Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBinding
-```
 
 ---
 
-## 6 — Plane 3: Company Layer
+## 5 — Plane 3: Knowledge
 
-Organizational simulation on top of Core Engine.
+Learning, improvement proposals, and performance measurement. All Knowledge Plane operations are **advisory only** — they propose changes but never mutate Delivery state directly.
 
-| Document | Purpose |
-|----------|---------|
-| `company/10-department-system.md` | Teams and cross-team policies |
-| `company/11-ai-employee-hr-model.md` | Named employees, hiring, performance |
-| `company/12-load-balancer.md` | Task distribution scoring |
-| `company/13-hiring-market.md` | Model marketplace |
-| `company/14-performance-rating-engine.md` | Quality scoring |
-| `company/15-replacement-engine.md` | Employee replacement proposals |
-| `company/16-company-blog.md` | AI copywriter, event-driven drafts |
-| `company/17-realtime-office.md` | Pixel visualization, zone mapping |
-| `company/18-prediction-bottleneck-engine.md` | Proactive bottleneck detection |
+| Entity / Concept | Purpose |
+|-------------------|---------|
+| `prompt_versions` | Versioned prompt templates |
+| `prompt_experiments` | A/B testing of prompts |
+| `context_snapshots` | Reproducibility snapshots |
+| `context_packs` | Assembled execution context |
+| `model_benchmarks` | Provider model performance data |
+| `model_market` | Available models registry |
+| `performance scoring` | Quality/cost/latency formulas |
+| `bottleneck_predictions` | Proactive risk detection |
+| `hr_suggestions` | Employee improvement proposals |
+| `prompt_improvement_suggestions` | Prompt optimization proposals |
 
-**Company layer does NOT redefine lifecycle or core guards.**
+**Constraints:** Knowledge Plane must NOT update task state, transition runs, or modify artifacts. It may only INSERT proposals and scoring records.
 
----
-
-## 7 — Plane 4: Autonomy Lab
-
-Controlled self-improvement. All features disabled in Production Mode.
+### Key Documents
 
 | Document | Purpose |
 |----------|---------|
-| `autonomy/20-autonomy-layer.md` | Idea generation, autonomous execution |
-| `autonomy/21-lean-mode.md` | Minimal token usage mode |
-| `autonomy/22-prompt-versioning.md` | Prompt versions, A/B experiments |
+| `core/09-performance-scoring.md` | Scoring formulas |
+| `autonomy/22-prompt-versioning.md` | Prompt version management |
 | `autonomy/23-model-competition.md` | Internal model benchmarking |
-| `autonomy/24-context-compression.md` | Token-efficient context assembly |
-| `autonomy/25-spec-to-release-mode.md` | End-to-end autonomous delivery |
-| `autonomy/26-safety-budget-controls.md` | Budget limits, kill switches |
+| `autonomy/24-context-compression.md` | Token-efficient context |
+| `company/14-performance-rating-engine.md` | Quality scoring |
+| `company/18-prediction-bottleneck-engine.md` | Proactive detection |
 
 ---
 
-## 8 — Business & Product Layers
+## 6 — Plane 4: Experience
 
-Strategic and commercial documentation.
+All user-facing surfaces. Experience Plane is **read-only** — it reads projections built from `event_log` and entity state, but never writes canonical state.
 
-| Folder | Documents |
-|--------|-----------|
-| `business/` | operating-model, service-offerings, pricing-strategy, client-engagement-model, delivery-sla, risk-allocation, revenue-tracking, token-economy-and-budgeting |
-| `product/` | product-vision, user-personas, roadmap, release-plan, differentiation, constraints |
+| Surface | Audience | Source |
+|---------|----------|--------|
+| Founder Dashboard | Founder | Delivery entities + event_log projections |
+| Pixel Office | Founder | office_events + agent state |
+| Client Portal | External clients | Filtered project state + milestones |
+| Company Dashboard | Founder | Knowledge + Company entities |
+| Blog | Public | blog_posts (Company layer) |
 
----
+**Constraints:** Experience Plane must NOT write to `event_log`, mutate entity state, or trigger transitions. User actions (approve, reject, assign) are routed through Delivery Plane APIs.
 
-## 9 — Event Architecture
+### Key Documents
 
-All state transitions emit `ActivityEvent` (audit) + `OutboxEvent` (dispatch).
-
-| Layer | Events |
-|-------|--------|
-| Core | `project.*`, `task.*`, `run.*`, `artifact.*`, `review.*`, `approval.*` |
-| Company | `employee.*`, `office.*`, `blog.*`, `hr.*` |
-| Autonomy | `autonomy.*`, `experiment.*` |
-
-Events are append-only. No updates, no deletes.
+| Document | Purpose |
+|----------|---------|
+| `company/17-realtime-office.md` | Pixel visualization, zone mapping |
+| `front-office/client-portal.md` | Read-only external project view |
 
 ---
 
-## 10 — Founder Intervention Points
+## 7 — Data Flow Between Planes
 
-| Action | Layer | Automated? |
+```
+INTENT                    DELIVERY                  KNOWLEDGE             EXPERIENCE
+  │                          │                          │                      │
+  │  blueprint_contract ──→  │                          │                      │
+  │  task_spec ──────────→   │                          │                      │
+  │  launch_decision ────→   │                          │                      │
+  │                          │                          │                      │
+  │                          │  run results ──────────→ │                      │
+  │                          │  scoring data ─────────→ │                      │
+  │                          │                          │                      │
+  │                          │  event_log ─────────────────────────────────→   │
+  │                          │  entity state (read) ───────────────────────→   │
+  │                          │                          │                      │
+  │                          │  ←── proposals ────────  │                      │
+  │                          │  ←── suggestions ──────  │                      │
+  │                          │                          │                      │
+  │                          │  ←──── user actions (approve, assign) ──────    │
+```
+
+---
+
+## 8 — Founder Intervention Points
+
+| Action | Plane | Automated? |
 |--------|-------|------------|
-| Launch decision | Front Office | **No** — founder approval |
-| Project activation | Core | **No** — founder approval |
-| Architecture decisions | Core | **No** — founder approval |
+| Launch decision | Intent | **No** — founder approval |
+| Project activation | Delivery | **No** — founder approval |
+| Architecture decisions | Delivery | **No** — founder approval |
 | Release approval | Delivery | **No** — founder approval |
-| HR proposals | Company | **No** — founder approval |
-| Blog publishing | Company | **No** — founder approval |
-| Budget increases | Autonomy | **No** — founder controls |
+| HR proposals | Knowledge | **No** — founder approval |
+| Blog publishing | Experience | **No** — founder approval |
+| Budget increases | Knowledge | **No** — founder controls |
 
 ---
 
-## 11 — Technology Stack
+## 9 — Production Mode Boundaries
+
+| Plane | Production Mode | Experimental Mode |
+|-------|----------------|-------------------|
+| Intent | Full | Full |
+| Delivery | Full | Full |
+| Knowledge | Scoring + snapshots only | Full (A/B, competition, compression) |
+| Experience | Full | Full + autonomy indicators |
+
+---
+
+## 10 — Technology Stack
 
 - **Frontend:** React + Vite + Tailwind + TypeScript
 - **Backend:** Lovable Cloud (PostgreSQL + Edge Functions)
@@ -196,6 +246,6 @@ Events are append-only. No updates, no deletes.
 
 ---
 
-## 12 — Archive
+## 11 — Archive
 
 Superseded documents are preserved in `archive/` for historical reference. They are not authoritative and must not be used for implementation decisions.
