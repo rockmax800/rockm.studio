@@ -424,11 +424,16 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
         const perfColor = repScore >= 0.8 ? "text-status-green" : repScore >= 0.5 ? "text-status-amber" : "text-destructive";
         const perfRing = repScore >= 0.8 ? "border-status-green/30" : repScore >= 0.5 ? "border-status-amber/30" : "border-destructive/30";
         const teamName = departments.find((d: any) => d.id === emp.team_id)?.name;
+        // Extract config from role's skill_profile
+        const sp = role?.skill_profile as any;
+        const seniority = sp?.seniority;
+        const mbtiType = sp?.mbtiType;
+        const riskTol = sp?.riskTolerance;
+        const riskCls = riskTol === "high" ? "text-destructive" : riskTol === "low" ? "text-status-green" : "text-status-amber";
 
         return (
           <div key={emp.id} className="rounded-xl border border-border bg-card p-4 hover:shadow-md hover:-translate-y-px transition-all group">
             <div className="flex items-start gap-3">
-              {/* Avatar */}
               <div className="relative shrink-0">
                 <div className={`rounded-xl border-[3px] ${perfRing} p-0.5`}>
                   <img src={persona.avatar} alt={emp.name}
@@ -438,21 +443,32 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
                 <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${st.dot}`} />
               </div>
 
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <Link to={`/employees/${emp.id}`}>
                   <p className="text-[15px] font-bold text-foreground truncate leading-tight hover:underline">{emp.name}</p>
                 </Link>
-                <p className="text-[12px] text-muted-foreground truncate mt-0.5">{roleName}</p>
-                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <p className="text-[12px] text-muted-foreground truncate mt-0.5">{roleName}{seniority ? ` · ${seniority}` : ""}</p>
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                   <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${st.chipBg}`}>{st.label}</Badge>
                   <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
                   <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
+                  {riskTol && <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${riskCls}`}>{riskTol} risk</Badge>}
+                  {mbtiType && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{mbtiType}</Badge>}
                   {teamName && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{teamName}</Badge>}
                 </div>
+                {/* Stack badges */}
+                {sp?.primaryStack?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {(sp.primaryStack as string[]).slice(0, 4).map((s: string) => (
+                      <Badge key={s} variant="secondary" className="text-[9px] font-bold px-1.5 py-0">{s}</Badge>
+                    ))}
+                    {(sp.primaryStack as string[]).length > 4 && (
+                      <span className="text-[9px] text-muted-foreground/50">+{(sp.primaryStack as string[]).length - 4}</span>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Actions */}
               <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 {onMove && departments.length > 1 && (
                   <select className="text-[10px] font-bold text-muted-foreground bg-secondary border-0 rounded px-1.5 py-0.5 cursor-pointer w-16"
