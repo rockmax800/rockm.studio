@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { getPersona, getStatusMeta } from "@/lib/personas";
+import { TrainingLab } from "@/components/employees/TrainingLab";
 
 import {
   TrendingUp, TrendingDown, Shield, Brain, GraduationCap, Wrench, AlertTriangle,
@@ -16,7 +17,7 @@ import {
   ChevronDown, ChevronRight, Zap, Rocket, RotateCcw, FlaskConical,
   ArrowUpRight, GitPullRequest, Server, FolderX, FolderCheck as FolderCheckIcon,
   BookOpen, Lightbulb, Ban, Save, ArrowLeft, Activity, Eye, Layers,
-} from "lucide-react";
+}from "lucide-react";
 
 export default function EmployeeProfile() {
   const { id = "" } = useParams();
