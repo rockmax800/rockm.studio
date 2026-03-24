@@ -547,26 +547,28 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
 
             {showHistory && (
               <ScrollArea className="flex-1 min-h-0">
-                <div className="divide-y divide-border/8">
-                  {previousEntries.map((entry) => {
+                <div className="px-6 py-2 space-y-0">
+                  {previousEntries.map((entry, idx) => {
                     const ep = getPersona(entry.roleCode);
                     const isFounder = entry.content.startsWith("[Founder]");
                     return (
-                      <div key={entry.id} className={cn("px-6 py-4 hover:bg-muted/10 transition-colors", isFounder && "bg-primary/[0.015]")}>
-                        <div className="flex items-start gap-3">
-                          <img src={ep.avatar} alt="" className="h-7 w-7 rounded-lg object-cover mt-0.5 shrink-0" width={28} height={28} />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[13px] font-semibold text-foreground/70">{isFounder ? "You" : (roles.find((r: any) => r.code === entry.roleCode)?.name ?? entry.roleCode)}</span>
-                              <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded", TYPE_COLOR[entry.type])}>{TYPE_LABEL[entry.type]}</span>
-                              <span className="text-[10px] text-muted-foreground/30 ml-auto font-mono">
-                                {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                              </span>
-                            </div>
-                            <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
-                              {isFounder ? entry.content.replace("[Founder] ", "") : entry.content}
-                            </p>
+                      <div key={entry.id} className={cn(
+                        "flex items-start gap-3 py-3",
+                        idx < previousEntries.length - 1 && "border-b border-border/8",
+                        isFounder && "bg-primary/[0.02] -mx-2 px-2 rounded-lg"
+                      )}>
+                        <img src={ep.avatar} alt="" className="h-6 w-6 rounded-lg object-cover mt-0.5 shrink-0 opacity-70" width={24} height={24} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[12px] font-semibold text-foreground/50">{isFounder ? "You" : (roles.find((r: any) => r.code === entry.roleCode)?.name ?? entry.roleCode)}</span>
+                            <span className={cn("text-[8px] font-bold px-1 py-0.5 rounded", TYPE_COLOR[entry.type])}>{TYPE_LABEL[entry.type]}</span>
+                            <span className="text-[10px] text-muted-foreground/20 ml-auto font-mono">
+                              {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
                           </div>
+                          <p className="text-[12px] text-muted-foreground/60 leading-relaxed">
+                            {isFounder ? entry.content.replace("[Founder] ", "") : entry.content}
+                          </p>
                         </div>
                       </div>
                     );
