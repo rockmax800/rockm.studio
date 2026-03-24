@@ -1,12 +1,9 @@
 import {
-  AlertTriangle,
-  GitPullRequest,
-  FileCode,
-  Rocket,
-  Eye,
-  Play,
+  AlertTriangle, GitPullRequest, FileCode, Rocket, Eye, Play,
+  CheckCircle2, XCircle, Clock, Shield,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getPersona } from "@/lib/personas";
 
 export interface OfficeTaskCardData {
   id: string;
@@ -16,6 +13,7 @@ export interface OfficeTaskCardData {
   projectId: string;
   roleName: string | null;
   roleCode: string | null;
+  employeeName?: string | null;
   latestRunState: string | null;
   hasPendingReview: boolean;
   hasPendingApproval: boolean;
@@ -23,6 +21,7 @@ export interface OfficeTaskCardData {
   predictionType: string | null;
   updatedAt?: string;
   evidenceCount: number;
+  priority?: string | null;
 }
 
 interface OfficeTaskCardProps {
@@ -30,106 +29,143 @@ interface OfficeTaskCardProps {
   onClick: () => void;
 }
 
-const NEXT_ACTION_ICON: Record<string, { icon: typeof Play; color: string; label: string }> = {
-  blocked: { icon: AlertTriangle, color: "text-status-red", label: "Unblock" },
-  escalated: { icon: AlertTriangle, color: "text-lifecycle-escalated", label: "Resolve" },
-  waiting_review: { icon: Eye, color: "text-lifecycle-review", label: "Review" },
-  ready: { icon: Play, color: "text-lifecycle-ready", label: "Start" },
+const STATE_ACCENT: Record<string, string> = {
+  blocked: "border-l-red-500",
+  escalated: "border-l-pink-600",
+  in_progress: "border-l-amber-400",
+  waiting_review: "border-l-violet-500",
+  rework_required: "border-l-orange-500",
+  ready: "border-l-blue-400",
+  assigned: "border-l-blue-300",
+  validated: "border-l-emerald-500",
+  done: "border-l-green-500",
+};
+
+const CI_DOT: Record<string, string> = {
+  running: "bg-blue-500 animate-pulse",
+  preparing: "bg-amber-400 animate-pulse",
+  completed: "bg-green-500",
+  failed: "bg-red-500",
+  produced_output: "bg-green-400",
+  finalized: "bg-green-500",
+  timed_out: "bg-red-400",
 };
 
 export function OfficeTaskCard({ task, onClick }: OfficeTaskCardProps) {
   const isRunning = task.latestRunState === "running" || task.latestRunState === "preparing";
   const isBlocked = task.state === "blocked";
   const isEscalated = task.state === "escalated";
-  const nextAction = NEXT_ACTION_ICON[task.state];
+  const persona = task.roleCode ? getPersona(task.roleCode) : null;
+  const accentBorder = STATE_ACCENT[task.state] ?? "border-l-border";
 
   return (
     <div
       onClick={onClick}
       className={`
-        group relative flex items-center gap-2 px-2.5 py-2 rounded-[10px] cursor-pointer
-        border transition-all duration-150
-        hover:shadow-elevated hover:-translate-y-px
+        group relative flex items-start gap-3 px-3.5 py-3 rounded-xl cursor-pointer
+        border border-l-[3px] transition-all duration-150
+        hover:shadow-md hover:-translate-y-px
+        ${accentBorder}
         ${isBlocked
-          ? "border-l-[3px] border-l-status-red border-t-border border-r-border border-b-border bg-status-red/[0.03]"
+          ? "bg-red-50/30 border-t-red-100 border-r-red-100 border-b-red-100"
           : isEscalated
-            ? "border-l-[3px] border-l-lifecycle-escalated border-t-border border-r-border border-b-border bg-lifecycle-escalated/[0.03]"
-            : "border-border bg-card hover:bg-secondary/40"
+            ? "bg-pink-50/20 border-t-pink-100 border-r-pink-100 border-b-pink-100"
+            : "bg-card border-t-border border-r-border border-b-border hover:bg-secondary/20"
         }
       `}
     >
-      {/* Running pulse strip */}
+      {/* Running pulse overlay */}
       {isRunning && (
-        <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-status-cyan animate-pulse" />
+        <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-blue-500 animate-pulse" />
       )}
 
-      {/* Role avatar */}
-      <div className="h-6 w-6 rounded-md bg-muted flex items-center justify-center shrink-0">
-        <span className="text-[8px] font-mono font-bold text-muted-foreground">
-          {(task.roleCode ?? "??").slice(0, 2).toUpperCase()}
-        </span>
-      </div>
+      {/* Employee avatar */}
+      {persona ? (
+        <div className="relative shrink-0 mt-0.5">
+          <img src={persona.avatar} alt="" className={`h-8 w-8 rounded-lg object-cover ring-1 ${persona.ringClass} ring-offset-1 ring-offset-background`}
+            width={32} height={32} loading="lazy" />
+        </div>
+      ) : (
+        <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0 mt-0.5">
+          <span className="text-[9px] font-mono font-bold text-muted-foreground">
+            {(task.roleCode ?? "??").slice(0, 2).toUpperCase()}
+          </span>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1 mb-0.5">
-          <span className="text-[10px] font-semibold text-muted-foreground truncate max-w-[70px]">
-            {task.projectName}
-          </span>
-          {task.roleName && (
+        {/* Project + Role line */}
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-[11px] font-semibold text-primary truncate max-w-[80px]">{task.projectName}</span>
+          {task.employeeName && (
             <>
               <span className="text-[10px] text-muted-foreground/30">·</span>
-              <span className="text-[10px] font-mono text-muted-foreground/50 truncate">{task.roleName}</span>
+              <span className="text-[11px] text-muted-foreground truncate">{task.employeeName}</span>
+            </>
+          )}
+          {!task.employeeName && task.roleName && (
+            <>
+              <span className="text-[10px] text-muted-foreground/30">·</span>
+              <span className="text-[11px] font-mono text-muted-foreground/50 truncate">{task.roleName}</span>
             </>
           )}
         </div>
-        <p className="text-[12px] font-medium text-foreground leading-snug truncate">{task.title}</p>
-        {task.updatedAt && (
-          <span className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 block">
-            {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}
-          </span>
-        )}
-      </div>
 
-      {/* Right indicators */}
-      <div className="flex items-center gap-1 shrink-0">
-        {task.evidenceCount > 0 && (
-          <div className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
-            <FileCode className="h-2.5 w-2.5" />
-            <span className="font-mono">{task.evidenceCount}</span>
-          </div>
-        )}
+        {/* Task title */}
+        <p className="text-[13px] font-semibold text-foreground leading-snug line-clamp-2">{task.title}</p>
 
-        {task.hasPendingReview && (
-          <GitPullRequest className="h-3 w-3 text-lifecycle-review" />
-        )}
+        {/* Bottom indicators */}
+        <div className="flex items-center gap-2 mt-2">
+          {/* Age */}
+          {task.updatedAt && (
+            <span className="text-[10px] font-mono text-muted-foreground/40 flex items-center gap-0.5">
+              <Clock className="h-3 w-3" />
+              {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: false })}
+            </span>
+          )}
 
-        {task.hasPendingApproval && (
-          <Rocket className="h-3 w-3 text-status-amber" />
-        )}
+          {/* CI indicator */}
+          {task.latestRunState && (
+            <div className="flex items-center gap-1">
+              <span className={`h-2 w-2 rounded-full ${CI_DOT[task.latestRunState] ?? "bg-muted"}`} />
+              <span className="text-[10px] text-muted-foreground/50 capitalize">{task.latestRunState === "running" ? "CI" : ""}</span>
+            </div>
+          )}
 
-        {/* CI dot */}
-        {task.latestRunState && (
-          <div
-            className={`h-2 w-2 rounded-full ${
-              task.latestRunState === "completed" ? "bg-status-green"
-                : task.latestRunState === "failed" ? "bg-status-red"
-                : isRunning ? "bg-status-cyan animate-pulse"
-                : "bg-muted"
-            }`}
-          />
-        )}
+          {/* PR */}
+          {task.hasPendingReview && (
+            <GitPullRequest className="h-3.5 w-3.5 text-violet-500" />
+          )}
 
-        {task.hasPrediction && (
-          <AlertTriangle className="h-2.5 w-2.5 text-status-amber" />
-        )}
+          {/* Deploy */}
+          {task.hasPendingApproval && (
+            <Rocket className="h-3.5 w-3.5 text-amber-500" />
+          )}
 
-        {/* Next action */}
-        {nextAction && (
-          <div className={`h-4 w-4 rounded flex items-center justify-center bg-secondary ${nextAction.color}`}>
-            <nextAction.icon className="h-2.5 w-2.5" />
-          </div>
-        )}
+          {/* Evidence */}
+          {task.evidenceCount > 0 && (
+            <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+              <FileCode className="h-3 w-3" />
+              <span className="font-mono">{task.evidenceCount}</span>
+            </div>
+          )}
+
+          {/* Risk */}
+          {task.hasPrediction && (
+            <div className="flex items-center gap-0.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              {task.predictionType && (
+                <span className="text-[9px] font-semibold text-amber-600 uppercase">{task.predictionType.replace(/_/g, " ")}</span>
+              )}
+            </div>
+          )}
+
+          {/* Priority */}
+          {task.priority === "high" && (
+            <span className="text-[9px] font-bold text-destructive uppercase tracking-wider">High</span>
+          )}
+        </div>
       </div>
     </div>
   );
