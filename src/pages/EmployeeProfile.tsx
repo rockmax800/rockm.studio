@@ -8,6 +8,37 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+
+import avatarFrontend from "@/assets/avatars/avatar-frontend.jpg";
+import avatarBackend from "@/assets/avatars/avatar-backend.jpg";
+import avatarStrategist from "@/assets/avatars/avatar-strategist.jpg";
+import avatarArchitect from "@/assets/avatars/avatar-architect.jpg";
+import avatarReviewer from "@/assets/avatars/avatar-reviewer.jpg";
+import avatarQa from "@/assets/avatars/avatar-qa.jpg";
+import avatarRelease from "@/assets/avatars/avatar-release.jpg";
+import avatarBackendImpl from "@/assets/avatars/avatar-backend-impl.jpg";
+
+const ROLE_AVATARS: Record<string, string> = {
+  frontend_builder: avatarFrontend,
+  backend_architect: avatarBackend,
+  backend_implementer: avatarBackendImpl,
+  product_strategist: avatarStrategist,
+  solution_architect: avatarArchitect,
+  reviewer: avatarReviewer,
+  qa_agent: avatarQa,
+  release_coordinator: avatarRelease,
+};
+
+const ROLE_RING: Record<string, string> = {
+  frontend_builder: "ring-blue-500",
+  backend_architect: "ring-indigo-500",
+  backend_implementer: "ring-violet-500",
+  product_strategist: "ring-amber-500",
+  solution_architect: "ring-cyan-500",
+  reviewer: "ring-emerald-500",
+  qa_agent: "ring-rose-500",
+  release_coordinator: "ring-orange-500",
+};
 import {
   ArrowLeft,
   TrendingUp,
