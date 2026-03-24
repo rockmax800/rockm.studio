@@ -533,20 +533,26 @@ export default function IntakeComposerV2() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      className="flex-1 h-10 gap-2 text-[13px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-[10px]"
-                      disabled={filledCount < 3}
-                    >
-                      <Lock className="h-3.5 w-3.5" /> Freeze Brief
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-10 gap-2 text-[13px] font-semibold border-border-strong text-foreground rounded-[10px]"
-                      disabled={filledCount < 5}
-                    >
-                      <Users className="h-3.5 w-3.5" /> Invite to Kickoff
-                    </Button>
+                  <div className="space-y-1.5">
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1 h-10 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-[10px]"
+                        disabled={filledCount < 3}
+                      >
+                        <Lock className="h-3.5 w-3.5" /> Freeze Brief
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-10 gap-2 text-[13px] font-semibold border-border-strong text-foreground rounded-[10px]"
+                        disabled={filledCount < 5}
+                      >
+                        <Users className="h-3.5 w-3.5" /> Invite to Kickoff
+                      </Button>
+                    </div>
+                    <div className="flex gap-2 text-[10px] text-muted-foreground/40">
+                      <span className="flex-1 text-center">Lock the brief as input for kickoff</span>
+                      <span className="flex-1 text-center">Start team planning based on frozen brief</span>
+                    </div>
                   </div>
                 </div>
               </div>
