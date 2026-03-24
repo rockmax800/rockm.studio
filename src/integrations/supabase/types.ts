@@ -1282,6 +1282,53 @@ export type Database = {
           },
         ]
       }
+      evaluation_runs: {
+        Row: {
+          base_run_id: string | null
+          candidate_version_ref: string | null
+          completed_at: string | null
+          context_snapshot_ref: string | null
+          created_at: string
+          id: string
+          learning_proposal_id: string
+          result_metrics_json: Json | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          base_run_id?: string | null
+          candidate_version_ref?: string | null
+          completed_at?: string | null
+          context_snapshot_ref?: string | null
+          created_at?: string
+          id?: string
+          learning_proposal_id: string
+          result_metrics_json?: Json | null
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          base_run_id?: string | null
+          candidate_version_ref?: string | null
+          completed_at?: string | null
+          context_snapshot_ref?: string | null
+          created_at?: string
+          id?: string
+          learning_proposal_id?: string
+          result_metrics_json?: Json | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_runs_learning_proposal_id_fkey"
+            columns: ["learning_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "learning_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_log: {
         Row: {
           actor_ref: string | null
@@ -3381,6 +3428,8 @@ export type Database = {
         | "artifact"
         | "review"
         | "document"
+        | "blueprint_contract"
+        | "estimate_report"
       approval_type:
         | "project_activation"
         | "architecture"
@@ -3388,6 +3437,9 @@ export type Database = {
         | "scope_change"
         | "release"
         | "cancellation"
+        | "blueprint_approval"
+        | "estimate_approval"
+        | "learning_promotion"
       artifact_state:
         | "created"
         | "classified"
@@ -3659,6 +3711,8 @@ export const Constants = {
         "artifact",
         "review",
         "document",
+        "blueprint_contract",
+        "estimate_report",
       ],
       approval_type: [
         "project_activation",
@@ -3667,6 +3721,9 @@ export const Constants = {
         "scope_change",
         "release",
         "cancellation",
+        "blueprint_approval",
+        "estimate_approval",
+        "learning_promotion",
       ],
       artifact_state: [
         "created",
