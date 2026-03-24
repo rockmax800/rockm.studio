@@ -2,7 +2,7 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
-version: v4.1
+version: v4.2
 doc_kind: contract
 load_strategy: auto
 ---
@@ -46,13 +46,39 @@ See `core/13-operational-planes.md` for full entity mapping and dependency matri
 
 ---
 
-## 3 — Plane 1: Intent
+## 3 — Navigation & UX Structure
 
-Captures business intent before and during execution. Defines **what** to build and **why**.
+### 3.1 — Sidebar Navigation
+
+**Operations:**
+- Command Center (`/`) — Pipeline overview, founder inbox, intake CTA
+- Projects (`/projects`) — Project list and cockpit
+- Office (`/office`) — Capability rooms with live employee state
+- Founder (`/founder`) — Decision engine (approvals, escalations, risk)
+- System (`/system`) — Health, providers, mode, audit
+
+**Management:**
+- Teams (`/teams`) — Capability pools, employee table, hiring & performance
+- Content (`/smm`) — AI-generated content from production events
+
+### 3.2 — Single Production Path
+
+```
+Command Center → Intake → Capability → Employee → Team Session
+→ Blueprint → Project → Cockpit → Office → Founder → Deploy → SMM
+```
+
+All production begins at Command Center. No alternative entry points.
+
+---
+
+## 4 — Plane 1: Intent
+
+Captures business intent. Defines **what** to build and **why**.
 
 | Entity | Purpose |
 |--------|---------|
-| `intake_requests` | Client brief capture |
+| `intake_requests` | Client brief capture (via IntakeComposer) |
 | `blueprint_contracts` | Structured scope agreement |
 | `estimate_reports` | Cost and timeline projections |
 | `launch_decisions` | Founder go/no-go gate |
@@ -68,11 +94,11 @@ Client Brief → IntakeRequest → BlueprintContract → EstimateReport → Laun
 
 ---
 
-## 4 — Plane 2: Delivery
+## 5 — Plane 2: Delivery
 
 The deterministic execution engine.
 
-### 4.1 — Core Workflow
+### 5.1 — Core Workflow
 
 ```
 Task → Run → Artifact → Review → Approval
@@ -82,15 +108,13 @@ Task → Run → Artifact → Review → Approval
 
 All state transitions go through `OrchestrationService` with optimistic locking and serializable isolation.
 
-### 4.2 — Execution Spine
+### 5.2 — Execution Spine
 
 ```
 Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBinding
 ```
 
-Each step produces typed artifacts for full traceability. See `core/11-artifact-type-system.md`.
-
-### 4.3 — Event Infrastructure
+### 5.3 — Event Infrastructure
 
 | Entity | Role |
 |--------|------|
@@ -98,164 +122,137 @@ Each step produces typed artifacts for full traceability. See `core/11-artifact-
 | `outbox_events` | Delivery channel for external dispatch |
 | `activity_events` | Backward-compatible projection |
 
-All three are written atomically within the same transaction as the state change. See `core/12-event-log-architecture.md`.
+### 5.4 — Hard Enforcement Layer
 
-### 4.4 — Runtime Separation
+| Gate | Blocks |
+|------|--------|
+| Role contract violation | PR merge |
+| Missing mandatory artifact | PR merge |
+| CI failure | PR merge |
+| Missing DomainBindingSpec | Production deploy |
+| Staging not live | Production deploy |
 
-The system runs as two separate processes with strict boundaries:
+### 5.5 — Failure Handling
 
-```
-┌──────────────────┐                  ┌──────────────────┐
-│  CONTROL PLANE   │                  │ EXECUTION PLANE  │
-│                  │                  │                  │
-│  Next.js UI      │                  │  RunExecutor     │
-│  API Routes      │    PostgreSQL    │  Docker Sandbox  │
-│  Orchestration   │◄───────────────►│  Git Operations  │
-│  Dashboards      │   (event_log)   │  CI Tracking     │
-│  Client Portal   │                  │  Deployments     │
-└──────────────────┘                  └──────────────────┘
-        │                                     │
-        ▼                                     ├──► GitHub
-   UI only                                    ├──► VPS (SSH)
-                                              ├──► Registry
-                                              └──► DNS
-```
-
-Control Plane never executes code. Execution Plane never renders UI. Communication only via PostgreSQL. See `delivery/runtime-and-secret-governance.md`.
-
-### 4.5 — Execution Isolation
-
-Runs execute inside Docker-based sandboxes with resource limits (CPU, memory, timeout, network). Sandbox containers never have production deploy credentials. See `delivery/sandbox-and-execution-isolation.md`.
-
-### 4.6 — Failure Handling
-
-Failures are classified by `error_class` (guard_error, timeout, provider_error, etc.) and recorded with `failure_reason`. Stalled runs are detected by heartbeat monitoring. See `delivery/failure-classification.md`.
-
-### 4.7 — Reproducibility
-
-Every run captures a `context_pack` with content hash, source versions, and included artifacts — enabling exact replay. See `delivery/context-reproducibility.md`.
-
-### Key Documents
-
-| Document | Purpose |
-|----------|---------|
-| `core/01-project-lifecycle.md` | Project states and transitions |
-| `core/02-domain-boundaries.md` | 14 domains with isolation rules |
-| `core/03-state-machine.md` | All entity state machines |
-| `core/04-data-model.md` | Entity schema |
-| `core/05-guard-matrix.md` | Transition guards |
-| `core/06-orchestration-use-cases.md` | 26 atomic workflow actions |
-| `core/10-role-contracts-and-taskspec.md` | Enforceable role boundaries |
-| `delivery/delivery-lane.md` | PR → CI → Staging → Production |
-| `delivery/runtime-and-secret-governance.md` | Runtime separation and secret injection |
+Failures classified by `error_class` (guard_error, timeout, provider_error). Stalled runs detected by heartbeat monitoring.
 
 ---
 
-## 5 — Plane 3: Knowledge
+## 6 — Plane 3: Knowledge
 
-Learning, improvement proposals, and performance measurement. All Knowledge Plane operations are **advisory only** — they propose but never directly mutate Delivery state.
+Advisory only — proposes but never mutates Delivery state.
 
 | Entity | Purpose |
 |--------|---------|
-| `learning_proposals` | Formal improvement proposals with evidence pipeline |
+| `learning_proposals` | Improvement proposals with evidence pipeline |
 | `prompt_versions` | Versioned prompt templates |
-| `model_benchmarks` | Provider model performance data |
-| `bottleneck_predictions` | Proactive risk detection |
-| `context_snapshots` | Reproducibility snapshots |
-| `evaluation_suites` | Protected test scenario collections |
-| `evaluation_scenarios` | Individual verification test cases |
-| `evaluation_runs` | Isolated evaluation executions |
-| `evaluation_reports` | Aggregated evaluation results |
-| `evaluation_baselines` | Baseline metrics for trend comparison |
+| `model_benchmarks` | Provider performance data |
+| `evaluation_suites/scenarios/runs/reports/baselines` | Evaluation rail |
 
-**Learning Pipeline:** Candidate → Evaluated → (Shadow) → Approved → Promoted. Requires ≥3 source runs, statistical significance, and founder approval. See `autonomy/27-learning-pipeline.md`.
-
-**Evaluation Rail:** Independent verification layer. Protected scenarios must pass before promotion or release. See `delivery/42-evaluation-rail.md`.
-
-**Constraint:** Knowledge Plane never updates tasks, runs, or artifacts. The only write-back is `prompt_versions.is_active` on founder-approved promotion.
+**Constraint:** Only write-back is `prompt_versions.is_active` on founder-approved promotion.
 
 ---
 
-## 6 — Plane 4: Experience
+## 7 — Plane 4: Experience
 
 All user-facing surfaces. Read-only on canonical state.
 
-| Surface | Audience |
-|---------|----------|
-| Founder Dashboard | Founder — project oversight and approval |
-| Pixel Office | Founder — real-time agent visualization |
-| Client Portal | External clients — filtered read-only view |
-| System Diagnostics | Founder — operational health monitoring |
-
-**Constraint:** Experience Plane does not write `event_log`, mutate entity state, or trigger transitions. User actions (approve, reject, assign) route through Delivery Plane APIs.
-
----
-
-## 7 — Founder Intervention Points
-
-| Action | Plane | Automated? |
-|--------|-------|------------|
-| Launch decision | Intent | **No** — founder approval |
-| Project activation | Delivery | **No** — founder approval |
-| Architecture decisions | Delivery | **No** — founder approval |
-| Release to production | Delivery | **No** — founder approval |
-| Learning proposal promotion | Knowledge | **No** — founder approval |
-| Budget increases | Knowledge | **No** — founder controls |
+| Surface | Audience | Route |
+|---------|----------|-------|
+| Command Center | Founder | `/` |
+| Project Cockpit | Founder | `/projects/:id` |
+| Office (Production Floor) | Founder | `/office` |
+| Decision Engine | Founder | `/founder` |
+| Teams Management | Founder | `/teams` |
+| Team Room (Sessions) | Founder | `/team-room` |
+| Employee Profile | Founder | `/employees/:id` |
+| Content & Media | Founder | `/smm` |
+| System Admin | Founder | `/system` |
+| Client Portal | External clients | `/client/:token` |
 
 ---
 
-## 8 — Production Mode (Default)
+## 8 — Teams & Employee Model
 
-Production Mode (MSOM) is the system default. It disables all experimental subsystems:
+### 8.1 — Capability Pools
+
+Capability pools (stored as `departments` in DB, displayed as "Capabilities" in UI) organize AI employees by functional area. Each pool shows team size, success rate, and load percentage.
+
+### 8.2 — AI Employees
+
+Employees are configured with:
+- Identity (name, role, seniority, capability)
+- Personality (MBTI type, nationality)
+- Technical profile (stack, skill levels)
+- Operational traits (risk tolerance, strictness, speed/quality bias)
+
+### 8.3 — Office Visualization
+
+Office renders capability rooms automatically when employees exist. Each room shows:
+- Employee cards with avatar, MBTI tag, nationality flag, performance ring
+- Active tasks and load status
+- Tooltips with detailed work-style summaries
+
+### 8.4 — Team Room Sessions
+
+Entry: Teams → Select Capability → Select Employee → Start Session.
+Sessions use 8/4 split: hero message + live extraction panel.
+
+---
+
+## 9 — Founder Intervention Points
+
+| Action | Automated? |
+|--------|------------|
+| Launch decision | **No** — founder approval |
+| Project activation | **No** — founder approval |
+| Architecture decisions | **No** — founder approval |
+| Release to production | **No** — founder approval |
+| Learning proposal promotion | **No** — founder approval |
+| Budget increases | **No** — founder controls |
+| Content publishing | **No** — founder approval |
+
+---
+
+## 10 — Production Mode (Default)
 
 | Feature | Production | Experimental |
 |---------|-----------|--------------|
-| Core delivery pipeline | ✅ Active | ✅ Active |
-| Scoring & snapshots | ✅ Active | ✅ Active |
-| Prompt A/B experiments | ❌ Disabled | ✅ Active |
-| Model competition | ❌ Disabled | ✅ Active |
-| Shadow testing | ❌ Disabled | ✅ Active |
-| Autonomous task generation | ❌ Disabled | ✅ Active |
-| Context compression | ❌ Disabled | ✅ Active |
-
-See `core/07-system-mode.md` and `core/08-feature-flags.md`.
+| Core delivery pipeline | ✅ | ✅ |
+| Scoring & snapshots | ✅ | ✅ |
+| Prompt A/B experiments | ❌ | ✅ |
+| Model competition | ❌ | ✅ |
+| Shadow testing | ❌ | ✅ |
+| Autonomous task generation | ❌ | ✅ |
+| Context compression | ❌ | ✅ |
 
 ---
 
-## 9 — Documentation Index
-
-| Document | Plane | Contents |
-|----------|-------|----------|
-| `00-runtime-truth.md` | Cross-cutting | **Canonical runtime stack** — single source of truth |
-| `core/` | Delivery | State machines, guards, data model, orchestration, event log, planes |
-| `front-office/` | Intent | Intake, blueprints, estimates, launch decisions, client portal |
-| `delivery/` | Delivery | Backend architecture, providers, delivery lane, sandbox, diagnostics |
-| `company/` | Knowledge/Experience | Departments, employees, HR, office, blog |
-| `autonomy/` | Knowledge | Prompt versioning, model competition, learning pipeline (gated) |
-| `business/` | Cross-cutting | Operating model, pricing, SLA, revenue |
-| `product/` | Cross-cutting | Vision, roadmap, personas, constraints |
-| `archive/` | — | Superseded v1 documents (not authoritative) |
-
----
-
-## 10 — Technology Stack
-
-> **Canonical stack definition lives in `00-runtime-truth.md`.** Summary below for reference.
+## 11 — Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js (App Router) + Tailwind + shadcn/ui + TypeScript |
-| Backend API | Next.js Route Handlers |
-| ORM | Prisma |
-| Database | PostgreSQL 16+ |
+| Frontend | React + Vite + Tailwind + shadcn/ui + TypeScript |
+| Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
+| Data Access | Supabase client SDK |
+| State | TanStack React Query |
+| Routing | React Router v6 |
 | Validation | Zod |
-| Real-time (UI) | Supabase Realtime (WebSocket) |
-| Worker | Node.js separate process |
-| Execution | Docker sandbox |
+| Real-time | Supabase Realtime (WebSocket) |
 | CI/CD | GitHub Actions → Docker → VPS |
 
 ---
 
-## 11 — Archive
+## 12 — Documentation Index
 
-Superseded documents are preserved in `archive/` for historical reference. They are not authoritative and must not be used for implementation decisions.
+| Document | Plane | Contents |
+|----------|-------|----------|
+| `00-runtime-truth.md` | Cross-cutting | Canonical runtime stack |
+| `core/` | Delivery | State machines, guards, data model, orchestration |
+| `front-office/` | Intent | Intake, blueprints, estimates, launch |
+| `delivery/` | Delivery | Backend, providers, delivery lane, sandbox |
+| `company/` | Knowledge/Experience | Departments, employees, HR, office |
+| `autonomy/` | Knowledge | Prompt versioning, model competition, learning |
+| `business/` | Cross-cutting | Operating model, pricing, SLA |
+| `product/` | Cross-cutting | Vision, roadmap, personas |
+| `archive/` | — | Superseded v1 documents |

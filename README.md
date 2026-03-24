@@ -1,4 +1,4 @@
-# AI Production Studio v1.1 — Spine Stabilized
+# AI Production Studio v2.1 — Structural Integration
 
 Deterministic AI-powered software delivery operating system for a solo product founder.
 
@@ -30,6 +30,47 @@ A production-grade orchestration system that routes client briefs through a dete
 
 ---
 
+## Navigation Structure
+
+### Operations
+| Page | Route | Purpose |
+|------|-------|---------|
+| Command Center | `/` | Production pipeline overview, founder inbox, intake launch |
+| Projects | `/projects` | Project list and project cockpit |
+| Office | `/office` | Capability rooms with employee visualization |
+| Founder | `/founder` | Decision queue (approvals, escalations, risk) |
+| System | `/system` | Health, providers, mode, audit, docs |
+
+### Management
+| Page | Route | Purpose |
+|------|-------|---------|
+| Teams | `/teams` | Capability pools, team members, hiring & performance |
+| Content | `/smm` | AI-generated content from production events |
+
+### Deep Links
+| Page | Route |
+|------|-------|
+| Project Cockpit | `/projects/:id` |
+| Employee Profile | `/employees/:id` |
+| Team Room | `/team-room?dept=:slug` |
+| Intake Composer | `/presale/new` |
+| Client Portal | `/client/:token` |
+
+---
+
+## Single Production Path
+
+```
+Command Center → Start Intake → Select Capability → Add/Select Employee
+→ Start Team Session → Freeze Blueprint → Create Project
+→ Project Cockpit → Office (monitoring) → Founder Approval → Deploy
+→ SMM Content Draft
+```
+
+No alternative paths. All production begins at Command Center.
+
+---
+
 ## Core Capabilities
 
 ### Front Office (Intent Plane)
@@ -47,10 +88,14 @@ Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBi
 - **Sandbox Isolation** — Docker-based execution with resource limits
 - **Optimistic Locking** — version-based concurrency on all entities
 
-### Deployment Pipeline
-GitHub → CI (GitHub Actions) → Docker → VPS. Auto-deploy to production is forbidden.
+### Hard Enforcement Layer
+- Role contract boundary enforcement (path-level restrictions)
+- Mandatory artifact gates (Implementation Patch, Review Report, QA Evidence)
+- CI pass required for PR merge
+- DomainBindingSpec + staging confirmation required for production deploy
 
 ### Governance
+- Unified Approval model (no direct boolean flags)
 - Founder approval gates at every critical transition
 - Role Contracts with enforceable path boundaries
 - Typed Artifact evidence model (10 categories)
@@ -62,47 +107,24 @@ GitHub → CI (GitHub Actions) → Docker → VPS. Auto-deploy to production is 
 
 ---
 
-## Minimal Stable Operating Mode (MSOM)
+## Teams & Employee Model
 
-Production Mode disables all experimental subsystems:
-- No autonomous task generation
-- No prompt A/B experiments
-- No model competition
-- No shadow testing
-- No auto-retry beyond configured policy
+### Capability Pools
+Functional groupings (formerly "departments") that organize AI employees by competency area. Each pool tracks team size, average success rate, and load percentage.
 
-Only deterministic delivery operates: Task → Run → Review → Approval → Deploy.
+### AI Employees
+Each employee has:
+- **Identity**: Name, role, seniority, capability assignment
+- **Personality**: MBTI type (with tooltip explanations), nationality (with work-style description)
+- **Technical Profile**: Primary/secondary stack, skill levels, DevOps/security awareness
+- **Operational Traits**: Risk tolerance, strictness, speed/quality bias, token efficiency
+- **Performance Metrics**: Success rate, bug rate, escalation rate, reputation score
 
----
+### Employee Lifecycle
+Created → Active → [Probation | Under Review] → [Active | Terminated]
 
-## What This Is NOT
-
-- **Not a chat playground.** Agents execute structured tasks, not free-form conversations.
-- **Not uncontrolled autonomy.** Every meaningful action requires explicit approval or guard validation.
-- **Not auto-deploying AI.** Production deployment always requires founder approval after CI passes.
-- **Not a simulation.** This is an operational system with real execution, real artifacts, and real deployments.
-
----
-
-## Documentation Structure
-
-```
-docs/
-├── 00-system-overview.md          System architecture & 4 planes
-├── core/                          Deterministic engine (Delivery Plane)
-│   ├── 01–13                      Lifecycle, state machines, guards, data model,
-│   │                              orchestration, event log, operational planes
-├── front-office/                  Intent Plane
-│   ├── intake, blueprint, estimate, launch, presale, client-portal
-├── delivery/                      Execution spine
-│   ├── backend, providers, delivery-lane, sandbox, failure, diagnostics
-├── company/                       Organizational model (Knowledge/Experience)
-├── autonomy/                      Experimental features (gated)
-│   ├── 20–27                      Autonomy, prompts, models, learning pipeline
-├── business/                      Commercial model
-├── product/                       Product direction
-└── archive/                       Superseded v1 documents
-```
+### Hiring Flow
+Integrated into Teams page. Manual configuration or AI-generated suggestions. HR proposals appear inline, not on a separate page.
 
 ---
 
@@ -112,7 +134,7 @@ docs/
 |-------|-----------|
 | Frontend | React + Vite + Tailwind + TypeScript |
 | Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
-| ORM | Supabase client SDK |
+| Data Access | Supabase client SDK |
 | State | TanStack React Query |
 | Routing | React Router v6 |
 | CI/CD | GitHub Actions → Docker → VPS |
@@ -127,19 +149,29 @@ src/
 ├── components/       UI components (AppLayout, Sidebar, StatusBadge)
 ├── components/ui/    shadcn/ui primitives
 ├── components/office/ Office visualization
+├── components/teams/  Team management (AddEmployeeDialog, HRProposalCard)
 ├── pages/            Route-level pages
 ├── hooks/            Data fetching hooks
 ├── services/         Business logic services
 ├── guards/           State transition guards
 ├── workers/          Background execution (runExecutor)
-├── lib/              Utilities
+├── lib/              Utilities (mbtiData, nationalityData, employeeConfig)
 supabase/
 ├── functions/        Edge functions
 ├── migrations/       Database migrations
+docs/
+├── core/             Deterministic engine (Delivery Plane)
+├── front-office/     Intent Plane
+├── delivery/         Execution spine
+├── company/          Organizational model
+├── autonomy/         Experimental features (gated)
+├── business/         Commercial model
+├── product/          Product direction
+└── archive/          Superseded documents
 ```
 
 ---
 
 ## Version
 
-**v1.1 — Spine Stabilized.** See `VERSION.md` for changelog.
+**v2.1 — Structural Integration.** See `VERSION.md` for changelog.
