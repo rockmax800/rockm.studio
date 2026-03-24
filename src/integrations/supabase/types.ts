@@ -80,6 +80,7 @@ export type Database = {
           name: string
           performance_score: number
           prompt_template: string | null
+          role_contract_id: string | null
           skill_profile: Json | null
           status: Database["public"]["Enums"]["agent_role_status"]
           success_rate: number
@@ -101,6 +102,7 @@ export type Database = {
           name: string
           performance_score?: number
           prompt_template?: string | null
+          role_contract_id?: string | null
           skill_profile?: Json | null
           status?: Database["public"]["Enums"]["agent_role_status"]
           success_rate?: number
@@ -122,6 +124,7 @@ export type Database = {
           name?: string
           performance_score?: number
           prompt_template?: string | null
+          role_contract_id?: string | null
           skill_profile?: Json | null
           status?: Database["public"]["Enums"]["agent_role_status"]
           success_rate?: number
@@ -130,6 +133,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_roles_role_contract_id_fkey"
+            columns: ["role_contract_id"]
+            isOneToOne: false
+            referencedRelation: "role_contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_roles_team_id_fkey"
             columns: ["team_id"]
@@ -348,6 +358,7 @@ export type Database = {
       }
       artifacts: {
         Row: {
+          artifact_category: string | null
           artifact_type: Database["public"]["Enums"]["artifact_type"]
           canonical_flag: boolean
           content_text: string | null
@@ -367,6 +378,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          artifact_category?: string | null
           artifact_type: Database["public"]["Enums"]["artifact_type"]
           canonical_flag?: boolean
           content_text?: string | null
@@ -386,6 +398,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          artifact_category?: string | null
           artifact_type?: Database["public"]["Enums"]["artifact_type"]
           canonical_flag?: boolean
           content_text?: string | null
@@ -2472,6 +2485,51 @@ export type Database = {
           },
         ]
       }
+      role_contracts: {
+        Row: {
+          allowed_repo_paths_json: Json | null
+          allowed_task_domains_json: Json | null
+          created_at: string
+          forbidden_repo_paths_json: Json | null
+          id: string
+          may_deploy: boolean
+          may_merge: boolean
+          may_modify_schema: boolean
+          required_artifacts_json: Json | null
+          required_verification_steps_json: Json | null
+          risk_threshold: number
+          role_code: string
+        }
+        Insert: {
+          allowed_repo_paths_json?: Json | null
+          allowed_task_domains_json?: Json | null
+          created_at?: string
+          forbidden_repo_paths_json?: Json | null
+          id?: string
+          may_deploy?: boolean
+          may_merge?: boolean
+          may_modify_schema?: boolean
+          required_artifacts_json?: Json | null
+          required_verification_steps_json?: Json | null
+          risk_threshold?: number
+          role_code: string
+        }
+        Update: {
+          allowed_repo_paths_json?: Json | null
+          allowed_task_domains_json?: Json | null
+          created_at?: string
+          forbidden_repo_paths_json?: Json | null
+          id?: string
+          may_deploy?: boolean
+          may_merge?: boolean
+          may_modify_schema?: boolean
+          required_artifacts_json?: Json | null
+          required_verification_steps_json?: Json | null
+          risk_threshold?: number
+          role_code?: string
+        }
+        Relationships: []
+      }
       routing_policies: {
         Row: {
           allow_cross_provider_retry: boolean
@@ -2923,6 +2981,62 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      task_specs: {
+        Row: {
+          acceptance_criteria_json: Json | null
+          allowed_repo_paths_json: Json | null
+          created_at: string
+          definition_of_done_json: Json | null
+          forbidden_repo_paths_json: Json | null
+          goal: string
+          id: string
+          requested_outcome: string | null
+          required_artifacts_json: Json | null
+          risk_class: string
+          target_repository: string | null
+          task_id: string
+          verification_plan_json: Json | null
+        }
+        Insert: {
+          acceptance_criteria_json?: Json | null
+          allowed_repo_paths_json?: Json | null
+          created_at?: string
+          definition_of_done_json?: Json | null
+          forbidden_repo_paths_json?: Json | null
+          goal?: string
+          id?: string
+          requested_outcome?: string | null
+          required_artifacts_json?: Json | null
+          risk_class?: string
+          target_repository?: string | null
+          task_id: string
+          verification_plan_json?: Json | null
+        }
+        Update: {
+          acceptance_criteria_json?: Json | null
+          allowed_repo_paths_json?: Json | null
+          created_at?: string
+          definition_of_done_json?: Json | null
+          forbidden_repo_paths_json?: Json | null
+          goal?: string
+          id?: string
+          requested_outcome?: string | null
+          required_artifacts_json?: Json | null
+          risk_class?: string
+          target_repository?: string | null
+          task_id?: string
+          verification_plan_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_specs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: true
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
