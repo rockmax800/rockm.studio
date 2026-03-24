@@ -23,7 +23,7 @@ import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
   AlertTriangle, CheckCircle2, FileText, ChevronRight,
-  Layers, Activity, Package, History, Columns3,
+  Layers, Activity, Package, History, Columns3, Settings2,
 } from "lucide-react";
 
 const RISK_COLORS = {
