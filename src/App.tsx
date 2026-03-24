@@ -26,6 +26,7 @@ import ControlTaskDetail from "./pages/control/ControlTaskDetail";
 import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
 import ControlRunDetail from "./pages/control/ControlRunDetail";
 import ControlProviderDetail from "./pages/control/ControlProviderDetail";
+import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
