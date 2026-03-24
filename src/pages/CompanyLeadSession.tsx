@@ -324,8 +324,7 @@ export default function CompanyLeadSession() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
-            className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors"
-            style={{ color: "hsl(220 10% 46%)" }}
+            className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
