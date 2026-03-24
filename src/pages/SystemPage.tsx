@@ -58,7 +58,7 @@ export default function SystemPage() {
       <div className="max-w-6xl mx-auto space-y-4">
         <h1 className="text-xl font-semibold">System Administration</h1>
 
-        <Tabs defaultValue="health" className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="health" className="gap-1.5">
               <Activity className="h-3.5 w-3.5" /> Health
