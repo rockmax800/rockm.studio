@@ -76,6 +76,9 @@ export default function SystemPage() {
             <TabsTrigger value="audit" className="gap-1.5">
               <Shield className="h-3.5 w-3.5" /> Audit
             </TabsTrigger>
+            <TabsTrigger value="execution" className="gap-1.5">
+              <Cpu className="h-3.5 w-3.5" /> Execution
+            </TabsTrigger>
             <TabsTrigger value="docs" className="gap-1.5">
               <BookOpen className="h-3.5 w-3.5" /> Documentation
             </TabsTrigger>
