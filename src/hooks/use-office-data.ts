@@ -61,7 +61,7 @@ export function useOfficeData() {
         supabase.from("bottleneck_predictions").select("*").eq("resolved", false).order("created_at", { ascending: false }),
         supabase.from("teams").select("*"),
         supabase.from("company_mode_settings").select("*").limit(1),
-        supabase.from("ai_employees").select("id, name, role_id, role_code, reputation_score, status, hired_at, model_name, team_id, provider"),
+        supabase.from("ai_employees").select("id, name, role_id, role_code, reputation_score, status, hired_at, model_name, team_id, provider, success_rate, bug_rate"),
         supabase.from("prompt_experiments").select("role_id, status").eq("status", "active"),
         supabase.from("model_benchmarks" as any).select("model_market_id, team_id, avg_success_rate"),
         supabase.from("model_market" as any).select("id, model_name"),
