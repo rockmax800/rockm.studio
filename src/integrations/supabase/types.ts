@@ -276,6 +276,7 @@ export type Database = {
           consequence_if_rejected: string | null
           created_at: string
           decided_at: string | null
+          decision: Database["public"]["Enums"]["approval_decision"] | null
           founder_decision_note: string | null
           id: string
           project_id: string
@@ -295,6 +296,7 @@ export type Database = {
           consequence_if_rejected?: string | null
           created_at?: string
           decided_at?: string | null
+          decision?: Database["public"]["Enums"]["approval_decision"] | null
           founder_decision_note?: string | null
           id?: string
           project_id: string
@@ -314,6 +316,7 @@ export type Database = {
           consequence_if_rejected?: string | null
           created_at?: string
           decided_at?: string | null
+          decision?: Database["public"]["Enums"]["approval_decision"] | null
           founder_decision_note?: string | null
           id?: string
           project_id?: string
@@ -2077,6 +2080,7 @@ export type Database = {
     Enums: {
       actor_type: "founder" | "system" | "agent_role"
       agent_role_status: "active" | "inactive"
+      approval_decision: "approved" | "rejected" | "deferred"
       approval_state:
         | "pending"
         | "approved"
@@ -2084,6 +2088,7 @@ export type Database = {
         | "deferred"
         | "expired"
         | "closed"
+        | "decided"
       approval_target_type:
         | "project"
         | "task"
@@ -2153,6 +2158,7 @@ export type Database = {
         | "rejected"
         | "escalated"
         | "closed"
+        | "resolved"
       review_verdict:
         | "approved"
         | "approved_with_notes"
@@ -2200,6 +2206,7 @@ export type Database = {
         | "approved"
         | "done"
         | "cancelled"
+        | "validated"
       task_urgency: "normal" | "high" | "blocker"
     }
     CompositeTypes: {
@@ -2330,6 +2337,7 @@ export const Constants = {
     Enums: {
       actor_type: ["founder", "system", "agent_role"],
       agent_role_status: ["active", "inactive"],
+      approval_decision: ["approved", "rejected", "deferred"],
       approval_state: [
         "pending",
         "approved",
@@ -2337,6 +2345,7 @@ export const Constants = {
         "deferred",
         "expired",
         "closed",
+        "decided",
       ],
       approval_target_type: [
         "project",
@@ -2414,6 +2423,7 @@ export const Constants = {
         "rejected",
         "escalated",
         "closed",
+        "resolved",
       ],
       review_verdict: [
         "approved",
@@ -2466,6 +2476,7 @@ export const Constants = {
         "approved",
         "done",
         "cancelled",
+        "validated",
       ],
       task_urgency: ["normal", "high", "blocker"],
     },
