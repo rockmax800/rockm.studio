@@ -162,8 +162,15 @@ Learning, improvement proposals, and performance measurement. All Knowledge Plan
 | `model_benchmarks` | Provider model performance data |
 | `bottleneck_predictions` | Proactive risk detection |
 | `context_snapshots` | Reproducibility snapshots |
+| `evaluation_suites` | Protected test scenario collections |
+| `evaluation_scenarios` | Individual verification test cases |
+| `evaluation_runs` | Isolated evaluation executions |
+| `evaluation_reports` | Aggregated evaluation results |
+| `evaluation_baselines` | Baseline metrics for trend comparison |
 
 **Learning Pipeline:** Candidate → Evaluated → (Shadow) → Approved → Promoted. Requires ≥3 source runs, statistical significance, and founder approval. See `autonomy/27-learning-pipeline.md`.
+
+**Evaluation Rail:** Independent verification layer. Protected scenarios must pass before promotion or release. See `delivery/42-evaluation-rail.md`.
 
 **Constraint:** Knowledge Plane never updates tasks, runs, or artifacts. The only write-back is `prompt_versions.is_active` on founder-approved promotion.
 

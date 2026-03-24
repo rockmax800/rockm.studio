@@ -117,6 +117,8 @@ Promotion is allowed only when ALL conditions are met:
 | 2 | `evaluation_result_json` is present |
 | 3 | `statistically_significant` is `true` |
 | 4 | Improvement is measurable (not just noise) |
+| 5 | Evaluation Rail gate passed (`protected_scenarios_passed === true`) |
+| 6 | `evaluation_report` exists for the proposal |
 
 ### Promotion effects by type
 
@@ -191,3 +193,4 @@ The ONLY write-back from Knowledge to Delivery-adjacent entities is the promotio
 | `autonomy/22-prompt-versioning.md` | Prompt versions are the primary promotion target |
 | `autonomy/23-model-competition.md` | Model benchmarks feed evaluation evidence |
 | `core/07-system-mode.md` | Shadow mode requires Experimental mode |
+| `delivery/42-evaluation-rail.md` | Promotions require eval gate to pass |
