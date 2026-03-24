@@ -320,12 +320,19 @@ export default function OfficePage() {
           </div>
 
           {teamData.length === 0 && (
-            <div className="text-center py-12">
-              <div className="h-16 w-16 rounded-2xl bg-secondary/50 flex items-center justify-center mx-auto mb-4">
-                <Building2 className="h-8 w-8 text-muted-foreground/30" />
+            <div className="text-center py-16">
+              <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-5">
+                <Building2 className="h-10 w-10 text-primary/30" />
               </div>
-              <p className="text-[18px] font-bold text-foreground">No capabilities configured.</p>
-              <p className="text-[14px] text-muted-foreground mt-1">Set up teams to see them here.</p>
+              <p className="text-[22px] font-bold text-foreground">Set up teams to activate Production Floor</p>
+              <p className="text-[15px] text-muted-foreground mt-2 max-w-[420px] mx-auto">
+                Create capability pools and add AI employees to see your production floor come alive.
+              </p>
+              <Link to="/teams">
+                <Button className="mt-6 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                  <Users className="h-4 w-4" /> Go to Teams Setup
+                </Button>
+              </Link>
             </div>
           )}
         </div>
