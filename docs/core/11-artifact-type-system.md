@@ -148,7 +148,18 @@ New artifacts SHOULD have `artifact_category` set. The `ArtifactConsistencyServi
 
 `ArtifactConsistencyService.validateCategoryContract()` checks all required references per category. Violations are logged but do not block creation (soft enforcement) to preserve backward compatibility.
 
-### 7.3 — Specific Validations
+### 7.3 — Hard Merge Enforcement (v1.2)
+
+`HardEnforcementService.enforceArtifactCompleteness()` enforces artifact presence as a **hard gate** before PR merge:
+
+- `implementation_patch` required for all tasks
+- `review_report` required for all tasks
+- `qa_evidence` required for high/critical risk_class
+- `tests_executed_json` must not be empty
+
+Violations block merge with classification `evidence_missing`. See `delivery/41-hard-enforcement-layer.md`.
+
+### 7.4 — Specific Validations
 
 | Category | Validation |
 |----------|-----------|
@@ -175,3 +186,4 @@ New artifacts SHOULD have `artifact_category` set. The `ArtifactConsistencyServi
 | `core/06-orchestration-use-cases.md` | UC-04/UC-05 set category on artifact creation |
 | `delivery/delivery-lane.md` | Delivery spine entities are cross-referenced |
 | `core/10-role-contracts-and-taskspec.md` | Required artifacts per role/task |
+| `delivery/41-hard-enforcement-layer.md` | Hard merge gates for artifact completeness |
