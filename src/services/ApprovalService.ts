@@ -169,7 +169,7 @@ export class ApprovalService {
         entityType: "approval",
         entityId: approvalId,
         fromState: "pending",
-        toState: decision,
+        toState: "decided",
       });
     }
 
