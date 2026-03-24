@@ -66,7 +66,7 @@ export function TaskGraph({ tasks, projectId }: TaskGraphProps) {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-[15px] font-bold text-foreground tracking-tight">Task Flow</h3>
+          <h3 className="text-[18px] font-bold text-foreground tracking-tight">Task Flow</h3>
           <span className="text-[14px] font-mono font-bold text-muted-foreground">{tasks.length}</span>
         </div>
       </div>

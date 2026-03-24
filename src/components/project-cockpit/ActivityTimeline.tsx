@@ -46,7 +46,7 @@ const DEFAULT_CFG = { dot: "bg-muted-foreground", text: "text-muted-foreground",
 export function ActivityTimeline({ events }: ActivityTimelineProps) {
   return (
     <div className="flex flex-col h-full">
-      <h3 className="text-[15px] font-bold text-foreground tracking-tight mb-3">Activity</h3>
+      <h3 className="text-[18px] font-bold text-foreground tracking-tight mb-3">Activity & Handoffs</h3>
 
       {events.length === 0 ? (
         <div className="flex items-center gap-1.5 px-2 py-2 rounded-lg bg-secondary text-[12px] text-muted-foreground">

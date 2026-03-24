@@ -33,7 +33,7 @@ export function BlueprintSnapshot({
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-[15px] font-bold text-foreground tracking-tight">Blueprint</h3>
+          <h3 className="text-[18px] font-bold text-foreground tracking-tight">Blueprint Summary</h3>
           {currentPhase && (
             <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               {currentPhase}
