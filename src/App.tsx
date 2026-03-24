@@ -51,6 +51,7 @@ const App = () => (
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/office" element={<OfficePage />} />
           <Route path="/team-room" element={<TeamRoom />} />
+          <Route path="/employees/:id" element={<EmployeeProfile />} />
 
           {/* MANAGEMENT */}
           <Route path="/founder" element={<FounderPage />} />
