@@ -835,7 +835,11 @@ export type Database = {
       }
       context_packs: {
         Row: {
+          assembled_at: string | null
+          assembled_by: string
           assumptions: Json | null
+          context_hash: string | null
+          context_manifest_json: Json | null
           created_at: string
           id: string
           included_artifact_ids: Json | null
@@ -843,12 +847,19 @@ export type Database = {
           included_file_paths: Json | null
           missing_context_notes: string | null
           project_id: string
+          prompt_version_ref: string | null
+          skill_pack_version_ref: string | null
+          source_versions_json: Json | null
           summary: string | null
           task_id: string
           updated_at: string
         }
         Insert: {
+          assembled_at?: string | null
+          assembled_by?: string
           assumptions?: Json | null
+          context_hash?: string | null
+          context_manifest_json?: Json | null
           created_at?: string
           id?: string
           included_artifact_ids?: Json | null
@@ -856,12 +867,19 @@ export type Database = {
           included_file_paths?: Json | null
           missing_context_notes?: string | null
           project_id: string
+          prompt_version_ref?: string | null
+          skill_pack_version_ref?: string | null
+          source_versions_json?: Json | null
           summary?: string | null
           task_id: string
           updated_at?: string
         }
         Update: {
+          assembled_at?: string | null
+          assembled_by?: string
           assumptions?: Json | null
+          context_hash?: string | null
+          context_manifest_json?: Json | null
           created_at?: string
           id?: string
           included_artifact_ids?: Json | null
@@ -869,6 +887,9 @@ export type Database = {
           included_file_paths?: Json | null
           missing_context_notes?: string | null
           project_id?: string
+          prompt_version_ref?: string | null
+          skill_pack_version_ref?: string | null
+          source_versions_json?: Json | null
           summary?: string | null
           task_id?: string
           updated_at?: string
@@ -879,6 +900,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "context_packs_prompt_version_ref_fkey"
+            columns: ["prompt_version_ref"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
             referencedColumns: ["id"]
           },
           {

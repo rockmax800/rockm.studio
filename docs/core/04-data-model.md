@@ -129,8 +129,24 @@ Defines the core data model supporting project control, task orchestration, exec
 | included_file_paths | jsonb | no | |
 | assumptions | jsonb | no | |
 | missing_context_notes | text | no | |
+| context_manifest_json | jsonb | no | Frozen snapshot of all inputs (v2.4) |
+| context_hash | text | no | SHA-256 of manifest (v2.4) |
+| source_versions_json | jsonb | no | Quick-lookup version index (v2.4) |
+| assembled_at | timestamptz | no | When snapshot was created (v2.4) |
+| assembled_by | text | no | system, founder, or role code (v2.4) |
+| prompt_version_ref | uuid | no | FK to prompt_versions (v2.4) |
+| skill_pack_version_ref | text | no | Skill pack version identifier (v2.4) |
 | created_at | timestamp | yes | |
 | updated_at | timestamp | yes | |
+
+### 7.1 — Snapshot Semantics (v2.4)
+
+When a Run enters `preparing`, `ContextSnapshotService.assembleSnapshot()` freezes all included documents and artifacts into `context_manifest_json`, computes `context_hash`, and records `assembled_at`/`assembled_by`. This makes every Run reproducible — see doc 35.
+
+**Document freeze rule:** If a document has `version_label`, record the label. If not, snapshot the full `content_markdown`.
+
+**Artifact freeze rule:** Always snapshot `content_text`, `summary`, `version`, `state` at assembly time.
+
 
 ---
 
