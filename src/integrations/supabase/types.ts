@@ -1302,6 +1302,51 @@ export type Database = {
           },
         ]
       }
+      outbox_events: {
+        Row: {
+          aggregate_id: string
+          aggregate_type: string
+          causation_id: string | null
+          correlation_id: string | null
+          created_at: string
+          dispatched_at: string | null
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          payload_json: Json
+          retry_count: number
+          status: string
+        }
+        Insert: {
+          aggregate_id: string
+          aggregate_type: string
+          causation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          dispatched_at?: string | null
+          event_type: string
+          id?: string
+          idempotency_key?: string | null
+          payload_json?: Json
+          retry_count?: number
+          status?: string
+        }
+        Update: {
+          aggregate_id?: string
+          aggregate_type?: string
+          causation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          dispatched_at?: string | null
+          event_type?: string
+          id?: string
+          idempotency_key?: string | null
+          payload_json?: Json
+          retry_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
       presale_sessions: {
         Row: {
           blueprint_id: string | null
@@ -2286,6 +2331,8 @@ export type Database = {
           id: string
           idempotency_key: string | null
           input_tokens: number | null
+          lease_acquired_at: string | null
+          lease_expires_at: string | null
           lease_owner: string | null
           logs_ref: string | null
           output_summary: string | null
@@ -2326,6 +2373,8 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           input_tokens?: number | null
+          lease_acquired_at?: string | null
+          lease_expires_at?: string | null
           lease_owner?: string | null
           logs_ref?: string | null
           output_summary?: string | null
@@ -2366,6 +2415,8 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           input_tokens?: number | null
+          lease_acquired_at?: string | null
+          lease_expires_at?: string | null
           lease_owner?: string | null
           logs_ref?: string | null
           output_summary?: string | null

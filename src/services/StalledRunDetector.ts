@@ -16,6 +16,8 @@ export interface StalledRun {
   lastHeartbeat: string | null;
   stalledDurationMs: number;
   correlationId: string | null;
+  leaseOwner: string | null;
+  leaseExpired: boolean;
 }
 
 const DEFAULT_STALL_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
@@ -55,6 +57,8 @@ export class StalledRunDetector {
         heartbeat_at: true,
         started_at: true,
         correlation_id: true,
+        lease_owner: true,
+        lease_expires_at: true,
       },
     });
 
@@ -65,6 +69,9 @@ export class StalledRunDetector {
     const results: StalledRun[] = stalledRuns.map((run: any) => {
       const lastBeat = run.heartbeat_at ?? run.started_at;
       const stalledMs = lastBeat ? now - new Date(lastBeat).getTime() : this.thresholdMs;
+      const leaseExpired = run.lease_expires_at
+        ? new Date(run.lease_expires_at).getTime() < now
+        : true;
 
       return {
         runId: run.id,
@@ -74,6 +81,8 @@ export class StalledRunDetector {
         lastHeartbeat: run.heartbeat_at,
         stalledDurationMs: stalledMs,
         correlationId: run.correlation_id,
+        leaseOwner: run.lease_owner,
+        leaseExpired,
       };
     });
 

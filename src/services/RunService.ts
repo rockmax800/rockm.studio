@@ -61,7 +61,7 @@ export class RunService {
     taskId: string;
     actorType: "system" | "agent_role";
   }) {
-    const { run, task } = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
       const project = await tx.projects.findUniqueOrThrow({ where: { id: task.project_id } });
 
@@ -93,6 +93,16 @@ export class RunService {
           fromState: task.state,
           toState: "in_progress",
         });
+      }
+
+      // PART 12 — Idempotency check: if run already exists for this task+run_number, return it
+      const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
+      const candidateIdempotencyKey = `${taskId}:run:${existingRunCount + 1}`;
+      const existingRun = await tx.runs.findFirst({
+        where: { idempotency_key: candidateIdempotencyKey },
+      });
+      if (existingRun) {
+        return { run: existingRun, task, idempotent: true };
       }
 
       // PART 2 — Prevent double run start
@@ -141,12 +151,12 @@ export class RunService {
         });
       }
 
-      const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
+      const totalRunCount = await tx.runs.count({ where: { task_id: taskId } });
       const now = new Date().toISOString();
 
       // PART 11 — Generate execution trace identifiers
       const correlationId = crypto.randomUUID();
-      const idempotencyKey = `${taskId}:run:${existingRunCount + 1}`;
+      const idempotencyKey = `${taskId}:run:${totalRunCount + 1}`;
 
       const run = await tx.runs.create({
         data: {
@@ -155,7 +165,7 @@ export class RunService {
           agent_role_id: task.owner_role_id,
           context_pack_id: contextPack.id,
           state: "created",
-          run_number: existingRunCount + 1,
+          run_number: totalRunCount + 1,
           correlation_id: correlationId,
           idempotency_key: idempotencyKey,
           created_at: now,
@@ -164,7 +174,14 @@ export class RunService {
       });
 
       return { run, task };
-    }, { isolationLevel: "Serializable" });
+    }, { isolationLevel: "Serializable" }) as { run: any; task: any; idempotent?: boolean };
+
+    // If idempotent hit, return existing run without re-transitioning
+    if (result.idempotent) {
+      return result.run;
+    }
+
+    const { run, task } = result;
 
     // Transition Run: created → preparing
     await this.orchestration.transitionEntity({
