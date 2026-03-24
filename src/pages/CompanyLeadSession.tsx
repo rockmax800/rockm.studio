@@ -446,24 +446,16 @@ export default function CompanyLeadSession() {
                           inputRef.current?.focus();
                         }
                       }}
-                      className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-                      style={{
-                        background: "hsl(0 0% 100%)",
-                        border: "1px solid hsl(220 14% 90%)",
-                        boxShadow: "0 1px 4px -1px hsl(220 20% 20% / 0.05)",
-                      }}
+                      className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99] bg-card border border-border shadow-[var(--shadow-card)]"
                     >
-                      <div
-                        className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-                        style={{ background: "hsl(217 91% 96%)", color: "hsl(217 91% 60%)" }}
-                      >
+                      <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-accent text-status-blue">
                         <opt.icon className="h-5 w-5" strokeWidth={1.8} />
                       </div>
                       <div>
-                        <span className="text-[14px] font-semibold block" style={{ color: "hsl(222 32% 14%)" }}>{opt.label}</span>
-                        <span className="text-[12px]" style={{ color: "hsl(220 10% 64%)" }}>{opt.desc}</span>
+                        <span className="text-[14px] font-semibold block text-foreground">{opt.label}</span>
+                        <span className="text-[12px] text-muted-foreground">{opt.desc}</span>
                       </div>
-                      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "hsl(220 10% 46%)" }} />
+                      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-60 transition-opacity text-muted-foreground" />
                     </button>
                   ))}
                 </div>
