@@ -484,3 +484,90 @@ html {
   background-color: hsl(var(--primary) / 0.2);
   color: hsl(var(--foreground));
 }
+
+/* ═══════════════════════════════════════════════════════════
+   COMPANY LEAD SESSION — Light onboarding island
+   Scoped entirely to .lead-session-root so it does NOT affect
+   any other page. Uses its own local color palette.
+   ═══════════════════════════════════════════════════════════ */
+
+.lead-session-root {
+  --ls-bg: 220 20% 97%;
+  --ls-surface: 0 0% 100%;
+  --ls-border: 220 14% 90%;
+  --ls-text: 222 32% 14%;
+  --ls-text-muted: 220 10% 46%;
+  --ls-text-faint: 220 10% 64%;
+  --ls-accent: 217 91% 60%;
+  --ls-accent-soft: 217 91% 96%;
+  --ls-green: 152 60% 42%;
+  --ls-amber: 38 92% 50%;
+  --ls-red: 0 72% 51%;
+
+  background-color: hsl(var(--ls-bg));
+  color: hsl(var(--ls-text));
+  min-height: 100vh;
+  font-family: var(--font-sans);
+}
+
+.lead-session-root *::selection {
+  background-color: hsl(var(--ls-accent) / 0.15);
+}
+
+/* Soft blue grid background */
+.ls-grid-bg {
+  background-image:
+    linear-gradient(hsl(217 60% 85% / 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(217 60% 85% / 0.18) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+}
+
+/* Speech bubble tail */
+.ls-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 12px solid hsl(var(--ls-surface));
+}
+
+/* Bubble thinking dots */
+@keyframes ls-dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+.ls-thinking-dot {
+  animation: ls-dot-bounce 1.2s ease-in-out infinite;
+}
+
+/* Gentle float for the character */
+@keyframes ls-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.ls-float {
+  animation: ls-float 4s ease-in-out infinite;
+}
+
+/* Phase stepper connector */
+.ls-step-done {
+  background-color: hsl(var(--ls-accent));
+  color: white;
+}
+.ls-step-active {
+  background-color: hsl(var(--ls-accent));
+  color: white;
+  box-shadow: 0 0 0 4px hsl(var(--ls-accent) / 0.15);
+}
+.ls-step-upcoming {
+  background-color: hsl(var(--ls-border));
+  color: hsl(var(--ls-text-faint));
+}
