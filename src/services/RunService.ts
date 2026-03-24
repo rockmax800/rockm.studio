@@ -4,6 +4,7 @@
 // - Double run prevention
 // - Retry idempotency
 // - Serializable isolation
+// - Handoff acknowledgement validation (PART 9)
 
 import { GuardError } from "@/guards/GuardError";
 
