@@ -555,7 +555,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                 <button
                   onClick={handleSend}
                   disabled={!inputValue.trim() || isThinking}
-                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5 bg-status-blue text-white"
+                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5 bg-primary text-primary-foreground"
                 >
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
