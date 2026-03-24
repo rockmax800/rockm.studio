@@ -233,3 +233,23 @@ All deployment events are written to the transactional outbox:
 4. **All deploys logged** — ActivityEvent + OutboxEvent for every deployment state change
 5. **Rollback always possible** — via `rollback_of_deployment_id` chain
 6. **Single VPS** — no multi-cloud, no Kubernetes, no distributed deploys
+
+---
+
+## 14 — Deployment Secret Governance
+
+All deployment operations follow the secret injection rules defined in `delivery/runtime-and-secret-governance.md`.
+
+| Deploy Step | Secrets Used | Available To |
+|------------|-------------|-------------|
+| Docker build | None | Execution Plane |
+| Registry push | Registry credentials | Execution Plane only |
+| SSH to VPS | SSH deploy key | Execution Plane only |
+| Image pull on VPS | Registry credentials (pre-configured) | VPS |
+| Health check | None | Public endpoint |
+
+**Invariants:**
+- Sandbox containers never have deploy credentials
+- Control Plane never performs deployment operations
+- Same Docker image promoted staging → production (no rebuild)
+- All deployment secrets masked in logs

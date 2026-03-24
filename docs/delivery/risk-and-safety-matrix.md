@@ -124,6 +124,58 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 
 ---
 
+### 2.11 Secret Leakage
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | Secrets exposed via logs, event_log, or sandbox environment |
+| Likelihood | Medium |
+| Impact | High (unauthorized access, credential compromise) |
+| Mitigation | Secret injection matrix (see `delivery/runtime-and-secret-governance.md`), log masking, event_log sanitization |
+| Detection | Secret scanning, audit of event_log payloads |
+
+### 2.12 Sandbox Escape
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | Code in sandbox gains access to host or deploy credentials |
+| Likelihood | Low |
+| Impact | Critical (full system compromise) |
+| Mitigation | Docker no-new-privileges, non-root user, no deploy creds in container, no docker socket mount |
+| Detection | Container security monitoring |
+
+### 2.13 Credential Misuse
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | Agent uses scoped credentials beyond intended purpose |
+| Likelihood | Low |
+| Impact | High (unauthorized repository changes, force push) |
+| Mitigation | Repo-scoped GitHub tokens, branch protection, read-only in sandbox |
+| Detection | GitHub audit log, git operation monitoring |
+
+### 2.14 Domain Misbinding
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | DNS records point to wrong target or unauthorized domain |
+| Likelihood | Low |
+| Impact | Medium (traffic hijacking, TLS errors) |
+| Mitigation | DomainBinding requires founder approval, DNS creds not in sandbox |
+| Detection | Health check monitoring, DNS validation |
+
+### 2.15 Destructive Git Operations
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | Force push, branch deletion, or history rewrite |
+| Likelihood | Low |
+| Impact | High (code loss, audit trail corruption) |
+| Mitigation | Scoped tokens, branch protection rules, no force push allowed |
+| Detection | GitHub webhook events, audit log |
+
+---
+
 ## 3 — Risk by Operating Mode
 
 | Risk | Minimal Stable | Lean | Company | Experimental |
@@ -136,3 +188,8 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Prompt regression | None | None | None | Medium |
 | Stalled execution | Low | Low | Medium | Medium |
 | Resource exhaustion | Low | Low | Medium | Medium |
+| Secret leakage | Low | Low | Low | Medium |
+| Sandbox escape | Low | Low | Low | Low |
+| Credential misuse | Low | Low | Low | Medium |
+| Domain misbinding | Low | Low | Low | Low |
+| Destructive git ops | Low | Low | Low | Medium |

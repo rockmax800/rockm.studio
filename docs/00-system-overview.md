@@ -145,6 +145,7 @@ Every run captures a `context_pack` with content hash, source versions, and incl
 | `core/06-orchestration-use-cases.md` | 26 atomic workflow actions |
 | `core/10-role-contracts-and-taskspec.md` | Enforceable role boundaries |
 | `delivery/delivery-lane.md` | PR → CI → Staging → Production |
+| `delivery/runtime-and-secret-governance.md` | Runtime separation and secret injection |
 
 ---
 

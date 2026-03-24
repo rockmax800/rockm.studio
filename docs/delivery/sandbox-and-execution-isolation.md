@@ -228,3 +228,21 @@ Run
 ```
 
 Every execution is fully traceable from Run to container to logs.
+
+---
+
+## 12 — Secret Isolation in Sandbox
+
+Sandbox containers follow the secret injection rules from `delivery/runtime-and-secret-governance.md`.
+
+| Secret | Allowed in Sandbox | Mode |
+|--------|:-----------------:|------|
+| GitHub Token | ✅ | Read-only, repo-scoped |
+| SSH Deploy Key | ❌ | Never |
+| Registry Credentials | ❌ | Never |
+| DNS Credentials | ❌ | Never |
+| DB Connection String | ❌ | Never |
+| LLM API Keys | ❌ | Never |
+| Control Plane Secrets | ❌ | Never |
+
+**Enforcement:** SandboxExecutorService validates environment variables before container launch. Any forbidden secret in the container environment triggers a GuardError.
