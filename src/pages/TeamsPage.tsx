@@ -393,6 +393,85 @@ export default function TeamsPage() {
    HELPER COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
 
+function HRProposalsSection({ departments, activeEmployees, allRoles }: { departments: any[]; activeEmployees: any[]; allRoles: any[] }) {
+  const qc = useQueryClient();
+  const [proposals, setProposals] = useState<HRProposal[]>([]);
+  const [generated, setGenerated] = useState(false);
+
+  const generateAll = () => {
+    const all: HRProposal[] = [];
+    for (const dept of departments) {
+      const deptEmps = activeEmployees.filter((e: any) => e.team_id === dept.id);
+      const deptRoles = allRoles.filter((r: any) => r.team_id === dept.id);
+      const members = deptEmps.map((e: any) => {
+        const role = deptRoles.find((r: any) => r.id === e.role_id);
+        const sp = role?.skill_profile as any;
+        return { roleCode: e.role_code, seniority: sp?.seniority ?? "Middle", riskTolerance: sp?.riskTolerance, speedVsQuality: sp?.speedVsQuality, successRate: e.success_rate, bugRate: e.bug_rate };
+      });
+      const stack = (deptRoles[0]?.skill_profile as any)?.primaryStack ?? [];
+      all.push(...generateHRProposals(dept.id, dept.name, members, stack));
+    }
+    setProposals(all);
+    setGenerated(true);
+  };
+
+  const handleApprove = async (id: string) => {
+    const p = proposals.find((x) => x.id === id);
+    if (!p) return;
+    try {
+      const label = ROLE_OPTIONS.find((r) => r.code === p.suggestedRole)?.label ?? p.suggestedRole;
+      const { data: role } = await supabase.from("agent_roles").select("id").eq("code", p.suggestedRole).eq("team_id", p.capabilityId).maybeSingle();
+      let roleId = role?.id;
+      if (!roleId) {
+        const { data: nr } = await supabase.from("agent_roles").insert({ code: p.suggestedRole, name: label, description: label, team_id: p.capabilityId, skill_profile: p.traits }).select("id").single();
+        roleId = nr?.id;
+      }
+      const { generateEmployeeName } = await import("@/services/EmployeeNamingService");
+      await supabase.from("ai_employees").insert({ name: generateEmployeeName(p.suggestedRole, Math.floor(Math.random() * 30)), role_code: p.suggestedRole, role_id: roleId ?? null, team_id: p.capabilityId, status: "onboarding", model_name: "gpt-4o", provider: "openai" });
+      setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "approved" as const } : x));
+      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      toast.success(`${label} approved — employee created in Onboarding status`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleReject = (id: string, reason: string) => {
+    setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "rejected" as const, rejectionReason: reason } : x));
+    toast.success("Proposal rejected");
+  };
+
+  if (departments.length === 0) return null;
+
+  return (
+    <section>
+      <div className="flex items-center justify-between">
+        <SectionHeader icon={<UserPlus className="h-5 w-5" />} title="HR Proposals" subtitle="AI-generated hiring suggestions based on team composition" />
+        <Button onClick={generateAll} variant="outline" className="h-9 gap-2 text-[12px] font-bold rounded-xl shrink-0">
+          <Zap className="h-3.5 w-3.5" /> {generated ? "Regenerate" : "Generate Proposals"}
+        </Button>
+      </div>
+      {!generated ? (
+        <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-8 text-center">
+          <UserPlus className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
+          <p className="text-[14px] font-bold text-foreground">No proposals yet</p>
+          <p className="text-[13px] text-muted-foreground mt-1">Click "Generate Proposals" to analyze team gaps and get hiring recommendations.</p>
+        </div>
+      ) : proposals.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-status-green/30 bg-status-green/5 p-6 text-center">
+          <p className="text-[14px] font-bold text-foreground">All capabilities are well-staffed</p>
+          <p className="text-[13px] text-muted-foreground mt-1">No hiring recommendations at this time.</p>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {proposals.map((p) => (
+            <HRProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
   return (
     <div className="flex items-center gap-3">
