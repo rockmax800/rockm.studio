@@ -8,8 +8,9 @@ import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
-  X, Maximize2,
+  X, Maximize2, GraduationCap, User,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
