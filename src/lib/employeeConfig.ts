@@ -1,5 +1,6 @@
 // HR Configuration Engine — Employee Operational Traits Schema
 // All traits affect delivery behavior. No fictional backstories.
+// No psychological stereotypes. No nationality traits. Operational only.
 
 export const ROLE_OPTIONS = [
   { code: "product_strategist", label: "Product Strategist" },
@@ -29,50 +30,8 @@ export type Seniority = typeof SENIORITY_OPTIONS[number];
 export const RISK_TOLERANCE_OPTIONS = ["low", "medium", "high"] as const;
 export type RiskTolerance = typeof RISK_TOLERANCE_OPTIONS[number];
 
-// ── MBTI types (affects decision-making and communication style) ──
-export const MBTI_TYPES = [
-  "INTJ", "INTP", "ENTJ", "ENTP",
-  "INFJ", "INFP", "ENFJ", "ENFP",
-  "ISTJ", "ISFJ", "ESTJ", "ESFJ",
-  "ISTP", "ISFP", "ESTP", "ESFP",
-] as const;
-export type MbtiType = typeof MBTI_TYPES[number];
-
-// MBTI → operational impact mapping
-export const MBTI_TRAITS: Record<MbtiType, { label: string; bias: string }> = {
-  INTJ: { label: "Architect", bias: "Strategic planning, systems thinking" },
-  INTP: { label: "Logician", bias: "Deep analysis, edge-case coverage" },
-  ENTJ: { label: "Commander", bias: "Fast decisions, deadline focus" },
-  ENTP: { label: "Debater", bias: "Alternative approaches, refactoring" },
-  INFJ: { label: "Advocate", bias: "User empathy, consistency" },
-  INFP: { label: "Mediator", bias: "Creative solutions, flexibility" },
-  ENFJ: { label: "Protagonist", bias: "Team coordination, documentation" },
-  ENFP: { label: "Campaigner", bias: "Innovation, prototyping speed" },
-  ISTJ: { label: "Logistician", bias: "Process adherence, test coverage" },
-  ISFJ: { label: "Defender", bias: "Stability, backward compatibility" },
-  ESTJ: { label: "Executive", bias: "Enforcement, standards compliance" },
-  ESFJ: { label: "Consul", bias: "Integration, API consistency" },
-  ISTP: { label: "Virtuoso", bias: "Pragmatic fixes, minimal code" },
-  ISFP: { label: "Adventurer", bias: "UI polish, visual quality" },
-  ESTP: { label: "Entrepreneur", bias: "Rapid iteration, MVP focus" },
-  ESFP: { label: "Entertainer", bias: "User experience, demo readiness" },
-};
-
-// ── Nationality traits (Gustave Le Bon — crowd psychology applied to work style) ──
-// These map cultural work patterns to operational parameters, not stereotypes.
-export const NATIONALITY_TRAITS = [
-  { code: "germanic", label: "Germanic", bias: "Precision, process rigor, thorough documentation", defaultStrictness: 8, defaultRefactorBias: 6 },
-  { code: "anglo_saxon", label: "Anglo-Saxon", bias: "Pragmatism, ship-fast mentality, empirical testing", defaultStrictness: 5, defaultRefactorBias: 4 },
-  { code: "scandinavian", label: "Scandinavian", bias: "Consensus-driven, balanced quality/speed, minimal hierarchy", defaultStrictness: 6, defaultRefactorBias: 7 },
-  { code: "japanese", label: "Japanese", bias: "Perfectionism, zero-defect tolerance, deep review cycles", defaultStrictness: 9, defaultRefactorBias: 5 },
-  { code: "french", label: "French", bias: "Architectural elegance, strong opinions on design, theory-first", defaultStrictness: 7, defaultRefactorBias: 8 },
-  { code: "american", label: "American", bias: "Move fast, iterate, demo-driven development", defaultStrictness: 4, defaultRefactorBias: 3 },
-  { code: "korean", label: "Korean", bias: "High output velocity, competitive performance, deadline-focused", defaultStrictness: 7, defaultRefactorBias: 4 },
-  { code: "israeli", label: "Israeli", bias: "Challenge assumptions, flat hierarchy, unconventional solutions", defaultStrictness: 5, defaultRefactorBias: 6 },
-  { code: "swiss", label: "Swiss", bias: "Reliability, modular systems, defensive coding", defaultStrictness: 9, defaultRefactorBias: 7 },
-  { code: "brazilian", label: "Brazilian", bias: "Adaptability, creative problem-solving, rapid prototyping", defaultStrictness: 4, defaultRefactorBias: 5 },
-] as const;
-export type NationalityCode = typeof NATIONALITY_TRAITS[number]["code"];
+export const BIAS_LEVEL_OPTIONS = ["low", "balanced", "high"] as const;
+export type BiasLevel = typeof BIAS_LEVEL_OPTIONS[number];
 
 // ── Employee Configuration (full operational profile) ──
 export interface EmployeeConfig {
@@ -80,45 +39,69 @@ export interface EmployeeConfig {
   name: string;
   roleCode: string;
   seniority: Seniority;
-  mbtiType: MbtiType;
-  nationalityCode: NationalityCode;
 
   // Stack
   primaryStack: string[];
   secondaryStack: string[];
 
-  // Operational biases (1–10 scale)
+  // Operational traits
   riskTolerance: RiskTolerance;
-  strictnessLevel: number;      // 1=lenient, 10=strict — affects review depth
-  refactorBias: number;         // 1=leave-as-is, 10=always-refactor
-  escalationThreshold: number;  // 1=escalate-everything, 10=handle-independently
-  speedQualityWeight: number;   // 1=speed-first, 10=quality-first
-  tokenEfficiency: number;      // 1=verbose, 10=minimal-tokens
-  testCoverageBias: number;     // 1=skip-tests, 10=full-coverage
-  documentationBias: number;    // 1=no-docs, 10=document-everything
+  strictness: number;              // 1–5 — review depth
+  refactorBias: BiasLevel;         // how aggressively to refactor
+  escalationThreshold: RiskTolerance; // when to escalate
+  speedVsQuality: number;          // 0–100 (0=speed, 100=quality)
+  tokenEfficiency: number;         // 0–100 (0=verbose, 100=minimal)
+  testCoverageBias: BiasLevel;
+  documentationBias: BiasLevel;
 
   // Permissions
   mayDeploy: boolean;
 }
 
-// ── Default config by role ──
+// ── Default config by role (operational only) ──
 export function getDefaultConfig(roleCode: string): Partial<EmployeeConfig> {
   const defaults: Record<string, Partial<EmployeeConfig>> = {
-    product_strategist:  { mbtiType: "ENFJ", nationalityCode: "french", strictnessLevel: 5, refactorBias: 3, escalationThreshold: 4, speedQualityWeight: 5, tokenEfficiency: 6, testCoverageBias: 3, documentationBias: 9, riskTolerance: "medium" },
-    solution_architect:  { mbtiType: "INTJ", nationalityCode: "swiss", strictnessLevel: 8, refactorBias: 7, escalationThreshold: 6, speedQualityWeight: 8, tokenEfficiency: 7, testCoverageBias: 6, documentationBias: 8, riskTolerance: "low" },
-    backend_architect:   { mbtiType: "INTP", nationalityCode: "germanic", strictnessLevel: 8, refactorBias: 6, escalationThreshold: 7, speedQualityWeight: 8, tokenEfficiency: 8, testCoverageBias: 7, documentationBias: 7, riskTolerance: "low" },
-    backend_implementer: { mbtiType: "ISTP", nationalityCode: "anglo_saxon", strictnessLevel: 5, refactorBias: 4, escalationThreshold: 6, speedQualityWeight: 5, tokenEfficiency: 6, testCoverageBias: 6, documentationBias: 5, riskTolerance: "medium" },
-    frontend_builder:    { mbtiType: "ISFP", nationalityCode: "scandinavian", strictnessLevel: 5, refactorBias: 5, escalationThreshold: 5, speedQualityWeight: 5, tokenEfficiency: 5, testCoverageBias: 5, documentationBias: 4, riskTolerance: "medium" },
-    reviewer:            { mbtiType: "ISTJ", nationalityCode: "japanese", strictnessLevel: 9, refactorBias: 7, escalationThreshold: 3, speedQualityWeight: 9, tokenEfficiency: 8, testCoverageBias: 9, documentationBias: 7, riskTolerance: "low" },
-    qa_agent:            { mbtiType: "ESTJ", nationalityCode: "germanic", strictnessLevel: 9, refactorBias: 5, escalationThreshold: 4, speedQualityWeight: 9, tokenEfficiency: 7, testCoverageBias: 10, documentationBias: 6, riskTolerance: "low" },
-    release_coordinator: { mbtiType: "ENTJ", nationalityCode: "american", strictnessLevel: 6, refactorBias: 3, escalationThreshold: 5, speedQualityWeight: 6, tokenEfficiency: 7, testCoverageBias: 7, documentationBias: 6, riskTolerance: "medium" },
+    product_strategist:  { strictness: 2, refactorBias: "low", escalationThreshold: "low", speedVsQuality: 45, tokenEfficiency: 50, testCoverageBias: "low", documentationBias: "high", riskTolerance: "medium" },
+    solution_architect:  { strictness: 4, refactorBias: "high", escalationThreshold: "medium", speedVsQuality: 75, tokenEfficiency: 65, testCoverageBias: "balanced", documentationBias: "high", riskTolerance: "low" },
+    backend_architect:   { strictness: 4, refactorBias: "balanced", escalationThreshold: "medium", speedVsQuality: 80, tokenEfficiency: 70, testCoverageBias: "high", documentationBias: "high", riskTolerance: "low" },
+    backend_implementer: { strictness: 3, refactorBias: "balanced", escalationThreshold: "medium", speedVsQuality: 50, tokenEfficiency: 55, testCoverageBias: "balanced", documentationBias: "balanced", riskTolerance: "medium" },
+    frontend_builder:    { strictness: 3, refactorBias: "balanced", escalationThreshold: "medium", speedVsQuality: 45, tokenEfficiency: 50, testCoverageBias: "balanced", documentationBias: "low", riskTolerance: "medium" },
+    reviewer:            { strictness: 5, refactorBias: "high", escalationThreshold: "low", speedVsQuality: 90, tokenEfficiency: 70, testCoverageBias: "high", documentationBias: "high", riskTolerance: "low" },
+    qa_agent:            { strictness: 5, refactorBias: "balanced", escalationThreshold: "low", speedVsQuality: 85, tokenEfficiency: 60, testCoverageBias: "high", documentationBias: "balanced", riskTolerance: "low" },
+    release_coordinator: { strictness: 3, refactorBias: "low", escalationThreshold: "medium", speedVsQuality: 55, tokenEfficiency: 60, testCoverageBias: "balanced", documentationBias: "balanced", riskTolerance: "medium" },
   };
   return defaults[roleCode] ?? {
-    mbtiType: "INTJ", nationalityCode: "anglo_saxon",
-    strictnessLevel: 5, refactorBias: 5, escalationThreshold: 5,
-    speedQualityWeight: 5, tokenEfficiency: 5, testCoverageBias: 5,
-    documentationBias: 5, riskTolerance: "medium" as RiskTolerance,
+    strictness: 3, refactorBias: "balanced" as BiasLevel, escalationThreshold: "medium" as RiskTolerance,
+    speedVsQuality: 50, tokenEfficiency: 50, testCoverageBias: "balanced" as BiasLevel,
+    documentationBias: "balanced" as BiasLevel, riskTolerance: "medium" as RiskTolerance,
   };
+}
+
+// ── HR Proposal ──
+export interface HRProposal {
+  id: string;
+  capabilityId: string;
+  capabilityName: string;
+  suggestedRole: string;
+  suggestedSeniority: Seniority;
+  primaryStack: string[];
+  secondaryStack: string[];
+  traits: {
+    riskTolerance: RiskTolerance;
+    strictness: number;
+    refactorBias: BiasLevel;
+    escalationThreshold: RiskTolerance;
+    speedVsQuality: number;
+    tokenEfficiency: number;
+    testCoverageBias: BiasLevel;
+    documentationBias: BiasLevel;
+  };
+  rationale: string;
+  teamBalanceImpact: string;
+  expectedImprovement: string;
+  riskFlag?: string;
+  status: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
 }
 
 // ── Team Balance Validation ──
@@ -127,54 +110,184 @@ export interface TeamBalanceWarning {
   message: string;
 }
 
-export function validateTeamBalance(members: { roleCode: string; seniority: string; speedQualityWeight?: number }[]): TeamBalanceWarning[] {
+export function validateTeamBalance(members: { roleCode: string; seniority: string; speedVsQuality?: number; riskTolerance?: string }[]): TeamBalanceWarning[] {
   const warnings: TeamBalanceWarning[] = [];
   if (members.length === 0) return warnings;
 
   const roleCounts: Record<string, number> = {};
   const seniorityCounts: Record<string, number> = {};
+  let highRiskCount = 0;
+  let speedBiasedCount = 0;
+
   for (const m of members) {
     roleCounts[m.roleCode] = (roleCounts[m.roleCode] ?? 0) + 1;
     seniorityCounts[m.seniority] = (seniorityCounts[m.seniority] ?? 0) + 1;
+    if (m.riskTolerance === "high") highRiskCount++;
+    if ((m.speedVsQuality ?? 50) < 35) speedBiasedCount++;
   }
 
-  // Must have at least one reviewer
   if (!roleCounts["reviewer"]) {
     warnings.push({ type: "error", message: "Team must include at least one Reviewer" });
   }
-
-  // Must have at least one QA
   if (!roleCounts["qa_agent"]) {
     warnings.push({ type: "error", message: "Team must include at least one QA Agent" });
   }
-
-  // Max 2 leads per team
+  if (!seniorityCounts["Senior"] && !seniorityCounts["Lead"]) {
+    warnings.push({ type: "error", message: "Team must include at least one Senior or Lead" });
+  }
   if ((seniorityCounts["Lead"] ?? 0) > 2) {
     warnings.push({ type: "warning", message: `${seniorityCounts["Lead"]} Leads — consider balancing seniority` });
   }
-
-  // Speed/quality balance check
-  const withWeight = members.filter((m) => m.speedQualityWeight != null);
-  if (withWeight.length >= 3) {
-    const avg = withWeight.reduce((s, m) => s + (m.speedQualityWeight ?? 5), 0) / withWeight.length;
-    if (avg < 3) warnings.push({ type: "warning", message: "Team is heavily speed-biased — quality risk" });
-    if (avg > 8) warnings.push({ type: "warning", message: "Team is heavily quality-biased — velocity risk" });
+  if (highRiskCount / members.length > 0.4) {
+    warnings.push({ type: "warning", message: `${Math.round(highRiskCount / members.length * 100)}% high risk tolerance — exceeds 40% limit` });
+  }
+  if (speedBiasedCount / members.length > 0.6) {
+    warnings.push({ type: "warning", message: `${Math.round(speedBiasedCount / members.length * 100)}% speed-biased — exceeds 60% limit` });
   }
 
   return warnings;
 }
 
-// ── Bias label helpers ──
-export function biasLabel(value: number, lowLabel: string, highLabel: string): string {
-  if (value <= 3) return lowLabel;
-  if (value >= 8) return highLabel;
-  return "Balanced";
+// ── Generate HR Proposals ──
+export function generateHRProposals(
+  capabilityId: string,
+  capabilityName: string,
+  currentMembers: { roleCode: string; seniority: string; riskTolerance?: string; speedVsQuality?: number; successRate?: number; bugRate?: number }[],
+  capStack: string[],
+): HRProposal[] {
+  const proposals: HRProposal[] = [];
+  const roleCounts: Record<string, number> = {};
+  const seniorityCounts: Record<string, number> = {};
+
+  for (const m of currentMembers) {
+    roleCounts[m.roleCode] = (roleCounts[m.roleCode] ?? 0) + 1;
+    seniorityCounts[m.seniority] = (seniorityCounts[m.seniority] ?? 0) + 1;
+  }
+
+  const makeId = () => crypto.randomUUID();
+  const compose = (after: { role: string; seniority: string }): string => {
+    const updated = { ...roleCounts, [after.role]: (roleCounts[after.role] ?? 0) + 1 };
+    return Object.entries(updated)
+      .filter(([, c]) => c > 0)
+      .map(([r, c]) => `${c} ${ROLE_OPTIONS.find(o => o.code === r)?.label ?? r}`)
+      .join(", ");
+  };
+
+  // Missing reviewer
+  if (!roleCounts["reviewer"]) {
+    const defaults = getDefaultConfig("reviewer");
+    proposals.push({
+      id: makeId(), capabilityId, capabilityName,
+      suggestedRole: "reviewer", suggestedSeniority: "Senior",
+      primaryStack: capStack.slice(0, 3), secondaryStack: [],
+      traits: {
+        riskTolerance: defaults.riskTolerance ?? "low",
+        strictness: defaults.strictness ?? 5,
+        refactorBias: defaults.refactorBias as BiasLevel ?? "high",
+        escalationThreshold: defaults.escalationThreshold as RiskTolerance ?? "low",
+        speedVsQuality: defaults.speedVsQuality ?? 90,
+        tokenEfficiency: defaults.tokenEfficiency ?? 70,
+        testCoverageBias: defaults.testCoverageBias as BiasLevel ?? "high",
+        documentationBias: defaults.documentationBias as BiasLevel ?? "high",
+      },
+      rationale: "No Reviewer in capability. Every team requires at least one Reviewer to enforce quality gates and prevent defect propagation.",
+      teamBalanceImpact: `After hiring: ${compose({ role: "reviewer", seniority: "Senior" })}`,
+      expectedImprovement: "Reduced rework rate by enforcing review before merge. Expected bug escape reduction: 30–50%.",
+      status: "pending",
+    });
+  }
+
+  // Missing QA
+  if (!roleCounts["qa_agent"]) {
+    const defaults = getDefaultConfig("qa_agent");
+    proposals.push({
+      id: makeId(), capabilityId, capabilityName,
+      suggestedRole: "qa_agent", suggestedSeniority: "Middle",
+      primaryStack: capStack.slice(0, 3), secondaryStack: [],
+      traits: {
+        riskTolerance: defaults.riskTolerance ?? "low",
+        strictness: defaults.strictness ?? 5,
+        refactorBias: defaults.refactorBias as BiasLevel ?? "balanced",
+        escalationThreshold: defaults.escalationThreshold as RiskTolerance ?? "low",
+        speedVsQuality: defaults.speedVsQuality ?? 85,
+        tokenEfficiency: defaults.tokenEfficiency ?? 60,
+        testCoverageBias: defaults.testCoverageBias as BiasLevel ?? "high",
+        documentationBias: defaults.documentationBias as BiasLevel ?? "balanced",
+      },
+      rationale: "No QA Agent in capability. Automated test coverage requires a dedicated QA to catch integration failures and regressions.",
+      teamBalanceImpact: `After hiring: ${compose({ role: "qa_agent", seniority: "Middle" })}`,
+      expectedImprovement: "Test coverage increase from 0% to 60%+ baseline. Earlier defect detection in pipeline.",
+      status: "pending",
+    });
+  }
+
+  // Missing senior/lead
+  if (!seniorityCounts["Senior"] && !seniorityCounts["Lead"] && currentMembers.length > 0) {
+    const mostNeeded = !roleCounts["backend_architect"] ? "backend_architect" : !roleCounts["solution_architect"] ? "solution_architect" : "backend_implementer";
+    const defaults = getDefaultConfig(mostNeeded);
+    proposals.push({
+      id: makeId(), capabilityId, capabilityName,
+      suggestedRole: mostNeeded, suggestedSeniority: "Senior",
+      primaryStack: capStack.slice(0, 4), secondaryStack: capStack.slice(4, 6),
+      traits: {
+        riskTolerance: defaults.riskTolerance ?? "low",
+        strictness: defaults.strictness ?? 4,
+        refactorBias: defaults.refactorBias as BiasLevel ?? "balanced",
+        escalationThreshold: defaults.escalationThreshold as RiskTolerance ?? "medium",
+        speedVsQuality: defaults.speedVsQuality ?? 75,
+        tokenEfficiency: defaults.tokenEfficiency ?? 65,
+        testCoverageBias: defaults.testCoverageBias as BiasLevel ?? "high",
+        documentationBias: defaults.documentationBias as BiasLevel ?? "high",
+      },
+      rationale: "No Senior or Lead in capability. At least one senior-level employee is required for architectural decisions and escalation handling.",
+      teamBalanceImpact: `After hiring: ${compose({ role: mostNeeded, seniority: "Senior" })}`,
+      expectedImprovement: "Improved decision quality on architecture. Reduced escalation latency.",
+      riskFlag: "No senior oversight increases risk of technical debt accumulation",
+      status: "pending",
+    });
+  }
+
+  // High rework rate detected
+  const avgBugRate = currentMembers.length > 0
+    ? currentMembers.reduce((s, m) => s + (m.bugRate ?? 0), 0) / currentMembers.length : 0;
+  if (avgBugRate > 0.2 && !proposals.some(p => p.suggestedRole === "reviewer")) {
+    proposals.push({
+      id: makeId(), capabilityId, capabilityName,
+      suggestedRole: "reviewer", suggestedSeniority: "Senior",
+      primaryStack: capStack.slice(0, 3), secondaryStack: [],
+      traits: {
+        riskTolerance: "low", strictness: 5, refactorBias: "high",
+        escalationThreshold: "low", speedVsQuality: 95, tokenEfficiency: 70,
+        testCoverageBias: "high", documentationBias: "high",
+      },
+      rationale: `Team average bug rate is ${Math.round(avgBugRate * 100)}%. An additional Senior Reviewer will enforce stricter review gates.`,
+      teamBalanceImpact: `After hiring: ${compose({ role: "reviewer", seniority: "Senior" })}`,
+      expectedImprovement: "Projected 40% reduction in rework cycles through pre-merge review enforcement.",
+      riskFlag: `Current bug rate ${Math.round(avgBugRate * 100)}% exceeds 20% threshold`,
+      status: "pending",
+    });
+  }
+
+  return proposals;
 }
 
+// ── Helpers ──
 export function riskColor(risk: RiskTolerance): string {
   return risk === "high" ? "text-destructive" : risk === "low" ? "text-status-green" : "text-status-amber";
 }
 
 export function riskBg(risk: RiskTolerance): string {
   return risk === "high" ? "bg-destructive/10" : risk === "low" ? "bg-status-green/10" : "bg-status-amber/10";
+}
+
+export function biasChipClass(level: BiasLevel): string {
+  return level === "high" ? "bg-status-blue/10 text-status-blue" : level === "low" ? "bg-secondary text-muted-foreground" : "bg-primary/5 text-foreground";
+}
+
+export function strictnessLabel(v: number): string {
+  if (v <= 1) return "Lenient";
+  if (v <= 2) return "Relaxed";
+  if (v <= 3) return "Moderate";
+  if (v <= 4) return "Strict";
+  return "Maximum";
 }

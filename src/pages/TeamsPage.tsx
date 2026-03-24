@@ -14,11 +14,13 @@ import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import { toast } from "sonner";
+import { HRProposalCard } from "@/components/teams/HRProposalCard";
+import { generateHRProposals, type HRProposal, ROLE_OPTIONS } from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
   ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy, Star,
   Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight, Plus,
-  ArrowLeftRight, Trash2, UserMinus,
+  ArrowLeftRight, Trash2, UserMinus, UserPlus,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
@@ -304,13 +306,20 @@ export default function TeamsPage() {
           </section>
 
           {/* ════════════════════════════════════════════════════════
-              SECTION 3 — HIRING & PERFORMANCE
+              SECTION 3 — HR PROPOSALS
+              ════════════════════════════════════════════════════════ */}
+          <HRProposalsSection
+            departments={departments}
+            activeEmployees={activeEmployees}
+            allRoles={allRoles}
+          />
+
+          {/* ════════════════════════════════════════════════════════
+              SECTION 4 — HIRING & PERFORMANCE
               ════════════════════════════════════════════════════════ */}
           <section>
             <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Hiring & Performance" />
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-              {/* Underperforming */}
               <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-destructive/30">
                 <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-destructive/60" /> At Risk
@@ -325,15 +334,12 @@ export default function TeamsPage() {
                           <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
                           <span className="text-[14px] font-medium text-foreground truncate flex-1">{emp.name}</span>
                           <span className="text-[12px] font-mono text-destructive/70">{Math.round((emp.success_rate ?? 0) * 100)}%</span>
-                          <ArrowUpRight className="h-3 w-3 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors shrink-0" />
                         </div>
                       </Link>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Suggestions */}
               <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-amber/30">
                 <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-status-amber/60" /> Suggestions
@@ -351,8 +357,6 @@ export default function TeamsPage() {
                   </div>
                 )}
               </div>
-
-              {/* Learning proposals */}
               <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-blue/30">
                 <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
                   <FlaskConical className="h-4 w-4 text-status-blue/60" /> Learning Pipeline
@@ -388,6 +392,85 @@ export default function TeamsPage() {
 /* ═══════════════════════════════════════════════════════════════
    HELPER COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
+
+function HRProposalsSection({ departments, activeEmployees, allRoles }: { departments: any[]; activeEmployees: any[]; allRoles: any[] }) {
+  const qc = useQueryClient();
+  const [proposals, setProposals] = useState<HRProposal[]>([]);
+  const [generated, setGenerated] = useState(false);
+
+  const generateAll = () => {
+    const all: HRProposal[] = [];
+    for (const dept of departments) {
+      const deptEmps = activeEmployees.filter((e: any) => e.team_id === dept.id);
+      const deptRoles = allRoles.filter((r: any) => r.team_id === dept.id);
+      const members = deptEmps.map((e: any) => {
+        const role = deptRoles.find((r: any) => r.id === e.role_id);
+        const sp = role?.skill_profile as any;
+        return { roleCode: e.role_code, seniority: sp?.seniority ?? "Middle", riskTolerance: sp?.riskTolerance, speedVsQuality: sp?.speedVsQuality, successRate: e.success_rate, bugRate: e.bug_rate };
+      });
+      const stack = (deptRoles[0]?.skill_profile as any)?.primaryStack ?? [];
+      all.push(...generateHRProposals(dept.id, dept.name, members, stack));
+    }
+    setProposals(all);
+    setGenerated(true);
+  };
+
+  const handleApprove = async (id: string) => {
+    const p = proposals.find((x) => x.id === id);
+    if (!p) return;
+    try {
+      const label = ROLE_OPTIONS.find((r) => r.code === p.suggestedRole)?.label ?? p.suggestedRole;
+      const { data: role } = await supabase.from("agent_roles").select("id").eq("code", p.suggestedRole).eq("team_id", p.capabilityId).maybeSingle();
+      let roleId = role?.id;
+      if (!roleId) {
+        const { data: nr } = await supabase.from("agent_roles").insert({ code: p.suggestedRole, name: label, description: label, team_id: p.capabilityId, skill_profile: p.traits }).select("id").single();
+        roleId = nr?.id;
+      }
+      const { generateEmployeeName } = await import("@/services/EmployeeNamingService");
+      await supabase.from("ai_employees").insert({ name: generateEmployeeName(p.suggestedRole, Math.floor(Math.random() * 30)), role_code: p.suggestedRole, role_id: roleId ?? null, team_id: p.capabilityId, status: "onboarding", model_name: "gpt-4o", provider: "openai" });
+      setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "approved" as const } : x));
+      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      toast.success(`${label} approved — employee created in Onboarding status`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleReject = (id: string, reason: string) => {
+    setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "rejected" as const, rejectionReason: reason } : x));
+    toast.success("Proposal rejected");
+  };
+
+  if (departments.length === 0) return null;
+
+  return (
+    <section>
+      <div className="flex items-center justify-between">
+        <SectionHeader icon={<UserPlus className="h-5 w-5" />} title="HR Proposals" subtitle="AI-generated hiring suggestions based on team composition" />
+        <Button onClick={generateAll} variant="outline" className="h-9 gap-2 text-[12px] font-bold rounded-xl shrink-0">
+          <Zap className="h-3.5 w-3.5" /> {generated ? "Regenerate" : "Generate Proposals"}
+        </Button>
+      </div>
+      {!generated ? (
+        <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-8 text-center">
+          <UserPlus className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
+          <p className="text-[14px] font-bold text-foreground">No proposals yet</p>
+          <p className="text-[13px] text-muted-foreground mt-1">Click "Generate Proposals" to analyze team gaps and get hiring recommendations.</p>
+        </div>
+      ) : proposals.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-status-green/30 bg-status-green/5 p-6 text-center">
+          <p className="text-[14px] font-bold text-foreground">All capabilities are well-staffed</p>
+          <p className="text-[13px] text-muted-foreground mt-1">No hiring recommendations at this time.</p>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {proposals.map((p) => (
+            <HRProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
   return (
@@ -453,7 +536,7 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
                   <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
                   <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
                   {riskTol && <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${riskCls}`}>{riskTol} risk</Badge>}
-                  {mbtiType && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{mbtiType}</Badge>}
+                  {seniority && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{seniority}</Badge>}
                   {teamName && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{teamName}</Badge>}
                 </div>
                 {/* Stack badges */}

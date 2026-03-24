@@ -12,10 +12,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import {
-  ROLE_OPTIONS, STACK_OPTIONS, SENIORITY_OPTIONS, RISK_TOLERANCE_OPTIONS,
-  MBTI_TYPES, MBTI_TRAITS, NATIONALITY_TRAITS,
-  getDefaultConfig, biasLabel,
-  type EmployeeConfig, type MbtiType, type NationalityCode, type RiskTolerance, type Seniority,
+  ROLE_OPTIONS, STACK_OPTIONS, SENIORITY_OPTIONS, RISK_TOLERANCE_OPTIONS, BIAS_LEVEL_OPTIONS,
+  getDefaultConfig, strictnessLabel,
+  type EmployeeConfig, type RiskTolerance, type Seniority, type BiasLevel,
 } from "@/lib/employeeConfig";
 
 interface Props {
@@ -32,18 +31,15 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [nameIdx, setNameIdx] = useState(0);
 
-  // Config state
   const [config, setConfig] = useState<EmployeeConfig>({
     name: "", roleCode: "frontend_builder", seniority: "Middle",
-    mbtiType: "INTJ", nationalityCode: "anglo_saxon",
     primaryStack: [], secondaryStack: [],
-    riskTolerance: "medium", strictnessLevel: 5, refactorBias: 5,
-    escalationThreshold: 5, speedQualityWeight: 5, tokenEfficiency: 5,
-    testCoverageBias: 5, documentationBias: 5, mayDeploy: false,
+    riskTolerance: "medium", strictness: 3, refactorBias: "balanced",
+    escalationThreshold: "medium", speedVsQuality: 50, tokenEfficiency: 50,
+    testCoverageBias: "balanced", documentationBias: "balanced", mayDeploy: false,
   });
 
   const persona = getPersona(config.roleCode);
-
   const patch = (p: Partial<EmployeeConfig>) => setConfig((c) => ({ ...c, ...p }));
 
   const handleOpen = (isOpen: boolean) => {
@@ -54,19 +50,16 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
       const defaults = getDefaultConfig(roleCode);
       setConfig({
         name: generateEmployeeName(roleCode, idx),
-        roleCode,
-        seniority: "Middle",
-        mbtiType: defaults.mbtiType ?? "INTJ",
-        nationalityCode: defaults.nationalityCode ?? "anglo_saxon",
+        roleCode, seniority: "Middle",
         primaryStack: [], secondaryStack: [],
-        riskTolerance: defaults.riskTolerance ?? "medium",
-        strictnessLevel: defaults.strictnessLevel ?? 5,
-        refactorBias: defaults.refactorBias ?? 5,
-        escalationThreshold: defaults.escalationThreshold ?? 5,
-        speedQualityWeight: defaults.speedQualityWeight ?? 5,
-        tokenEfficiency: defaults.tokenEfficiency ?? 5,
-        testCoverageBias: defaults.testCoverageBias ?? 5,
-        documentationBias: defaults.documentationBias ?? 5,
+        riskTolerance: (defaults.riskTolerance as RiskTolerance) ?? "medium",
+        strictness: defaults.strictness ?? 3,
+        refactorBias: (defaults.refactorBias as BiasLevel) ?? "balanced",
+        escalationThreshold: (defaults.escalationThreshold as RiskTolerance) ?? "medium",
+        speedVsQuality: defaults.speedVsQuality ?? 50,
+        tokenEfficiency: defaults.tokenEfficiency ?? 50,
+        testCoverageBias: (defaults.testCoverageBias as BiasLevel) ?? "balanced",
+        documentationBias: (defaults.documentationBias as BiasLevel) ?? "balanced",
         mayDeploy: false,
       });
       setShowAdvanced(false);
@@ -81,16 +74,14 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
     patch({
       roleCode: code,
       name: generateEmployeeName(code, newIdx),
-      mbtiType: defaults.mbtiType as MbtiType,
-      nationalityCode: defaults.nationalityCode as NationalityCode,
-      riskTolerance: defaults.riskTolerance as RiskTolerance,
-      strictnessLevel: defaults.strictnessLevel,
-      refactorBias: defaults.refactorBias,
-      escalationThreshold: defaults.escalationThreshold,
-      speedQualityWeight: defaults.speedQualityWeight,
-      tokenEfficiency: defaults.tokenEfficiency,
-      testCoverageBias: defaults.testCoverageBias,
-      documentationBias: defaults.documentationBias,
+      riskTolerance: (defaults.riskTolerance as RiskTolerance) ?? "medium",
+      strictness: defaults.strictness ?? 3,
+      refactorBias: (defaults.refactorBias as BiasLevel) ?? "balanced",
+      escalationThreshold: (defaults.escalationThreshold as RiskTolerance) ?? "medium",
+      speedVsQuality: defaults.speedVsQuality ?? 50,
+      tokenEfficiency: defaults.tokenEfficiency ?? 50,
+      testCoverageBias: (defaults.testCoverageBias as BiasLevel) ?? "balanced",
+      documentationBias: (defaults.documentationBias as BiasLevel) ?? "balanced",
     });
   };
 
@@ -119,10 +110,9 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
               team_id: teamId,
               skill_profile: {
                 primaryStack: config.primaryStack, secondaryStack: config.secondaryStack,
-                seniority: config.seniority, mbtiType: config.mbtiType,
-                nationalityCode: config.nationalityCode, riskTolerance: config.riskTolerance,
-                strictnessLevel: config.strictnessLevel, refactorBias: config.refactorBias,
-                escalationThreshold: config.escalationThreshold, speedQualityWeight: config.speedQualityWeight,
+                seniority: config.seniority, riskTolerance: config.riskTolerance,
+                strictness: config.strictness, refactorBias: config.refactorBias,
+                escalationThreshold: config.escalationThreshold, speedVsQuality: config.speedVsQuality,
                 tokenEfficiency: config.tokenEfficiency, testCoverageBias: config.testCoverageBias,
                 documentationBias: config.documentationBias, mayDeploy: config.mayDeploy,
               },
@@ -136,14 +126,14 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
         name: config.name.trim(),
         role_code: config.roleCode,
         role_id: roleId, team_id: teamId ?? null,
-        status: "active", model_name: "gpt-4o", provider: "openai",
+        status: "onboarding", model_name: "gpt-4o", provider: "openai",
       });
 
       qc.invalidateQueries({ queryKey: ["all-employees-full"] });
       qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
       qc.invalidateQueries({ queryKey: ["team-room-employees"] });
       qc.invalidateQueries({ queryKey: ["office"] });
-      toast.success(`${config.name} added to ${teamName ?? "team"}`);
+      toast.success(`${config.name} added to ${teamName ?? "team"} — status: Onboarding`);
       setOpen(false);
       onCreated?.();
     } catch (e: any) {
@@ -152,9 +142,6 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
       setSaving(false);
     }
   };
-
-  const natTrait = NATIONALITY_TRAITS.find((n) => n.code === config.nationalityCode);
-  const mbtiInfo = MBTI_TRAITS[config.mbtiType];
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
@@ -165,18 +152,16 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-[600px] max-h-[90vh] rounded-2xl p-0">
+      <DialogContent className="max-w-[580px] max-h-[90vh] rounded-2xl p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="text-[20px] font-bold">Configure Team Member</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[75vh]">
           <div className="space-y-5 px-6 pt-4 pb-6">
-
-            {/* ── Avatar + Name ── */}
             <div className="flex items-center gap-4">
               <img src={persona.avatar} alt={config.name}
-                className={`h-16 w-16 rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
-                width={64} height={64} />
+                className={`h-14 w-14 rounded-xl object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
+                width={56} height={56} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <Input value={config.name} onChange={(e) => patch({ name: e.target.value })}
@@ -188,7 +173,6 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
               </div>
             </div>
 
-            {/* ── Role ── */}
             <FieldGroup label="Role">
               <div className="flex flex-wrap gap-1.5">
                 {ROLE_OPTIONS.map((r) => (
@@ -198,7 +182,6 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
               </div>
             </FieldGroup>
 
-            {/* ── Seniority ── */}
             <FieldGroup label="Seniority">
               <div className="flex gap-2">
                 {SENIORITY_OPTIONS.map((s) => (
@@ -208,31 +191,6 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
               </div>
             </FieldGroup>
 
-            {/* ── MBTI Type ── */}
-            <FieldGroup label="Cognitive Type (MBTI)" hint={mbtiInfo ? `${mbtiInfo.label} — ${mbtiInfo.bias}` : undefined}>
-              <div className="flex flex-wrap gap-1.5">
-                {MBTI_TYPES.map((t) => (
-                  <Chip key={t} active={config.mbtiType === t} variant="soft"
-                    onClick={() => patch({ mbtiType: t as MbtiType })}>{t}</Chip>
-                ))}
-              </div>
-            </FieldGroup>
-
-            {/* ── Nationality Trait ── */}
-            <FieldGroup label="Work Culture Profile" hint={natTrait ? natTrait.bias : undefined}>
-              <div className="flex flex-wrap gap-1.5">
-                {NATIONALITY_TRAITS.map((n) => (
-                  <Chip key={n.code} active={config.nationalityCode === n.code} variant="soft"
-                    onClick={() => patch({
-                      nationalityCode: n.code as NationalityCode,
-                      strictnessLevel: n.defaultStrictness,
-                      refactorBias: n.defaultRefactorBias,
-                    })}>{n.label}</Chip>
-                ))}
-              </div>
-            </FieldGroup>
-
-            {/* ── Primary Stack ── */}
             <FieldGroup label="Primary Stack">
               <div className="flex flex-wrap gap-1.5">
                 {STACK_OPTIONS.map((s) => (
@@ -247,21 +205,6 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
               </div>
             </FieldGroup>
 
-            {/* ── Secondary Stack ── */}
-            <FieldGroup label="Secondary Stack">
-              <div className="flex flex-wrap gap-1.5">
-                {STACK_OPTIONS.filter((s) => !config.primaryStack.includes(s)).map((s) => (
-                  <Chip key={s} active={config.secondaryStack.includes(s)} variant="soft"
-                    onClick={() => patch({
-                      secondaryStack: config.secondaryStack.includes(s)
-                        ? config.secondaryStack.filter((x) => x !== s)
-                        : [...config.secondaryStack, s],
-                    })}>{s}</Chip>
-                ))}
-              </div>
-            </FieldGroup>
-
-            {/* ── Risk Tolerance ── */}
             <FieldGroup label="Risk Tolerance">
               <div className="flex gap-2">
                 {RISK_TOLERANCE_OPTIONS.map((r) => (
@@ -273,41 +216,54 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
               </div>
             </FieldGroup>
 
-            {/* ── Advanced Operational Biases ── */}
             <button onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center gap-2 text-[13px] font-bold text-muted-foreground hover:text-foreground transition-colors w-full">
               {showAdvanced ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              Operational Biases
+              Operational Traits
               <span className="flex-1 h-px bg-border ml-2" />
             </button>
 
             {showAdvanced && (
               <div className="space-y-4 pl-1">
-                <BiasSlider label="Strictness" value={config.strictnessLevel} low="Lenient" high="Strict"
-                  onChange={(v) => patch({ strictnessLevel: v })} />
-                <BiasSlider label="Refactor Bias" value={config.refactorBias} low="Leave as-is" high="Always refactor"
-                  onChange={(v) => patch({ refactorBias: v })} />
-                <BiasSlider label="Escalation Threshold" value={config.escalationThreshold} low="Escalate often" high="Handle alone"
-                  onChange={(v) => patch({ escalationThreshold: v })} />
-                <BiasSlider label="Speed ↔ Quality" value={config.speedQualityWeight} low="Speed first" high="Quality first"
-                  onChange={(v) => patch({ speedQualityWeight: v })} />
-                <BiasSlider label="Token Efficiency" value={config.tokenEfficiency} low="Verbose" high="Minimal tokens"
-                  onChange={(v) => patch({ tokenEfficiency: v })} />
-                <BiasSlider label="Test Coverage" value={config.testCoverageBias} low="Skip tests" high="Full coverage"
-                  onChange={(v) => patch({ testCoverageBias: v })} />
-                <BiasSlider label="Documentation" value={config.documentationBias} low="No docs" high="Document all"
-                  onChange={(v) => patch({ documentationBias: v })} />
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[12px] font-bold text-foreground">Strictness</span>
+                    <span className="text-[11px] font-mono font-bold text-primary">{config.strictness}/5 — {strictnessLabel(config.strictness)}</span>
+                  </div>
+                  <Slider value={[config.strictness]} onValueChange={([v]) => patch({ strictness: v })} min={1} max={5} step={1} className="w-full" />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[12px] font-bold text-foreground">Speed ↔ Quality</span>
+                    <span className="text-[11px] font-mono font-bold text-primary">{config.speedVsQuality}%</span>
+                  </div>
+                  <Slider value={[config.speedVsQuality]} onValueChange={([v]) => patch({ speedVsQuality: v })} min={0} max={100} step={5} className="w-full" />
+                  <div className="flex justify-between mt-0.5">
+                    <span className="text-[10px] text-muted-foreground/50">Speed first</span>
+                    <span className="text-[10px] text-muted-foreground/50">Quality first</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[12px] font-bold text-foreground">Token Efficiency</span>
+                    <span className="text-[11px] font-mono font-bold text-primary">{config.tokenEfficiency}%</span>
+                  </div>
+                  <Slider value={[config.tokenEfficiency]} onValueChange={([v]) => patch({ tokenEfficiency: v })} min={0} max={100} step={5} className="w-full" />
+                </div>
+                <BiasSelect label="Refactor Bias" value={config.refactorBias} onChange={(v) => patch({ refactorBias: v })} />
+                <BiasSelect label="Escalation Threshold" value={config.escalationThreshold}
+                  onChange={(v) => patch({ escalationThreshold: v as RiskTolerance })} options={RISK_TOLERANCE_OPTIONS as unknown as readonly string[]} />
+                <BiasSelect label="Test Coverage" value={config.testCoverageBias} onChange={(v) => patch({ testCoverageBias: v })} />
+                <BiasSelect label="Documentation" value={config.documentationBias} onChange={(v) => patch({ documentationBias: v })} />
               </div>
             )}
 
-            {/* ── Deploy Permission ── */}
             <label className="flex items-center gap-2 cursor-pointer pt-1">
               <input type="checkbox" checked={config.mayDeploy}
                 onChange={(e) => patch({ mayDeploy: e.target.checked })} className="rounded border-border" />
               <span className="text-[13px] font-bold text-muted-foreground">May deploy to production</span>
             </label>
 
-            {/* ── Actions ── */}
             <div className="flex justify-end gap-3 pt-2 border-t border-border/30">
               <Button variant="outline" onClick={() => setOpen(false)} className="h-10 text-[13px] rounded-xl">Cancel</Button>
               <Button onClick={handleSave} disabled={saving || !config.name.trim()}
@@ -322,13 +278,10 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
   );
 }
 
-/* ── Reusable sub-components ── */
-
-function FieldGroup({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
       <label className="text-[12px] font-bold text-muted-foreground mb-1.5 block">{label}</label>
-      {hint && <p className="text-[11px] text-muted-foreground/60 mb-2 italic">{hint}</p>}
       {children}
     </div>
   );
@@ -347,19 +300,20 @@ function Chip({ active, variant = "solid", onClick, children }: {
   );
 }
 
-function BiasSlider({ label, value, low, high, onChange }: {
-  label: string; value: number; low: string; high: string; onChange: (v: number) => void;
+function BiasSelect({ label, value, onChange, options }: {
+  label: string; value: string; onChange: (v: BiasLevel) => void; options?: readonly string[];
 }) {
+  const opts = options ?? BIAS_LEVEL_OPTIONS;
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-[12px] font-bold text-foreground">{label}</span>
-        <span className="text-[11px] font-mono font-bold text-primary">{value}/10</span>
-      </div>
-      <Slider value={[value]} onValueChange={([v]) => onChange(v)} min={1} max={10} step={1} className="w-full" />
-      <div className="flex justify-between mt-0.5">
-        <span className="text-[10px] text-muted-foreground/50">{low}</span>
-        <span className="text-[10px] text-muted-foreground/50">{high}</span>
+      <span className="text-[12px] font-bold text-foreground block mb-1">{label}</span>
+      <div className="flex gap-1.5">
+        {opts.map((o) => (
+          <button key={o} onClick={() => onChange(o as BiasLevel)}
+            className={`px-3 py-1 rounded-lg text-[11px] font-bold border transition-all ${
+              value === o ? "bg-primary/10 text-primary border-primary/30" : "text-muted-foreground border-border hover:border-foreground/20"
+            }`}>{o.charAt(0).toUpperCase() + o.slice(1)}</button>
+        ))}
       </div>
     </div>
   );
