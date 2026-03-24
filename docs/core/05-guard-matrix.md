@@ -58,8 +58,8 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 
 | # | From → To | Required Conditions | Forbidden If |
 |---|-----------|-------------------|-------------|
-| T1 | draft → ready | Title, purpose, owner_role, acceptance_criteria, expected_output_type | Any missing |
-| T2 | ready → assigned | Active eligible role | No active role |
+| T1 | draft → ready | Title, goal, acceptance_criteria, requested_outcome, risk_class | Any missing |
+| T2 | ready → assigned | owner_role_id selected; role active; handoff created | No active role; no handoff |
 | T3 | assigned → in_progress | ContextPack exists | No ContextPack |
 | T4 | in_progress → waiting_review | Artifact submitted | No output |
 | T5 | in_progress → blocked | Blocker reason recorded | Reason null |

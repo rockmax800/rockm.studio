@@ -59,10 +59,10 @@ const approvalTransitions: StateTransitionMap = {
 // --- Task guards (validated replaces approved) ---
 const taskTransitions: StateTransitionMap = {
   draft: {
-    ready: requireContext("acceptanceCriteria", "Acceptance criteria must exist"),
+    ready: requireContext("acceptanceCriteria", "Acceptance criteria, goal, and requested_outcome must exist"),
   },
   ready: {
-    assigned: requireContext("ownerRoleId", "Eligible active role required"),
+    assigned: requireContext("ownerRoleId", "Owner role must be selected and active"),
   },
   assigned: {
     in_progress: requireContext("contextPackId", "ContextPack must exist"),
