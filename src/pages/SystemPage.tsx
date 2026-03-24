@@ -8,8 +8,8 @@ import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge } from "lucide-react";
-import { Link } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { lazy, Suspense, useMemo } from "react";
 
 const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 
@@ -28,6 +28,7 @@ function PressureBadge({ level }: { level: string }) {
 }
 
 export default function SystemPage() {
+  const [searchParams] = useSearchParams();
   const { data: providers = [] } = useProviderList();
   const { data: modeData } = useSystemMode();
   const { data: workers = [] } = useWorkerNodes();
@@ -37,12 +38,27 @@ export default function SystemPage() {
   const onlineWorkers = workers.filter((w: any) => w.derived_status === "online").length;
   const stalledCount = stalled?.total_issues ?? 0;
 
+  // Read query params for trace pre-filtering
+  const urlTab = searchParams.get("tab");
+  const defaultTab = urlTab === "audit" ? "audit" : "health";
+  const traceInitialFilters = useMemo(() => {
+    const f: Record<string, string> = {};
+    const p = searchParams.get("project");
+    const e = searchParams.get("entity");
+    const et = searchParams.get("entityType");
+    if (p) f.projectId = p;
+    if (et) f.entityType = et;
+    // If a specific entity ID is passed, set it as search text via entityId
+    if (e) (f as any).entityId = e;
+    return Object.keys(f).length > 0 ? f : undefined;
+  }, [searchParams]);
+
   return (
     <AppLayout title="System">
       <div className="max-w-6xl mx-auto space-y-4">
         <h1 className="text-xl font-semibold">System Administration</h1>
 
-        <Tabs defaultValue="health" className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="health" className="gap-1.5">
               <Activity className="h-3.5 w-3.5" /> Health
@@ -296,7 +312,7 @@ export default function SystemPage() {
           {/* AUDIT — Operational Trace Explorer */}
           <TabsContent value="audit">
             <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading trace explorer…</div>}>
-              <TraceExplorer />
+              <TraceExplorer initialFilters={traceInitialFilters} />
             </Suspense>
           </TabsContent>
 
