@@ -163,10 +163,11 @@ export class ReviewService {
       await this.orchestration.transitionEntity({
         entityType: "task",
         entityId: task.id,
-        toState: "approved",
+        toState: "validated",
         actorType,
         projectId,
-        metadata: { use_case: "UC-06", trigger: "task approved after review", review_id: reviewId, artifact_id: artifact.id },
+        metadata: { use_case: "UC-06", trigger: "task validated after review", review_id: reviewId, artifact_id: artifact.id },
+        guardContext: { reviewVerdict: verdict },
       });
     }
 
