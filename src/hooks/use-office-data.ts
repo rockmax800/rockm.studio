@@ -143,7 +143,10 @@ export function useOfficeData() {
         const taskRuns = runs.filter((r: any) => r.task_id === t.id);
         const latestRun = taskRuns[0] ?? null;
         const role = t.owner_role_id ? rolesById[t.owner_role_id] : null;
-        const employee = t.owner_role_id ? employeesByRoleId[t.owner_role_id] : null;
+        const roleEmps = t.owner_role_id ? (roleEmployeesByRoleId[t.owner_role_id] ?? []) : [];
+        const activeRoleEmps = roleEmps.filter((e: any) => !["terminated", "inactive"].includes(e.status));
+        // Only show a named employee if exactly one active employee maps to this role
+        const employee = activeRoleEmps.length === 1 ? activeRoleEmps[0] : null;
         const taskPredictions = predictionsByTask[t.id] ?? [];
         return {
           id: t.id,
@@ -161,6 +164,12 @@ export function useOfficeData() {
           role_success_rate: role?.success_rate ?? null,
           role_performance_score: role?.performance_score ?? null,
           role_team_id: role?.team_id ?? null,
+          // Explicit ownership model: tasks are owned by roles, not employees
+          execution_owner_type: "role" as const,
+          execution_owner_label: role?.name ?? "Unassigned role",
+          assigned_employee_count: activeRoleEmps.length,
+          // Only display employee name when ownership is truly unambiguous (1:1)
+          display_employee_name: employee?.name ?? null,
           employee_name: employee?.name ?? null,
           employee_reputation: employee?.reputation_score ?? null,
           employee_status: employee?.status ?? null,
