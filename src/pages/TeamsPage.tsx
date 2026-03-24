@@ -6,11 +6,10 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDepartments } from "@/hooks/use-department-data";
 import { useHRDashboard } from "@/hooks/use-hr-data";
-import { useHiringMarket } from "@/hooks/use-hiring-market";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { getPersona, getStatusMeta } from "@/lib/personas";
+import { getPersona } from "@/lib/personas";
 import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import { HRProposalCard } from "@/components/teams/HRProposalCard";
@@ -25,10 +24,9 @@ import {
 } from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
-  ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy, Star,
-  Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight, Plus,
-  ArrowLeftRight, Trash2, UserMinus, UserPlus, ShieldAlert, BarChart3,
-  Sparkles,
+  ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy,
+  Zap, Activity, GraduationCap, FlaskConical, Plus,
+  UserPlus, ShieldAlert, BarChart3, Sparkles,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
@@ -39,7 +37,6 @@ export default function TeamsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const { data: departments = [], isLoading: deptLoading } = useDepartments();
   const { data: hrData } = useHRDashboard();
-  const { data: marketData } = useHiringMarket();
 
   const { data: allEmployees = [] } = useQuery({
     queryKey: ["all-employees-full"],
@@ -154,7 +151,7 @@ export default function TeamsPage() {
             <div>
               <h1 className="text-[28px] font-bold text-foreground tracking-tight">AI Teams</h1>
               <p className="text-[14px] text-muted-foreground mt-1 leading-relaxed max-w-[500px]">
-                Manage your production capabilities, team members, and learning pipeline.
+                Manage your production capabilities, team members, and performance pipeline.
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -332,75 +329,79 @@ export default function TeamsPage() {
             </div>
           </section>
 
-          {/* ═══ SECTION 3 — HR HIRING PROPOSALS ═══ */}
-          <HRHiringProposalsSection departments={departments} activeEmployees={activeEmployees} allRoles={allRoles} />
-
-          {/* ═══ SECTION 4 — PERFORMANCE REVIEW ═══ */}
-          <PerformanceReviewSection allEmployees={allEmployees} departments={departments} allRoles={allRoles} />
-
-          {/* ═══ SECTION 5 — HIRING & PERFORMANCE STATS ═══ */}
+          {/* ═══ SECTION 3 — HIRING & PERFORMANCE (CONSOLIDATED) ═══ */}
           <section>
             <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Hiring & Performance" />
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-5">
-              <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-destructive/30">
-                <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-destructive/60" /> At Risk
-                </h3>
-                {underperforming.length === 0 ? (
-                  <p className="text-[13px] text-muted-foreground/50">All agents performing well.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {underperforming.slice(0, 5).map((emp) => (
-                      <Link key={emp.id} to={`/employees/${emp.id}`}>
-                        <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-destructive/5 transition-colors">
-                          <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
-                          <span className="text-[14px] font-medium text-foreground truncate flex-1">{emp.name}</span>
-                          <StatusChip status={emp.status} />
-                          <span className="text-[12px] font-mono text-destructive/70">{Math.round((emp.success_rate ?? 0) * 100)}%</span>
+
+            <div className="mt-4 space-y-6">
+              {/* HR Hiring Proposals */}
+              <HRHiringProposalsSection departments={departments} activeEmployees={activeEmployees} allRoles={allRoles} />
+
+              {/* Performance Review */}
+              <PerformanceReviewSection allEmployees={allEmployees} departments={departments} allRoles={allRoles} />
+
+              {/* Stats row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-destructive/30">
+                  <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive/60" /> At Risk
+                  </h3>
+                  {underperforming.length === 0 ? (
+                    <p className="text-[13px] text-muted-foreground/50">All agents performing well.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {underperforming.slice(0, 5).map((emp) => (
+                        <Link key={emp.id} to={`/employees/${emp.id}`}>
+                          <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-destructive/5 transition-colors">
+                            <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
+                            <span className="text-[14px] font-medium text-foreground truncate flex-1">{emp.name}</span>
+                            <StatusChip status={emp.status} />
+                            <span className="text-[12px] font-mono text-destructive/70">{Math.round((emp.success_rate ?? 0) * 100)}%</span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-amber/30">
+                  <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-status-amber/60" /> Suggestions
+                  </h3>
+                  {suggestions.length === 0 ? (
+                    <p className="text-[13px] text-muted-foreground/50">No active suggestions.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {suggestions.slice(0, 5).map((s: any) => (
+                        <div key={s.id} className="py-2 px-3 rounded-lg bg-secondary/30">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-status-amber">{s.suggestion_type}</span>
+                          <p className="text-[13px] text-foreground mt-0.5 line-clamp-2">{s.reason}</p>
                         </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-amber/30">
-                <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-status-amber/60" /> Suggestions
-                </h3>
-                {suggestions.length === 0 ? (
-                  <p className="text-[13px] text-muted-foreground/50">No active suggestions.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {suggestions.slice(0, 5).map((s: any) => (
-                      <div key={s.id} className="py-2 px-3 rounded-lg bg-secondary/30">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-status-amber">{s.suggestion_type}</span>
-                        <p className="text-[13px] text-foreground mt-0.5 line-clamp-2">{s.reason}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-blue/30">
-                <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
-                  <FlaskConical className="h-4 w-4 text-status-blue/60" /> Learning Pipeline
-                </h3>
-                {learningProposals.length === 0 ? (
-                  <p className="text-[13px] text-muted-foreground/50">No open proposals.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {learningProposals.slice(0, 5).map((lp) => (
-                      <div key={lp.id} className="py-2 px-3 rounded-lg bg-secondary/30">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-status-blue">{lp.status}</span>
-                          <span className="text-[10px] text-muted-foreground/50 ml-auto font-mono">
-                            {new Date(lp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                          </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-blue/30">
+                  <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
+                    <FlaskConical className="h-4 w-4 text-status-blue/60" /> Learning Pipeline
+                  </h3>
+                  {learningProposals.length === 0 ? (
+                    <p className="text-[13px] text-muted-foreground/50">No open proposals.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {learningProposals.slice(0, 5).map((lp) => (
+                        <div key={lp.id} className="py-2 px-3 rounded-lg bg-secondary/30">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-status-blue">{lp.status}</span>
+                            <span className="text-[10px] text-muted-foreground/50 ml-auto font-mono">
+                              {new Date(lp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </span>
+                          </div>
+                          <p className="text-[13px] text-foreground mt-0.5 line-clamp-2">{lp.hypothesis || lp.proposal_type}</p>
                         </div>
-                        <p className="text-[13px] text-foreground mt-0.5 line-clamp-2">{lp.hypothesis || lp.proposal_type}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
@@ -575,29 +576,29 @@ function HRHiringProposalsSection({ departments, activeEmployees, allRoles }: { 
   if (departments.length === 0) return null;
 
   return (
-    <section>
-      <div className="flex items-center justify-between">
-        <SectionHeader icon={<UserPlus className="h-5 w-5" />} title="HR Hiring Proposals" subtitle="Team composition gap analysis" />
-        <Button onClick={generateAll} variant="outline" className="h-9 gap-2 text-[12px] font-bold rounded-xl shrink-0">
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[16px] font-bold text-foreground flex items-center gap-2">
+          <UserPlus className="h-4 w-4 text-muted-foreground/50" /> Hiring Proposals
+        </h3>
+        <Button onClick={generateAll} variant="outline" className="h-8 gap-2 text-[12px] font-bold rounded-lg shrink-0">
           <Zap className="h-3.5 w-3.5" /> {generated ? "Regenerate" : "Analyze Gaps"}
         </Button>
       </div>
       {!generated ? (
-        <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-8 text-center">
-          <UserPlus className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
-          <p className="text-[14px] font-bold text-foreground">No proposals yet</p>
-          <p className="text-[13px] text-muted-foreground mt-1">Click "Analyze Gaps" to get hiring recommendations.</p>
+        <div className="rounded-xl border-2 border-dashed border-border bg-secondary/10 p-6 text-center">
+          <p className="text-[13px] text-muted-foreground">Click "Analyze Gaps" to get AI hiring recommendations.</p>
         </div>
       ) : proposals.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-status-green/30 bg-status-green/5 p-6 text-center">
-          <p className="text-[14px] font-bold text-foreground">All capabilities are well-staffed</p>
+        <div className="rounded-xl border border-status-green/30 bg-status-green/5 p-4 text-center">
+          <p className="text-[13px] font-bold text-foreground">All capabilities are well-staffed</p>
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {proposals.map((p) => <HRProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />)}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -657,40 +658,38 @@ function PerformanceReviewSection({ allEmployees, departments, allRoles }: { all
   };
 
   return (
-    <section>
-      <div className="flex items-center justify-between">
-        <SectionHeader icon={<ShieldAlert className="h-5 w-5" />} title="Performance Review"
-          subtitle="Analyze employee metrics and generate review proposals" />
-        <Button onClick={generateAll} variant="outline" className="h-9 gap-2 text-[12px] font-bold rounded-xl shrink-0">
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[16px] font-bold text-foreground flex items-center gap-2">
+          <ShieldAlert className="h-4 w-4 text-muted-foreground/50" /> Performance Review
+        </h3>
+        <Button onClick={generateAll} variant="outline" className="h-8 gap-2 text-[12px] font-bold rounded-lg shrink-0">
           <ShieldAlert className="h-3.5 w-3.5" /> {generated ? "Re-analyze" : "Run Review"}
         </Button>
       </div>
       {!generated ? (
-        <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-8 text-center">
-          <ShieldAlert className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
-          <p className="text-[14px] font-bold text-foreground">No performance review yet</p>
-          <p className="text-[13px] text-muted-foreground mt-1">Click "Run Review" to analyze all employees and generate proposals.</p>
+        <div className="rounded-xl border-2 border-dashed border-border bg-secondary/10 p-6 text-center">
+          <p className="text-[13px] text-muted-foreground">Click "Run Review" to analyze employee performance.</p>
         </div>
       ) : proposals.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-status-green/30 bg-status-green/5 p-6 text-center">
-          <p className="text-[14px] font-bold text-foreground">All employees performing within thresholds</p>
-          <p className="text-[13px] text-muted-foreground mt-1">No performance proposals at this time.</p>
+        <div className="rounded-xl border border-status-green/30 bg-status-green/5 p-4 text-center">
+          <p className="text-[13px] font-bold text-foreground">All employees are performing within expectations</p>
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {proposals.map((p) => <PerformanceProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />)}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-muted-foreground">{icon}</span>
+      <div className="text-muted-foreground/40">{icon}</div>
       <div>
-        <h2 className="text-[22px] font-bold text-foreground tracking-tight">{title}</h2>
+        <h2 className="text-[20px] font-bold text-foreground tracking-tight">{title}</h2>
         {subtitle && <p className="text-[13px] text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>
     </div>
