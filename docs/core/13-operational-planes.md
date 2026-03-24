@@ -127,6 +127,7 @@ Learning, improvement, and performance measurement. All operations are **advisor
 | `prompt_experiments` | A/B testing configurations |
 | `prompt_improvement_suggestions` | AI-generated prompt improvements |
 | `learning_proposals` | Formal improvement proposals with evidence & promotion pipeline |
+| `evaluation_runs` | Isolated execution for shadow testing (never mutates delivery) |
 | `context_snapshots` | Reproducibility snapshots |
 | `context_packs` | Assembled execution context |
 | `model_market` | Available models registry |
