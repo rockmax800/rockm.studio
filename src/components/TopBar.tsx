@@ -13,7 +13,7 @@ export function TopBar({ title }: TopBarProps) {
   const { data: counts } = useDashboardCounts();
 
   return (
-    <header className="h-12 flex items-center justify-between border-b border-border px-4 bg-card shrink-0">
+    <header className="h-14 flex items-center justify-between border-b border-border/50 px-6 bg-surface-raised shrink-0">
       <div className="flex items-center gap-3">
         <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground" />
         {title && (
