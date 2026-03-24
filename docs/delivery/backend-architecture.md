@@ -1,3 +1,10 @@
+---
+doc_kind: reference
+load_strategy: retrieve
+layer: delivery
+criticality: high
+---
+
 # 07 — Backend Architecture
 
 > Layer 1 — Core Engine

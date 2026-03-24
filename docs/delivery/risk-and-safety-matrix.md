@@ -2,6 +2,8 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 29 — Risk & Safety Matrix

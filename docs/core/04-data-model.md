@@ -1,3 +1,10 @@
+---
+doc_kind: contract
+load_strategy: auto
+layer: core
+criticality: critical
+---
+
 # 04 — Data Model
 
 > Layer 1 — Core Engine

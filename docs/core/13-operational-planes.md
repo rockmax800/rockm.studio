@@ -2,6 +2,8 @@
 layer: core
 criticality: critical
 enabled_in_production: yes
+doc_kind: contract
+load_strategy: auto
 ---
 
 # Operational Planes Architecture

@@ -2,6 +2,8 @@
 layer: core
 criticality: important
 enabled_in_production: yes
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 32 — Failure Classification

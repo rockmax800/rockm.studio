@@ -2,6 +2,8 @@
 layer: core
 criticality: critical
 enabled_in_production: yes
+doc_kind: contract
+load_strategy: auto
 ---
 
 # 40 — Runtime Separation & Secret Governance

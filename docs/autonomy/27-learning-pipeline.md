@@ -2,6 +2,8 @@
 layer: knowledge
 criticality: important
 enabled_in_production: yes (creation + evaluation only; shadow requires experimental)
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # Learning Pipeline

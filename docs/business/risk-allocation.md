@@ -2,6 +2,8 @@
 layer: business
 criticality: informational
 enabled_in_production: no
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # Risk Allocation

@@ -2,6 +2,8 @@
 layer: business
 criticality: informational
 enabled_in_production: no
+doc_kind: contract
+load_strategy: auto
 ---
 
 # Delivery SLA

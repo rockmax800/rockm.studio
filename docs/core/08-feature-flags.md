@@ -2,6 +2,8 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes (flag system itself is always active)
+doc_kind: contract
+load_strategy: auto
 ---
 
 # 08 — Feature Flags

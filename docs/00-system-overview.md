@@ -3,6 +3,8 @@ layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
 version: v4.1
+doc_kind: contract
+load_strategy: auto
 ---
 
 # AI Production Studio — System Overview

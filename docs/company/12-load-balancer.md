@@ -2,6 +2,8 @@
 layer: company
 criticality: optional
 enabled_in_production: no
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 12 — Load Balancer
