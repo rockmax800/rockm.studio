@@ -42,11 +42,13 @@ export default function ProjectsPage() {
               )}
             </p>
           </div>
-          <Link to="/presale/new">
-            <Button className="h-10 px-5 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-card">
-              <FileText className="h-3.5 w-3.5" /> Start New Intake
-            </Button>
-          </Link>
+          {projects.length > 0 && (
+            <Link to="/presale/new">
+              <Button className="h-10 px-5 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-card">
+                <FileText className="h-3.5 w-3.5" /> Start New Intake
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* ── Content ──────────────────────────────────────── */}
@@ -67,7 +69,10 @@ export default function ProjectsPage() {
                 </div>
                 <h2 className="text-[22px] font-bold text-foreground tracking-tight">No projects yet</h2>
                 <p className="text-[14px] text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                  Projects are created through a structured initiation flow. Begin with a Company Lead consultation to define scope, or go directly to intake.
+                  Projects are created through the production pipeline. Start with a Company Lead consultation to define scope and get a cost estimate, then proceed to structured intake and blueprint approval.
+                </p>
+                <p className="text-[12px] text-muted-foreground/40 mt-1.5 max-w-sm mx-auto leading-relaxed italic">
+                  Projects cannot be created directly — they are the output of the intake → blueprint → approval flow.
                 </p>
                 <div className="flex items-center gap-3 justify-center mt-8">
                   <Link to="/lead">
@@ -80,7 +85,7 @@ export default function ProjectsPage() {
                   <Link to="/presale/new">
                     <Button variant="outline" className="h-11 px-6 gap-2 text-[13px] font-semibold border-border/60 text-foreground hover:bg-surface-glass rounded-xl">
                       <FileText className="h-4 w-4 opacity-60" />
-                      Start Structured Intake
+                      Skip to Structured Intake
                     </Button>
                   </Link>
                 </div>

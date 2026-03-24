@@ -345,7 +345,7 @@ export default function CompanyLeadSession() {
               </div>
               <div>
                 <h1 className="text-[20px] font-bold text-foreground tracking-tight leading-tight">Company Lead</h1>
-                <p className="text-[12px] text-muted-foreground/60">AI Delivery Director — Project Initiation</p>
+                <p className="text-[12px] text-muted-foreground/60">Step 1 — Consultation &amp; scope definition</p>
               </div>
             </div>
 

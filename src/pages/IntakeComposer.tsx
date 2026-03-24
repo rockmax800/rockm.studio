@@ -215,6 +215,7 @@ export default function IntakeComposerV2() {
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-semibold text-foreground">Navigator</span>
                   <span className="text-[13px] text-muted-foreground">Delivery Lead</span>
+                  <span className="text-[10px] text-muted-foreground/40 ml-1 px-1.5 py-0.5 bg-surface-glass rounded border border-border/30">Step 2 — Structured Intake</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className={`h-2 w-2 rounded-full ${
@@ -238,8 +239,8 @@ export default function IntakeComposerV2() {
                   <h3 className="text-[22px] font-semibold text-foreground text-center tracking-tight">
                     Describe what you want to build.
                   </h3>
-                  <p className="text-[14px] text-muted-foreground mt-2 text-center max-w-[400px]">
-                    Navigator will extract a structured brief from your conversation in real time.
+                  <p className="text-[14px] text-muted-foreground mt-2 text-center max-w-[420px]">
+                    This is the structured intake step. Navigator will extract a brief from your conversation, which becomes the blueprint for project creation.
                   </p>
                   <div className="flex flex-wrap gap-2 mt-6 justify-center">
                     {SUGGESTIONS.map((s) => (
