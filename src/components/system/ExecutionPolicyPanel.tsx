@@ -188,13 +188,14 @@ export default function ExecutionPolicyPanel() {
                   key={p.value}
                   onClick={() => handleProviderChange(p.value)}
                   className={cn(
-                    "rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-all",
+                    "rounded-lg border px-3 py-2 text-left transition-all",
                     provider === p.value
                       ? "border-primary/50 bg-primary/5 text-foreground"
                       : "border-border/40 text-muted-foreground hover:border-border/60 hover:text-foreground"
                   )}
                 >
-                  {p.label}
+                  <span className="text-[13px] font-medium block">{p.label}</span>
+                  <span className="text-[10px] text-muted-foreground block">{p.hint}</span>
                 </button>
               ))}
             </div>
