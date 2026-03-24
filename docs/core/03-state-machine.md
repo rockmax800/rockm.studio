@@ -80,7 +80,7 @@ See `01-project-lifecycle.md` for full project state machine.
 | in_progress | waiting_review | Artifact submitted | Output exists |
 | in_progress | blocked | Dependency failure | Blocker recorded |
 | in_progress | escalated | Ambiguity/risk found | Escalation reason recorded |
-| waiting_review | **validated** | Reviewer accepts | Review verdict = approved |
+| waiting_review | **validated** | Reviewer accepts | Review verdict ∈ {approved, approved_with_notes} |
 | waiting_review | rework_required | Reviewer rejects | Review verdict = rejected |
 | rework_required | assigned | Task returned | Rework notes exist |
 | blocked | assigned | Blocker resolved | Blocker cleared |
