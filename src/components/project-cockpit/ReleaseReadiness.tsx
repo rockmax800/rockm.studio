@@ -37,7 +37,7 @@ export function ReleaseReadiness({
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[15px] font-bold text-foreground tracking-tight">Release Readiness</h3>
+        <h3 className="text-[18px] font-bold text-foreground tracking-tight">Release Readiness</h3>
         <span className="text-[12px] font-mono font-bold text-muted-foreground">
           {passedCount}/{checks.length}
         </span>

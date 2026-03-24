@@ -37,7 +37,7 @@ export function EvidencePanel({ artifacts, deployments, hasDomainBinding }: Evid
 
   return (
     <div>
-      <h3 className="text-[15px] font-bold text-foreground tracking-tight mb-3">Evidence & Logs</h3>
+      <h3 className="text-[18px] font-bold text-foreground tracking-tight mb-3">Evidence & Logs</h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left — Implementation evidence */}
