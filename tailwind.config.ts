@@ -75,6 +75,18 @@ export default {
           raised: "hsl(var(--surface-raised))",
           overlay: "hsl(var(--surface-overlay))",
           sunken: "hsl(var(--surface-sunken))",
+          glass: "hsl(var(--surface-glass))",
+        },
+        lifecycle: {
+          draft: "hsl(var(--lifecycle-draft))",
+          ready: "hsl(var(--lifecycle-ready))",
+          "in-progress": "hsl(var(--lifecycle-in-progress))",
+          review: "hsl(var(--lifecycle-review))",
+          blocked: "hsl(var(--lifecycle-blocked))",
+          escalated: "hsl(var(--lifecycle-escalated))",
+          validated: "hsl(var(--lifecycle-validated))",
+          done: "hsl(var(--lifecycle-done))",
+          running: "hsl(var(--lifecycle-running))",
         },
       },
       borderRadius: {

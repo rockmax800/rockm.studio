@@ -1,181 +1,216 @@
 import { AppLayout } from "@/components/AppLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/StatusBadge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useApprovals } from "@/hooks/use-data";
-import { useCostAnalytics, useRiskAnalytics, useFounderInbox } from "@/hooks/use-founder-data";
-import { useSystemMode } from "@/hooks/use-system-mode";
-import { Inbox, DollarSign, ShieldAlert, Bell, Settings, Crown } from "lucide-react";
+import { useFounderInbox, useCostAnalytics, useRiskAnalytics } from "@/hooks/use-founder-data";
+import { Link } from "react-router-dom";
+import {
+  Stamp,
+  AlertTriangle,
+  Rocket,
+  ShieldAlert,
+  DollarSign,
+  ChevronRight,
+  Flame,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+type ActionItem = {
+  id: string;
+  category: "approval" | "escalation" | "risk" | "deploy" | "budget";
+  title: string;
+  subtitle: string;
+  timestamp: string;
+  urgency: "critical" | "high" | "normal";
+  linkTo: string;
+  actionLabel: string;
+};
 
 export default function FounderPage() {
   const { data: approvals = [] } = useApprovals();
+  const inbox = useFounderInbox();
   const costs = useCostAnalytics();
   const risk = useRiskAnalytics();
-  const { data: modeData } = useSystemMode();
 
-  const pendingApprovals = approvals.filter(a => a.state === "pending");
+  const pendingApprovals = approvals.filter((a) => a.state === "pending");
+  const escalations = inbox.data?.escalations ?? [];
+  const degradedProviders = inbox.data?.providerDegradedWarnings ?? [];
+
+  // Build unified action feed
+  const actions: ActionItem[] = [];
+
+  for (const a of pendingApprovals) {
+    actions.push({
+      id: `approval-${a.id}`,
+      category: "approval",
+      title: a.summary,
+      subtitle: a.approval_type.replace(/_/g, " "),
+      timestamp: a.created_at,
+      urgency: a.consequence_if_rejected ? "critical" : "normal",
+      linkTo: `/control/approvals/${a.id}`,
+      actionLabel: "Review & Decide",
+    });
+  }
+
+  for (const e of escalations) {
+    actions.push({
+      id: `escalation-${e.id}`,
+      category: "escalation",
+      title: e.title,
+      subtitle: `Escalated task · ${e.escalation_reason ?? "needs attention"}`,
+      timestamp: e.updated_at,
+      urgency: "high",
+      linkTo: `/control/tasks/${e.id}`,
+      actionLabel: "Investigate",
+    });
+  }
+
+  if (risk.data) {
+    for (const loop of risk.data.retry_loops_detected) {
+      actions.push({
+        id: `retry-${loop.taskId}`,
+        category: "risk",
+        title: `Retry loop detected (${loop.failedCount} failures)`,
+        subtitle: `Task ${loop.taskId.slice(0, 8)}…`,
+        timestamp: new Date().toISOString(),
+        urgency: "critical",
+        linkTo: `/control/tasks/${loop.taskId}`,
+        actionLabel: "Investigate",
+      });
+    }
+  }
+
+  for (const p of degradedProviders) {
+    actions.push({
+      id: `provider-${p.id}`,
+      category: "risk",
+      title: `Provider ${p.name} degraded`,
+      subtitle: `Status: ${p.status}`,
+      timestamp: new Date().toISOString(),
+      urgency: "high",
+      linkTo: `/control/providers/${p.id}`,
+      actionLabel: "Check",
+    });
+  }
+
+  // Sort: critical first, then by time
+  actions.sort((a, b) => {
+    const urgencyOrder = { critical: 0, high: 1, normal: 2 };
+    const diff = urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+    if (diff !== 0) return diff;
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+  });
+
+  const CATEGORY_CONFIG: Record<string, { icon: typeof Stamp; color: string }> = {
+    approval: { icon: Stamp, color: "text-status-amber" },
+    escalation: { icon: AlertTriangle, color: "text-status-red" },
+    risk: { icon: ShieldAlert, color: "text-status-red" },
+    deploy: { icon: Rocket, color: "text-status-cyan" },
+    budget: { icon: DollarSign, color: "text-status-amber" },
+  };
 
   return (
     <AppLayout title="Founder">
-      <div className="max-w-6xl mx-auto space-y-4">
-        <div className="flex items-center gap-3">
-          <Crown className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-semibold">Founder Dashboard</h1>
-          {modeData && (
-            <Badge
-              variant={modeData.mode === "production" ? "default" : "destructive"}
-              className="text-[10px] font-mono"
-            >
-              {modeData.mode === "production" ? "🛡 PRODUCTION" : "🧪 EXPERIMENTAL"}
-            </Badge>
+      <div className="max-w-5xl mx-auto space-y-4">
+        {/* Summary strip */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <MetricChip label="Pending Decisions" value={pendingApprovals.length} color="amber" />
+          <MetricChip label="Escalations" value={escalations.length} color="red" />
+          <MetricChip label="Retry Loops" value={risk.data?.retry_loops_detected.length ?? 0} color="red" />
+          {costs.data && (
+            <MetricChip label="24h Spend" value={`$${costs.data.cost_last_24h.toFixed(2)}`} color="cyan" />
           )}
         </div>
 
-        <Tabs defaultValue="inbox" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="inbox" className="gap-1.5">
-              <Inbox className="h-3.5 w-3.5" /> Inbox
-              {pendingApprovals.length > 0 && (
-                <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[9px]">
-                  {pendingApprovals.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="budget" className="gap-1.5">
-              <DollarSign className="h-3.5 w-3.5" /> Budget
-            </TabsTrigger>
-            <TabsTrigger value="risk" className="gap-1.5">
-              <ShieldAlert className="h-3.5 w-3.5" /> Risk
-            </TabsTrigger>
-            <TabsTrigger value="alerts" className="gap-1.5">
-              <Bell className="h-3.5 w-3.5" /> Alerts
-            </TabsTrigger>
-            <TabsTrigger value="mode" className="gap-1.5">
-              <Settings className="h-3.5 w-3.5" /> Mode
-            </TabsTrigger>
-          </TabsList>
-
-          {/* INBOX */}
-          <TabsContent value="inbox" className="space-y-3">
-            {pendingApprovals.length === 0 ? (
-              <Card className="border-none shadow-sm">
-                <CardContent className="p-8 text-center">
-                  <Inbox className="h-8 w-8 text-primary/30 mx-auto mb-2" />
-                  <p className="text-sm font-medium">All clear</p>
-                  <p className="text-xs text-muted-foreground">No pending decisions.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-3">
-                {pendingApprovals.map(a => (
-                  <Card key={a.id} className="border-none shadow-sm">
-                    <CardContent className="p-4">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                        {a.approval_type.replace(/_/g, " ")}
-                      </span>
-                      <p className="text-sm font-medium mt-1">{a.summary}</p>
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" className="h-7 text-xs">Approve</Button>
-                        <Button variant="outline" size="sm" className="h-7 text-xs">Inspect</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+        {/* Action Feed */}
+        <div className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <Flame className="h-3.5 w-3.5 text-status-amber" />
+            Action Feed
+            {actions.length > 0 && (
+              <Badge variant="outline" className="text-[9px] font-mono px-1.5 py-0 h-4 border-status-amber/30 text-status-amber">
+                {actions.length}
+              </Badge>
             )}
-          </TabsContent>
+          </h2>
 
-          {/* BUDGET */}
-          <TabsContent value="budget">
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-5">
-                <h3 className="text-sm font-semibold mb-4">Budget & Token Spend</h3>
-                {costs.data ? (
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="rounded-lg bg-muted/50 p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Total Spent</p>
-                      <p className="text-lg font-semibold">${costs.data.total_cost_project.toFixed(2)}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Last 24h</p>
-                      <p className="text-lg font-semibold">${costs.data.cost_last_24h.toFixed(2)}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">By Provider</p>
-                      <div className="space-y-1 mt-1">
-                        {costs.data.cost_by_provider.slice(0, 3).map(p => (
-                          <p key={p.name} className="text-xs">{p.name}: ${p.cost.toFixed(2)}</p>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Loading cost analytics…</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* RISK */}
-          <TabsContent value="risk">
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-5">
-                <h3 className="text-sm font-semibold mb-4">Risk Overview</h3>
-                {risk.data ? (
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="rounded-lg bg-destructive/5 p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">High Risk Validations</p>
-                      <p className="text-lg font-semibold text-destructive">{risk.data.high_risk_validations.length}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Repeated Failures</p>
-                      <p className="text-lg font-semibold">{risk.data.repeated_failures}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Retry Loops</p>
-                      <p className="text-lg font-semibold">{risk.data.retry_loops_detected.length}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Loading risk analytics…</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ALERTS */}
-          <TabsContent value="alerts">
-            <Card className="border-none shadow-sm">
+          {actions.length === 0 ? (
+            <Card className="border-border/50">
               <CardContent className="p-8 text-center">
-                <Bell className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  System alerts and suggestions will appear here.
-                </p>
+                <div className="h-8 w-8 rounded-full bg-status-green/10 flex items-center justify-center mx-auto mb-2">
+                  <ShieldAlert className="h-4 w-4 text-status-green" />
+                </div>
+                <p className="text-xs font-medium">All clear</p>
+                <p className="text-[10px] text-muted-foreground">No pending actions required.</p>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* MODE */}
-          <TabsContent value="mode">
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-5">
-                <h3 className="text-sm font-semibold mb-4">System Mode Control</h3>
-                <Badge
-                  className="text-xs px-3 py-1 font-mono"
-                >
-                  {modeData?.mode === "production" ? "🛡 PRODUCTION MODE" : "🧪 EXPERIMENTAL MODE"}
-                </Badge>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Switch between Production (safe, minimal) and Experimental (full feature set) modes
-                  via the API endpoint POST /api/system/mode.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-14rem)]">
+              <div className="space-y-1.5 pr-2">
+                {actions.map((action) => {
+                  const config = CATEGORY_CONFIG[action.category] ?? CATEGORY_CONFIG.approval;
+                  const Icon = config.icon;
+                  return (
+                    <Link key={action.id} to={action.linkTo}>
+                      <div className={`group flex items-center gap-3 px-3 py-3 rounded-md bg-card border border-border/50 hover:border-primary/30 hover:bg-surface-glass transition-all cursor-pointer ${
+                        action.urgency === "critical" ? "border-l-2 border-l-status-red" : ""
+                      }`}>
+                        <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${
+                          action.urgency === "critical"
+                            ? "bg-status-red/15"
+                            : action.urgency === "high"
+                            ? "bg-status-amber/15"
+                            : "bg-muted"
+                        }`}>
+                          <Icon className={`h-4 w-4 ${config.color}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                              {action.category}
+                            </span>
+                            {action.urgency === "critical" && (
+                              <Badge variant="destructive" className="text-[8px] px-1 py-0 h-3.5">CRITICAL</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium mt-0.5 truncate">{action.title}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{action.subtitle}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[9px] font-mono text-muted-foreground">
+                            {formatDistanceToNow(new Date(action.timestamp), { addSuffix: true })}
+                          </span>
+                          <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 border-border/50">
+                            {action.actionLabel}
+                          </Button>
+                          <ChevronRight className="h-3 w-3 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
       </div>
     </AppLayout>
+  );
+}
+
+function MetricChip({ label, value, color }: { label: string; value: number | string; color: "amber" | "red" | "cyan" | "green" }) {
+  const colorMap = {
+    amber: "bg-status-amber/10 text-status-amber border-status-amber/20",
+    red: "bg-status-red/10 text-status-red border-status-red/20",
+    cyan: "bg-status-cyan/10 text-status-cyan border-status-cyan/20",
+    green: "bg-status-green/10 text-status-green border-status-green/20",
+  };
+  return (
+    <div className={`flex items-center gap-2 px-2.5 py-1 rounded border ${colorMap[color]}`}>
+      <span className="text-sm font-bold font-mono">{value}</span>
+      <span className="text-[9px] opacity-70">{label}</span>
+    </div>
   );
 }

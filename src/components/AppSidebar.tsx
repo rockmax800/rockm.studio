@@ -1,11 +1,12 @@
 import {
-  Home,
-  Building2,
+  Crosshair,
   FolderKanban,
   Monitor,
   Crown,
-  Users,
   Settings,
+  Building2,
+  Users,
+  ChevronRight,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -24,16 +25,16 @@ import {
 } from "@/components/ui/sidebar";
 
 const primaryNav = [
-  { title: "Home", url: "/", icon: Home },
-  { title: "Departments", url: "/departments", icon: Building2 },
+  { title: "Command Center", url: "/", icon: Crosshair },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Office", url: "/office", icon: Monitor },
+  { title: "Founder", url: "/founder", icon: Crown },
+  { title: "System", url: "/system", icon: Settings },
 ];
 
 const secondaryNav = [
-  { title: "Founder", url: "/founder", icon: Crown },
+  { title: "Departments", url: "/departments", icon: Building2 },
   { title: "Company", url: "/company", icon: Users },
-  { title: "System", url: "/system", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -41,34 +42,29 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
 
-  const isActive = (path: string) =>
-    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
-
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-sidebar-primary flex items-center justify-center">
-              <span className="text-sidebar-primary-foreground text-xs font-bold">AI</span>
-            </div>
-            <span className="font-semibold text-sm text-sidebar-accent-foreground tracking-tight">
-              Production Studio
-            </span>
+      <SidebarHeader className="p-3">
+        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-2"}`}>
+          <div className="h-7 w-7 rounded bg-primary/20 border border-primary/30 flex items-center justify-center animate-glow">
+            <span className="text-primary text-[10px] font-bold font-mono">AI</span>
           </div>
-        )}
-        {collapsed && (
-          <div className="flex justify-center">
-            <div className="h-7 w-7 rounded-md bg-sidebar-primary flex items-center justify-center">
-              <span className="text-sidebar-primary-foreground text-xs font-bold">AI</span>
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="font-semibold text-xs text-foreground tracking-tight">
+                Production Studio
+              </span>
+              <span className="text-[9px] font-mono text-muted-foreground">v2.1 · cockpit</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted">Production</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-muted text-[9px] uppercase tracking-widest">
+            Operations
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {primaryNav.map((item) => (
@@ -77,11 +73,11 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      className="hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      activeClassName="bg-primary/10 text-primary border-l-2 border-primary font-medium"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className="mr-2 h-3.5 w-3.5" />
+                      {!collapsed && <span className="text-xs">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -91,7 +87,9 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted">Management</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-muted text-[9px] uppercase tracking-widest">
+            Management
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {secondaryNav.map((item) => (
@@ -99,11 +97,11 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      className="hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      activeClassName="bg-primary/10 text-primary border-l-2 border-primary font-medium"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className="mr-2 h-3.5 w-3.5" />
+                      {!collapsed && <span className="text-xs">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -113,10 +111,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-3">
         {!collapsed && (
-          <div className="text-xs text-sidebar-muted">
-            V2.1 · Production Studio
+          <div className="flex items-center gap-1.5 text-[9px] font-mono text-sidebar-muted">
+            <div className="h-1.5 w-1.5 rounded-full bg-status-green animate-pulse" />
+            System Online
           </div>
         )}
       </SidebarFooter>
