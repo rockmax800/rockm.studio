@@ -61,7 +61,7 @@ export class RunService {
     taskId: string;
     actorType: "system" | "agent_role";
   }) {
-    const { run, task } = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
       const project = await tx.projects.findUniqueOrThrow({ where: { id: task.project_id } });
 
