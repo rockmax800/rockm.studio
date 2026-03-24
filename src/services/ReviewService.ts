@@ -169,7 +169,8 @@ export class ReviewService {
       toState: "accepted",
       actorType,
       projectId,
-      metadata: { use_case: "UC-06", trigger: "artifact accepted after review", review_id: reviewId },
+      metadata: { use_case: "UC-06", trigger: "artifact accepted after review", review_id: reviewId, verdict },
+      guardContext: { reviewApproved: true },
     });
 
     if (task) {
@@ -179,9 +180,25 @@ export class ReviewService {
         toState: "validated",
         actorType,
         projectId,
-        metadata: { use_case: "UC-06", trigger: "task validated after review", review_id: reviewId, artifact_id: artifact.id },
+        metadata: { use_case: "UC-06", trigger: "task validated after review", review_id: reviewId, artifact_id: artifact.id, verdict },
         guardContext: { reviewVerdict: verdict },
       });
+
+      // Follow-up task generation for approved_with_notes
+      if (verdict === "approved_with_notes" && nonBlockingNotes && (nonBlockingNotes as unknown[]).length > 0) {
+        try {
+          await this.createFollowUpTask({
+            projectId,
+            sourceTaskId: task.id,
+            reviewId,
+            notes: nonBlockingNotes,
+            actorType,
+          });
+        } catch {
+          // Best-effort — validation still stands without follow-up
+          logInfo("follow_up_task_creation_failed", { reviewId, taskId: task.id, verdict });
+        }
+      }
     }
 
     // PART 7 — Record RunEvaluation (approved → quality_score = 1)
