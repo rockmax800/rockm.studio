@@ -80,7 +80,6 @@ export default function TeamsPage() {
   const underperforming = allEmployees.filter((e) => e.status !== "terminated" && ((e.success_rate ?? 0) < 0.6 || (e.bug_rate ?? 0) > 0.3));
   const probationCount = allEmployees.filter((e) => e.status === "probation").length;
   const onboardingCount = allEmployees.filter((e) => e.status === "onboarding").length;
-  const suggestions = hrData?.suggestions?.filter((s: any) => !s.resolved) ?? [];
   const hasNoSetup = departments.length === 0 && activeEmployees.length === 0;
 
   const getPoolMetrics = (deptId: string) => {
