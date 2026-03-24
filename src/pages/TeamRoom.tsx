@@ -22,7 +22,7 @@ import {
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
   AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
   Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
-  GraduationCap,
+  GraduationCap, Eye,
 } from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
@@ -437,49 +437,46 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* ═══ TOP STRIP ═══ */}
-        <div className="px-6 py-3 border-b border-border/30 bg-card shrink-0">
+        <div className="px-6 py-2.5 border-b border-border/20 bg-card/80 shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={onBack} className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors font-medium">
-                <ArrowLeft className="h-3.5 w-3.5" /> Back
+            <div className="flex items-center gap-2.5">
+              <button onClick={onBack} className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors font-medium">
+                <ArrowLeft className="h-3 w-3" /> Back
               </button>
-              <span className="w-px h-5 bg-border/40" />
-              <span className="text-[13px] font-bold text-foreground">{deptName}</span>
-              <span className="w-px h-5 bg-border/40" />
-              <div className="flex items-center gap-2">
-                <img src={persona.avatar} alt="" className="h-6 w-6 rounded-md object-cover" width={24} height={24} />
-                <span className="text-[13px] font-semibold text-foreground">{emp.name}</span>
-              </div>
-              <span className="w-px h-5 bg-border/40" />
+              <span className="w-px h-4 bg-border/30" />
+              <img src={persona.avatar} alt="" className="h-5 w-5 rounded-md object-cover" width={20} height={20} />
+              <span className="text-[12px] font-bold text-foreground">{emp.name}</span>
+              <Badge variant="secondary" className="text-[9px] h-5 px-1.5 font-medium rounded-md">{roleName}</Badge>
+              <span className="w-px h-4 bg-border/30" />
               <div className="flex items-center gap-1.5">
-                <span className={cn("w-2 h-2 rounded-full", meetingDot)} />
-              <span className="text-[12px] font-bold text-muted-foreground">{meetingLabel}</span>
+                <span className={cn("w-1.5 h-1.5 rounded-full", meetingDot)} />
+                <span className="text-[11px] font-semibold text-muted-foreground/60">{meetingLabel}</span>
               </div>
-              <span className="w-px h-5 bg-border/40" />
+              <span className="w-px h-4 bg-border/30" />
+              <span className="text-[10px] text-muted-foreground/30 font-mono flex items-center gap-1">
+                <Coins className="h-2.5 w-2.5" /> {totalTokens.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
               <ExecutionPolicyBadge
                 label="Current execution environment"
                 policyOverride={execOverride.enabled ? execOverride.policy : null}
                 isOverride={execOverride.enabled}
               />
               <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <span className="text-[11px] text-muted-foreground/60 font-mono flex items-center gap-1.5">
-                <Coins className="h-3 w-3" /> {totalTokens.toLocaleString()} tokens
-              </span>
-              <div className="w-px h-5 bg-border/40" />
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="ghost" className="h-8 text-[12px] gap-1.5 text-muted-foreground px-3 rounded-lg hover:bg-secondary" disabled={meetingStatus !== "active"}>
-                  <SkipForward className="h-3.5 w-3.5" /> Skip
+              <span className="w-px h-4 bg-border/30" />
+              <div className="flex items-center gap-0.5">
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground/50 px-2 rounded-lg hover:bg-secondary" disabled={meetingStatus !== "active"}>
+                  <SkipForward className="h-3 w-3" /> Skip
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-[12px] gap-1.5 text-muted-foreground px-3 rounded-lg hover:bg-secondary"
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-muted-foreground/50 px-2 rounded-lg hover:bg-secondary"
                   onClick={() => setMeetingStatus("frozen")} disabled={meetingStatus !== "active"}>
-                  <Snowflake className="h-3.5 w-3.5" /> Freeze
+                  <Snowflake className="h-3 w-3" /> Freeze
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-[12px] gap-1.5 text-destructive px-3 rounded-lg hover:bg-destructive/5"
+                <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 text-destructive/60 px-2 rounded-lg hover:bg-destructive/5"
                   onClick={() => setMeetingStatus("ended")} disabled={meetingStatus === "ended"}>
-                  <Square className="h-3.5 w-3.5" /> End
+                  <Square className="h-3 w-3" /> End
                 </Button>
               </div>
             </div>
@@ -490,85 +487,52 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
         <div className="flex-1 grid grid-cols-12 gap-0 min-h-0 overflow-hidden">
 
           {/* ── LEFT 8 cols — Working Session ── */}
-          <div className="col-span-8 border-r border-border/20 flex flex-col min-h-0 bg-background">
+          <div className="col-span-8 border-r border-border/15 flex flex-col min-h-0 bg-background">
 
-            {/* Specialist header — briefing identity */}
-            <div className="px-6 py-5 border-b border-border/15 bg-card/30">
-              <div className="flex items-start gap-5">
-                <div className="relative shrink-0">
-                  <img src={persona.avatar} alt={emp.name}
-                    className={cn("h-[72px] w-[72px] rounded-2xl object-cover ring-2 ring-offset-[3px] ring-offset-background", persona.ringClass)}
-                    width={72} height={72} />
-                  <div className="absolute -bottom-1.5 -right-1.5 h-7 w-7 rounded-lg bg-card border border-border/40 flex items-center justify-center shadow-sm">
-                    <span className={cn("text-[11px] font-bold font-mono", perfColor)}>{perfScore}</span>
-                  </div>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-[22px] font-bold text-foreground leading-tight">{emp.name}</h2>
-                    <Badge variant="secondary" className="text-[11px] h-6 px-2.5 font-semibold rounded-lg">{roleName}</Badge>
-                  </div>
-                  <p className="text-[12px] text-muted-foreground/40 mt-0.5 italic">{persona.specialty}</p>
-
-                  {/* Intro bubble — briefing feel */}
-                  <div className="mt-2.5 rounded-xl bg-secondary/60 border border-border/30 px-4 py-2.5 max-w-[520px]">
-                    <p className="text-[13px] text-foreground/70 leading-[160%]">
-                      {(() => {
-                        const intros: Record<string, string> = {
-                          product_strategist: "Let's clarify the scope and make sure we're solving the right problem.",
-                          solution_architect: "I'll map the architecture — let's define layers and boundaries.",
-                          frontend_builder: "Ready to translate specs into clean, maintainable interfaces.",
-                          reviewer: "I'll check for correctness, security gaps, and contract compliance.",
-                          qa_agent: "Let's identify edge cases and make sure nothing slips through.",
-                        };
-                        return intros[emp.role_code] ?? "Session active. Let's work through this together.";
-                      })()}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
-                      <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground/30">·</span>
-                    <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1 bg-secondary/50 px-2 py-0.5 rounded-md border border-border/20">
-                      <GraduationCap className="h-3 w-3" /> This session can produce training guidance
-                    </span>
-                    <span className="text-[11px] text-muted-foreground/30">·</span>
-                    <span className="text-[12px] text-muted-foreground/50 italic">{persona.nickname}</span>
-                    {persona.chips.slice(0, 2).map((chip) => (
-                      <span key={chip} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground/60">{chip}</span>
-                    ))}
-                  </div>
-                </div>
-
+            {/* Founder helper note */}
+            <div className="px-6 py-2 border-b border-border/10 bg-secondary/20 shrink-0 flex items-center justify-between">
+              <p className="text-[11px] text-muted-foreground/50 flex items-center gap-2">
+                <Eye className="h-3 w-3 shrink-0" />
+                Observe discussion, clarify direction, freeze when ready.
+                <span className="text-muted-foreground/25">·</span>
+                <span className="text-[10px] text-muted-foreground/30 flex items-center gap-1">
+                  <GraduationCap className="h-2.5 w-2.5" /> This session can produce training guidance
+                </span>
+              </p>
+              <div className="flex items-center gap-1">
                 <Link to={`/employees/${emp.id}`}>
-                  <Button size="sm" variant="outline" className="h-9 text-[12px] gap-1.5 rounded-xl border-border/50">
-                    <User className="h-3.5 w-3.5" /> Full Profile
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground/40 hover:text-foreground">
+                    <User className="h-3 w-3" /> Profile
+                  </Button>
+                </Link>
+                <Link to={`/employees/${emp.id}`}>
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground/40 hover:text-foreground">
+                    <BookOpen className="h-3 w-3" /> Training
                   </Button>
                 </Link>
               </div>
             </div>
 
-            {/* ── Hero message ── */}
+            {/* ── Hero message — current speaker ── */}
             {lastEntry && (
-              <div className="px-6 py-6 border-b border-border/10">
+              <div className="px-6 py-5 border-b border-border/10 bg-card/20">
                 <div className="flex items-start gap-4">
                   <img src={getPersona(lastEntry.roleCode).avatar} alt=""
-                    className={cn("h-10 w-10 rounded-xl object-cover ring-1 ring-offset-2 ring-offset-background shrink-0 mt-0.5", getPersona(lastEntry.roleCode).ringClass)}
-                    width={40} height={40} />
+                    className={cn("h-9 w-9 rounded-xl object-cover ring-1 ring-offset-2 ring-offset-background shrink-0 mt-0.5", getPersona(lastEntry.roleCode).ringClass)}
+                    width={36} height={36} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 mb-2">
-                      <span className="text-[14px] font-bold text-foreground">{roles.find((r: any) => r.code === lastEntry.roleCode)?.name ?? lastEntry.roleCode}</span>
-                      <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", TYPE_COLOR[lastEntry.type])}>{TYPE_LABEL[lastEntry.type]}</span>
-                      <span className="text-[11px] text-muted-foreground/30 ml-auto font-mono flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[13px] font-bold text-foreground">{roles.find((r: any) => r.code === lastEntry.roleCode)?.name ?? lastEntry.roleCode}</span>
+                      <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-md", TYPE_COLOR[lastEntry.type])}>{TYPE_LABEL[lastEntry.type]}</span>
+                      <span className="text-[10px] text-muted-foreground/25 ml-auto font-mono">
                         {new Date(lastEntry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
-                    <p className="text-[16px] text-foreground leading-[1.8] max-w-[640px] font-medium">{lastEntry.content}</p>
+                    <p className="text-[15px] text-foreground leading-[1.75] max-w-[600px]">{lastEntry.content}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={cn("w-1.5 h-1.5 rounded-full", statusInfo.dot)} />
+                      <span className={cn("text-[11px] font-medium", statusInfo.text)}>{statusInfo.label}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -583,26 +547,28 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
 
             {showHistory && (
               <ScrollArea className="flex-1 min-h-0">
-                <div className="divide-y divide-border/8">
-                  {previousEntries.map((entry) => {
+                <div className="px-6 py-2 space-y-0">
+                  {previousEntries.map((entry, idx) => {
                     const ep = getPersona(entry.roleCode);
                     const isFounder = entry.content.startsWith("[Founder]");
                     return (
-                      <div key={entry.id} className={cn("px-6 py-4 hover:bg-muted/10 transition-colors", isFounder && "bg-primary/[0.015]")}>
-                        <div className="flex items-start gap-3">
-                          <img src={ep.avatar} alt="" className="h-7 w-7 rounded-lg object-cover mt-0.5 shrink-0" width={28} height={28} />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[13px] font-semibold text-foreground/70">{isFounder ? "You" : (roles.find((r: any) => r.code === entry.roleCode)?.name ?? entry.roleCode)}</span>
-                              <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded", TYPE_COLOR[entry.type])}>{TYPE_LABEL[entry.type]}</span>
-                              <span className="text-[10px] text-muted-foreground/30 ml-auto font-mono">
-                                {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                              </span>
-                            </div>
-                            <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
-                              {isFounder ? entry.content.replace("[Founder] ", "") : entry.content}
-                            </p>
+                      <div key={entry.id} className={cn(
+                        "flex items-start gap-3 py-3",
+                        idx < previousEntries.length - 1 && "border-b border-border/8",
+                        isFounder && "bg-primary/[0.02] -mx-2 px-2 rounded-lg"
+                      )}>
+                        <img src={ep.avatar} alt="" className="h-6 w-6 rounded-lg object-cover mt-0.5 shrink-0 opacity-70" width={24} height={24} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[12px] font-semibold text-foreground/50">{isFounder ? "You" : (roles.find((r: any) => r.code === entry.roleCode)?.name ?? entry.roleCode)}</span>
+                            <span className={cn("text-[8px] font-bold px-1 py-0.5 rounded", TYPE_COLOR[entry.type])}>{TYPE_LABEL[entry.type]}</span>
+                            <span className="text-[10px] text-muted-foreground/20 ml-auto font-mono">
+                              {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
                           </div>
+                          <p className="text-[12px] text-muted-foreground/60 leading-relaxed">
+                            {isFounder ? entry.content.replace("[Founder] ", "") : entry.content}
+                          </p>
                         </div>
                       </div>
                     );
@@ -614,23 +580,20 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
             {!showHistory && <div className="flex-1" />}
 
             {/* ── Composer ── */}
-            <div className="border-t border-border/20 px-6 py-4 bg-card/50 shrink-0">
-              <div className="rounded-xl border border-border/40 bg-background overflow-hidden focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  </div>
+            <div className="border-t border-border/15 px-6 py-3 bg-card/30 shrink-0">
+              <div className="rounded-xl border border-border/30 bg-background overflow-hidden focus-within:border-foreground/15 transition-all">
+                <div className="flex items-center gap-3 px-4 py-2.5">
                   <Input
                     value={founderInput}
                     onChange={(e) => setFounderInput(e.target.value)}
                     placeholder="Clarify, redirect, or ask a question…"
-                    className="h-8 text-[14px] border-0 shadow-none focus-visible:ring-0 px-0 bg-transparent flex-1"
+                    className="h-8 text-[13px] border-0 shadow-none focus-visible:ring-0 px-0 bg-transparent flex-1"
                     disabled={meetingStatus !== "active"}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   />
-                  <Button className="h-9 px-5 gap-2 text-[13px] font-bold rounded-lg bg-foreground text-background hover:bg-foreground/90 shrink-0" onClick={handleSend}
+                  <Button className="h-8 px-4 gap-1.5 text-[12px] font-bold rounded-lg bg-foreground text-background hover:bg-foreground/90 shrink-0" onClick={handleSend}
                     disabled={meetingStatus !== "active" || !founderInput.trim()}>
-                    <Send className="h-3.5 w-3.5" /> Send
+                    <Send className="h-3 w-3" /> Send
                   </Button>
                 </div>
               </div>
@@ -638,106 +601,84 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
           </div>
 
           {/* ── RIGHT 4 cols — Structured Context ── */}
-          <div className="col-span-4 flex flex-col min-h-0 bg-muted/10">
+          <div className="col-span-4 flex flex-col min-h-0 bg-card/30">
 
             {/* Rail header */}
-            <div className="px-5 py-3.5 border-b border-border/20 shrink-0">
-              <h3 className="text-[14px] font-bold text-foreground flex items-center gap-2 uppercase tracking-wide">
-                <Target className="h-4 w-4 text-muted-foreground/40" /> Structured Context
+            <div className="px-4 py-2.5 border-b border-border/15 shrink-0">
+              <h3 className="text-[12px] font-bold text-muted-foreground/60 flex items-center gap-1.5 uppercase tracking-wider">
+                <Target className="h-3.5 w-3.5 text-muted-foreground/30" /> Context
               </h3>
             </div>
 
             <ScrollArea className="flex-1">
-              <div className="p-5 space-y-0 divide-y divide-border/15">
-                <ExtractionSection title="Scope" icon={<Target className="h-3.5 w-3.5 text-primary/50" />} items={extraction.scope} />
-                <ExtractionSection title="Architecture" icon={<Layers className="h-3.5 w-3.5 text-status-blue/50" />} items={extraction.architectureNotes} />
-                <ExtractionSection title="Task Breakdown" icon={<ListChecks className="h-3.5 w-3.5 text-status-green/50" />} items={extraction.taskBreakdown} emptyText="No tasks extracted yet" />
-                <ExtractionSection title="Risks" icon={<AlertTriangle className="h-3.5 w-3.5 text-destructive/50" />} items={extraction.risks} critical />
-                <ExtractionSection title="Open Questions" icon={<HelpCircle className="h-3.5 w-3.5 text-status-amber/50" />} items={extraction.openQuestions} />
+              <div className="p-4 space-y-0 divide-y divide-border/10">
+                <ExtractionSection title="Scope" icon={<Target className="h-3 w-3 text-primary/40" />} items={extraction.scope} />
+                <ExtractionSection title="Architecture" icon={<Layers className="h-3 w-3 text-status-blue/40" />} items={extraction.architectureNotes} />
+                <ExtractionSection title="Tasks" icon={<ListChecks className="h-3 w-3 text-status-green/40" />} items={extraction.taskBreakdown} emptyText="No tasks extracted yet" />
+                <ExtractionSection title="Risks" icon={<AlertTriangle className="h-3 w-3 text-destructive/40" />} items={extraction.risks} critical />
+                <ExtractionSection title="Questions" icon={<HelpCircle className="h-3 w-3 text-status-amber/40" />} items={extraction.openQuestions} />
 
-                {/* Complexity */}
-                <div className="py-4">
-                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2 mb-2">
-                    <BarChart3 className="h-3.5 w-3.5 text-muted-foreground/40" /> Complexity
+                {/* Complexity — compact */}
+                <div className="py-3">
+                  <h4 className="text-[11px] font-bold text-foreground/60 flex items-center gap-1.5 mb-1.5">
+                    <BarChart3 className="h-3 w-3 text-muted-foreground/30" /> Complexity
                   </h4>
-                  <div className="rounded-lg bg-status-amber/5 border border-status-amber/15 px-3 py-2">
-                    <p className="text-[12px] text-status-amber font-medium leading-relaxed">{extraction.estimatedComplexity}</p>
-                  </div>
+                  <p className="text-[11px] text-status-amber/80 font-medium leading-relaxed bg-status-amber/[0.04] border border-status-amber/10 rounded-lg px-3 py-1.5">{extraction.estimatedComplexity}</p>
                 </div>
               </div>
 
-              {/* ── Active Guidance (Training Prompt) ── */}
-              <div className="mx-5 mb-4 rounded-xl border border-border/30 bg-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
-                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground/40" /> Active Guidance
+              {/* ── Active Guidance ── */}
+              <div className="mx-4 mb-3 rounded-lg border border-border/20 bg-card/60 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border/10">
+                  <h4 className="text-[11px] font-bold text-muted-foreground/60 flex items-center gap-1.5">
+                    <FileText className="h-3 w-3 text-muted-foreground/30" /> Active Guidance
                   </h4>
                 </div>
                 {activeGuidance ? (
-                  <div className="p-4 space-y-2.5">
-                    <div className="flex items-center gap-2">
-                      <BadgeCheck className="h-3.5 w-3.5 text-status-green shrink-0" />
-                      <span className="text-[11px] font-bold text-status-green">Published training prompt</span>
-                      <span className="text-[10px] text-muted-foreground/40 ml-auto font-mono">v{activeGuidance.version_number}</span>
+                  <div className="p-3 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <BadgeCheck className="h-3 w-3 text-status-green shrink-0" />
+                      <span className="text-[10px] font-bold text-status-green/80">Published</span>
+                      <span className="text-[9px] text-muted-foreground/30 ml-auto font-mono">v{activeGuidance.version_number}</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground/50">
-                      Last updated {new Date(activeGuidance.created_at).toLocaleDateString()}
-                    </p>
                     {guidanceSections.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        {guidanceSections.map((s, i) => (
-                          <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
-                            <p className="text-[10px] font-bold text-foreground/70 mb-0.5">{s.title}</p>
-                            <p className="text-[10px] text-muted-foreground leading-relaxed truncate">{s.preview}{s.preview.length >= 80 ? "…" : ""}</p>
+                      <div className="space-y-1">
+                        {guidanceSections.slice(0, 3).map((s, i) => (
+                          <div key={i} className="rounded-md bg-secondary/30 px-2.5 py-1.5">
+                            <p className="text-[9px] font-bold text-foreground/50 mb-0.5">{s.title}</p>
+                            <p className="text-[9px] text-muted-foreground/50 leading-relaxed truncate">{s.preview}</p>
                           </div>
                         ))}
                       </div>
                     )}
-                    <Link to={`/employees/${emp.id}`}>
-                      <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg border-border/40 mt-1">
-                        <BookOpen className="h-3.5 w-3.5" /> Open Training Lab
-                      </Button>
-                    </Link>
                   </div>
                 ) : (
-                  <div className="p-4 text-center">
-                    <p className="text-[11px] text-muted-foreground/50 mb-2">No active training guidance published</p>
-                    <Link to={`/employees/${emp.id}`}>
-                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5 rounded-lg border-border/40">
-                        <BookOpen className="h-3 w-3" /> Open Training Lab
-                      </Button>
-                    </Link>
+                  <div className="p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground/40">No published guidance yet</p>
                   </div>
                 )}
               </div>
 
               {/* ── Memory Snapshot ── */}
-              <div className="mx-5 mb-5 rounded-xl border border-border/30 bg-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
-                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-primary/40" /> Memory Snapshot
+              <div className="mx-4 mb-4 rounded-lg border border-border/20 bg-card/60 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border/10">
+                  <h4 className="text-[11px] font-bold text-muted-foreground/60 flex items-center gap-1.5">
+                    <Brain className="h-3 w-3 text-muted-foreground/30" /> Memory
                   </h4>
                 </div>
-                <div className="grid grid-cols-3 gap-0 divide-x divide-border/15 py-3">
+                <div className="grid grid-cols-3 gap-0 divide-x divide-border/10 py-2.5">
                   <div className="text-center">
-                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.coreRules}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5 font-medium">Core Rules</p>
+                    <p className="text-[14px] font-bold font-mono text-foreground/70">{memoryCounts.coreRules}</p>
+                    <p className="text-[9px] text-muted-foreground/40 font-medium">Rules</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.learnedPatterns}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5 font-medium">Patterns</p>
+                    <p className="text-[14px] font-bold font-mono text-foreground/70">{memoryCounts.learnedPatterns}</p>
+                    <p className="text-[9px] text-muted-foreground/40 font-medium">Patterns</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[18px] font-bold font-mono text-foreground">{memoryCounts.failures}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5 font-medium">Failures</p>
+                    <p className="text-[14px] font-bold font-mono text-foreground/70">{memoryCounts.failures}</p>
+                    <p className="text-[9px] text-muted-foreground/40 font-medium">Failures</p>
                   </div>
-                </div>
-                <div className="px-4 pb-3">
-                  <Link to={`/employees/${emp.id}`}>
-                    <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg border-border/40">
-                      <Brain className="h-3.5 w-3.5" /> Open Full Memory
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </ScrollArea>
@@ -757,26 +698,26 @@ function ExtractionSection({ title, icon, items, emptyText, critical }: {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={cn("py-4 first:pt-0", critical && items.length > 0 && "border-l-2 border-destructive/20 pl-3 -ml-3")}>
-      <button onClick={() => setCollapsed(!collapsed)} className="flex items-center justify-between w-full mb-2 group">
-        <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
+    <div className={cn("py-3 first:pt-0", critical && items.length > 0 && "border-l-2 border-destructive/15 pl-2.5 -ml-2.5")}>
+      <button onClick={() => setCollapsed(!collapsed)} className="flex items-center justify-between w-full mb-1.5 group">
+        <h4 className="text-[11px] font-bold text-foreground/60 flex items-center gap-1.5">
           {icon} {title}
-          {items.length > 0 && <span className="text-[11px] text-muted-foreground/40 font-mono font-normal">{items.length}</span>}
+          {items.length > 0 && <span className="text-[10px] text-muted-foreground/30 font-mono font-normal">{items.length}</span>}
         </h4>
-        <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-muted-foreground/50 transition-all", collapsed && "-rotate-90")} />
+        <ChevronDown className={cn("h-3 w-3 text-muted-foreground/15 group-hover:text-muted-foreground/40 transition-all", collapsed && "-rotate-90")} />
       </button>
       {!collapsed && (
         items.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {items.map((item, i) => (
-              <div key={i} className="flex items-start gap-2.5 text-[13px] text-foreground/70 leading-relaxed">
-                <span className={cn("w-2 h-2 rounded-full mt-[6px] shrink-0", CONFIDENCE_DOT[item.confidence])} title={`${item.confidence} confidence`} />
+              <div key={i} className="flex items-start gap-2 text-[11px] text-foreground/60 leading-relaxed">
+                <span className={cn("w-1.5 h-1.5 rounded-full mt-[5px] shrink-0", CONFIDENCE_DOT[item.confidence])} title={`${item.confidence} confidence`} />
                 {item.text}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[12px] text-muted-foreground/30 italic">{emptyText ?? "—"}</p>
+          <p className="text-[10px] text-muted-foreground/25 italic">{emptyText ?? "—"}</p>
         )
       )}
     </div>
