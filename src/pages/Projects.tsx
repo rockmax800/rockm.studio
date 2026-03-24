@@ -1,72 +1,131 @@
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useProjects } from "@/hooks/use-data";
 import { Button } from "@/components/ui/button";
-import { FolderKanban, FileText, ArrowRight } from "lucide-react";
+import {
+  FolderKanban, FileText, ArrowRight, MessageSquare,
+  ChevronRight, Calendar,
+} from "lucide-react";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+const STATE_LABELS: Record<string, string> = {
+  draft: "Draft",
+  intake: "Intake",
+  blueprint: "Blueprint",
+  active: "In Delivery",
+  in_review: "In Review",
+  blocked: "Blocked",
+  completed: "Completed",
+  archived: "Archived",
+};
 
 export default function ProjectsPage() {
   const { data: projects = [], isLoading } = useProjects();
 
   return (
     <AppLayout title="Projects">
-      <div className="max-w-5xl mx-auto space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {projects.length} projects
-          </p>
+      <div className="max-w-[1280px] mx-auto space-y-6 pb-12">
+
+        {/* ── Page header ──────────────────────────────────── */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[28px] font-bold text-foreground tracking-tight leading-tight">Projects</h1>
+            <p className="text-[14px] text-muted-foreground mt-1">
+              Active delivery programs and completed project records
+              {projects.length > 0 && (
+                <span className="text-muted-foreground/50 ml-2 font-mono text-[12px]">({projects.length})</span>
+              )}
+            </p>
+          </div>
           <Link to="/presale/new">
-            <Button size="sm" className="gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg">
+            <Button className="h-10 px-5 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-card">
               <FileText className="h-3.5 w-3.5" /> Start New Intake
             </Button>
           </Link>
         </div>
 
+        {/* ── Content ──────────────────────────────────────── */}
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl bg-card border border-border/30 p-5 h-[160px] animate-shimmer" />
+            ))}
+          </div>
         ) : projects.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-12 text-center">
-            <FolderKanban className="h-12 w-12 text-muted-foreground/15 mx-auto mb-4" />
-            <h2 className="text-[20px] font-bold text-foreground">No Projects Yet</h2>
-            <p className="text-[14px] text-muted-foreground mt-2 max-w-[400px] mx-auto leading-relaxed">
-              Projects are created through the structured intake flow. Start with an intake to define scope, select a team, and freeze a blueprint.
-            </p>
-            <Link to="/presale/new">
-              <Button className="mt-6 h-12 px-7 gap-2.5 text-[15px] font-bold bg-foreground text-background hover:bg-foreground/90 rounded-xl">
-                <FileText className="h-5 w-5" />
-                Start Structured Intake
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
+          /* ── Empty state ─────────────────────────────────── */
+          <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+            <div className="relative px-10 py-16 text-center">
+              <div className="absolute inset-0 bg-gradient-to-b from-surface-glass/50 to-transparent pointer-events-none" />
+              <div className="relative">
+                <div className="h-14 w-14 rounded-2xl bg-surface-glass border border-border/30 flex items-center justify-center mx-auto mb-5">
+                  <FolderKanban className="h-7 w-7 text-muted-foreground/25" strokeWidth={1.5} />
+                </div>
+                <h2 className="text-[22px] font-bold text-foreground tracking-tight">No projects yet</h2>
+                <p className="text-[14px] text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
+                  Projects are created through a structured initiation flow. Begin with a Company Lead consultation to define scope, or go directly to intake.
+                </p>
+                <div className="flex items-center gap-3 justify-center mt-8">
+                  <Link to="/lead">
+                    <Button className="h-11 px-6 gap-2.5 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-elevated">
+                      <MessageSquare className="h-4 w-4" />
+                      Talk to Company Lead
+                      <ArrowRight className="h-3.5 w-3.5 opacity-60" />
+                    </Button>
+                  </Link>
+                  <Link to="/presale/new">
+                    <Button variant="outline" className="h-11 px-6 gap-2 text-[13px] font-semibold border-border/60 text-foreground hover:bg-surface-glass rounded-xl">
+                      <FileText className="h-4 w-4 opacity-60" />
+                      Start Structured Intake
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          /* ── Project grid ────────────────────────────────── */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {projects.map((p) => (
-              <Link key={p.id} to={`/projects/${p.id}`}>
-                <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                        <FolderKanban className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate">{p.name}</p>
-                          <StatusBadge state={p.state} />
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">{p.purpose}</p>
-                      </div>
-                      <div className="hidden sm:block text-xs text-muted-foreground shrink-0">
-                        {formatDate(p.updated_at)}
-                      </div>
+              <Link key={p.id} to={`/projects/${p.id}`} className="group">
+                <div className="rounded-2xl bg-card border border-border/40 p-5 h-full flex flex-col transition-all duration-200 hover:shadow-elevated hover:border-border/60 hover:-translate-y-px">
+                  {/* Top row */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="h-9 w-9 rounded-xl bg-surface-glass border border-border/30 flex items-center justify-center shrink-0">
+                      <FolderKanban className="h-4 w-4 text-muted-foreground/50" strokeWidth={1.8} />
                     </div>
-                  </CardContent>
-                </Card>
+                    <StatusBadge state={p.state} />
+                  </div>
+
+                  {/* Name + purpose */}
+                  <h3 className="text-[15px] font-semibold text-foreground tracking-tight leading-snug group-hover:text-primary transition-colors line-clamp-1">
+                    {p.name}
+                  </h3>
+                  {p.purpose && (
+                    <p className="text-[12px] text-muted-foreground/60 mt-1 leading-relaxed line-clamp-2">
+                      {p.purpose}
+                    </p>
+                  )}
+
+                  {/* Spacer */}
+                  <div className="flex-1 min-h-3" />
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/20">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/40 font-mono">
+                      <Calendar className="h-3 w-3" />
+                      {formatDate(p.updated_at)}
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground/40 group-hover:text-foreground/60 transition-colors font-medium">
+                      <span>{STATE_LABELS[p.state] ?? p.state}</span>
+                      <ChevronRight className="h-3 w-3" />
+                    </div>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
