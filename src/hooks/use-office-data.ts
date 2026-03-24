@@ -247,23 +247,22 @@ export function useOfficeData() {
   });
 }
 
-// Real-time subscription hook
+// Real-time subscription hook — listens to delivery-critical tables
 export function useOfficeRealtime() {
   const qc = useQueryClient();
 
   useEffect(() => {
+    const invalidate = () => { qc.invalidateQueries({ queryKey: ["office"] }); };
+
     const channel = supabase
       .channel("office-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "office_events" },
-        () => { qc.invalidateQueries({ queryKey: ["office"] }); }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bottleneck_predictions" },
-        () => { qc.invalidateQueries({ queryKey: ["office"] }); }
-      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "office_events" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bottleneck_predictions" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "runs" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "reviews" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "approvals" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "deployments" }, invalidate)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };

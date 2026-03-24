@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { useOfficeData, useOfficeRealtime } from "@/hooks/use-office-data";
+import { useOfficeData, useOfficeRealtime, useRefreshOffice } from "@/hooks/use-office-data";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
   AlertTriangle, UserPlus, Loader2,
   MessageSquare, Plus, Radio, Activity,
   TrendingUp, Shield, ChevronRight,
+  RefreshCw, Clock,
 } from "lucide-react";
 
 /* ═══ ROOM TINTS ═══ */
@@ -70,10 +71,21 @@ const DEFAULT_EVT = { dot: "bg-muted-foreground/30", label: "Event", actor: "Sys
    ═══════════════════════════════════════════════════════════════ */
 
 export default function OfficePage() {
-  const { data, isLoading, error } = useOfficeData();
+  const { data, isLoading, error, dataUpdatedAt, isFetching } = useOfficeData();
   useOfficeRealtime();
+  const refreshOffice = useRefreshOffice();
   const navigate = useNavigate();
   const [chatOpen, setChatOpen] = useState(false);
+
+  // Track data freshness
+  const freshnessLabel = useMemo(() => {
+    if (!dataUpdatedAt) return null;
+    const age = Date.now() - dataUpdatedAt;
+    if (age < 5_000) return "just now";
+    if (age < 60_000) return `${Math.round(age / 1000)}s ago`;
+    if (age < 300_000) return `${Math.round(age / 60_000)}m ago`;
+    return "stale";
+  }, [dataUpdatedAt, isFetching]); // isFetching dep forces re-eval on refetch
 
   const { data: allRolesWithProfile = [] } = useQuery({
     queryKey: ["office-roles-profile"],
@@ -206,13 +218,40 @@ export default function OfficePage() {
                   <span className="text-[11px] font-bold text-status-green uppercase tracking-wider">Live</span>
                 </div>
               </div>
-              <p className="text-[14px] text-muted-foreground mt-1">Live view of capabilities, employees, and delivery motion</p>
+              <p className="text-[13px] text-muted-foreground/60 mt-1">
+                Live projection of delivery activity — tasks, runs, reviews, approvals
+              </p>
             </div>
-            <Link to="/presale/new">
-              <Button className="h-10 px-5 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-sm">
-                <Plus className="h-3.5 w-3.5" /> Start New Project
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {/* Data freshness indicator */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={refreshOffice}
+                      disabled={isFetching}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border/40 bg-card hover:bg-surface-glass transition-colors text-muted-foreground/60 hover:text-foreground disabled:opacity-50"
+                    >
+                      <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
+                      <Clock className="h-3 w-3" />
+                      <span className="text-[10px] font-medium">{freshnessLabel ?? "…"}</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-[11px] max-w-[240px]">
+                    <p className="font-medium">Data freshness</p>
+                    <p className="text-muted-foreground mt-0.5">
+                      Office subscribes to task, run, review, approval, and deployment changes.
+                      Click to manually refresh if data looks stale.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Link to="/presale/new">
+                <Button className="h-10 px-5 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-sm">
+                  <Plus className="h-3.5 w-3.5" /> Start New Project
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* ═══ STATS STRIP ═══ */}
