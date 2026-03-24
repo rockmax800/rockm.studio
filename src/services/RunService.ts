@@ -144,6 +144,10 @@ export class RunService {
       const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
       const now = new Date().toISOString();
 
+      // PART 11 — Generate execution trace identifiers
+      const correlationId = crypto.randomUUID();
+      const idempotencyKey = `${taskId}:run:${existingRunCount + 1}`;
+
       const run = await tx.runs.create({
         data: {
           project_id: task.project_id,
@@ -152,6 +156,8 @@ export class RunService {
           context_pack_id: contextPack.id,
           state: "created",
           run_number: existingRunCount + 1,
+          correlation_id: correlationId,
+          idempotency_key: idempotencyKey,
           created_at: now,
           updated_at: now,
         },
