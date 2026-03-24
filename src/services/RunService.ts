@@ -95,6 +95,16 @@ export class RunService {
         });
       }
 
+      // PART 12 — Idempotency check: if run already exists for this task+run_number, return it
+      const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
+      const candidateIdempotencyKey = `${taskId}:run:${existingRunCount + 1}`;
+      const existingRun = await tx.runs.findFirst({
+        where: { idempotency_key: candidateIdempotencyKey },
+      });
+      if (existingRun) {
+        return { run: existingRun, task, idempotent: true };
+      }
+
       // PART 2 — Prevent double run start
       const activeRunCount = await tx.runs.count({
         where: {
