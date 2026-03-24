@@ -11,6 +11,7 @@ import { ContextCompressionService } from "@/services/ContextCompressionService"
 import { RetryPolicyService } from "@/services/RetryPolicyService";
 import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 import { SandboxExecutorService } from "@/services/SandboxExecutorService";
+import { RoleContractEnforcementService } from "@/services/RoleContractEnforcementService";
 import { logInfo } from "@/lib/logger";
 
 interface PrismaTransactionClient {
@@ -137,6 +138,27 @@ export async function executeRun(
       });
     }
 
+    // PART 14 — Role Contract pre-execution enforcement
+    const contractEnforcement = new RoleContractEnforcementService(prisma);
+    let roleContract: any = null;
+    let taskSpecForRun: any = null;
+
+    if (run.agent_role_id && task.domain) {
+      try {
+        const enforcement = await contractEnforcement.enforcePreExecution({
+          runId,
+          roleId: run.agent_role_id,
+          taskId: run.task_id,
+          taskDomain: task.domain,
+        });
+        roleContract = enforcement.contract;
+        taskSpecForRun = enforcement.taskSpec;
+      } catch (e) {
+        if (e instanceof GuardError) throw e;
+        // Best-effort — do not block execution if contract lookup fails
+      }
+    }
+
     // PART 13 — Resolve sandbox policy for isolated execution
     const sandboxExecutor = new SandboxExecutorService(prisma);
     const sandboxPolicy = await sandboxExecutor.resolvePolicy(runId);
@@ -198,6 +220,23 @@ export async function executeRun(
         },
       });
       artifactId = artifact.id;
+
+      // PART 14b — Post-execution path validation against role contract
+      if (providerResult.changedFiles && (roleContract || taskSpecForRun)) {
+        const pathResult = contractEnforcement.validateChangedFiles(
+          providerResult.changedFiles,
+          roleContract,
+          taskSpecForRun,
+        );
+        if (!pathResult.valid) {
+          logInfo("role_contract_path_violations_detected", {
+            runId,
+            violations: pathResult.violations,
+          });
+          // Record violations in artifact summary for reviewer visibility
+          providerResult.outputText += `\n\n⚠️ ROLE CONTRACT VIOLATIONS:\n${pathResult.violations.join("\n")}`;
+        }
+      }
 
       // PART 11 — Store execution trace: provider refs, tokens, cost, workspace link
       const updateData: Record<string, unknown> = {

@@ -43,6 +43,7 @@ interface ProviderResult {
   inputTokens?: number;
   outputTokens?: number;
   estimatedCost?: number;
+  changedFiles?: string[];
 }
 
 type ProviderHealthStatus = "healthy" | "degraded" | "unavailable";

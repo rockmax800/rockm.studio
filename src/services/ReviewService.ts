@@ -8,6 +8,8 @@
 import { GuardError } from "@/guards/GuardError";
 import { HandoffService } from "@/services/HandoffService";
 import { DeliverySpineService } from "@/services/DeliverySpineService";
+import { RoleContractEnforcementService } from "@/services/RoleContractEnforcementService";
+import { logInfo } from "@/lib/logger";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -57,6 +59,7 @@ export class ReviewService {
   private performanceService: AgentPerformanceServiceLike | null;
   private handoffService: HandoffService;
   private deliverySpine: DeliverySpineService;
+  private contractEnforcement: RoleContractEnforcementService;
 
   constructor(
     prisma: PrismaLike,
@@ -68,6 +71,7 @@ export class ReviewService {
     this.performanceService = performanceService ?? null;
     this.handoffService = new HandoffService(prisma);
     this.deliverySpine = new DeliverySpineService(prisma);
+    this.contractEnforcement = new RoleContractEnforcementService(prisma);
   }
 
   async approveReview({
@@ -191,6 +195,28 @@ export class ReviewService {
         });
       } catch {
         // Best-effort performance tracking
+      }
+    }
+
+    // PART 14c — Verify required artifacts and role contract compliance on approval
+    if (task && run?.agent_role_id) {
+      try {
+        const contract = await this.contractEnforcement.loadContract(run.agent_role_id);
+        const taskSpec = await this.contractEnforcement.loadTaskSpec(task.id);
+        const artifactCheck = await this.contractEnforcement.validateRequiredArtifacts(
+          task.id,
+          contract,
+          taskSpec,
+        );
+        if (!artifactCheck.valid) {
+          logInfo("review_missing_required_artifacts", {
+            reviewId,
+            taskId: task.id,
+            missing: artifactCheck.missing,
+          });
+        }
+      } catch {
+        // Best-effort contract validation
       }
     }
 
