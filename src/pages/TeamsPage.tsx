@@ -13,14 +13,19 @@ import { Link } from "react-router-dom";
 import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
-import { toast } from "sonner";
 import { HRProposalCard } from "@/components/teams/HRProposalCard";
-import { generateHRProposals, type HRProposal, ROLE_OPTIONS } from "@/lib/employeeConfig";
+import { PerformanceProposalCard } from "@/components/teams/PerformanceProposalCard";
+import { TeamBalanceChart } from "@/components/teams/TeamBalanceChart";
+import { toast } from "sonner";
+import {
+  generateHRProposals, generatePerformanceProposals, computeTeamDistribution,
+  type HRProposal, type HRPerformanceProposal, ROLE_OPTIONS, STATUS_META,
+} from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
   ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy, Star,
   Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight, Plus,
-  ArrowLeftRight, Trash2, UserMinus, UserPlus,
+  ArrowLeftRight, Trash2, UserMinus, UserPlus, ShieldAlert, BarChart3,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
@@ -37,7 +42,7 @@ export default function TeamsPage() {
     queryKey: ["all-employees-full"],
     queryFn: async () => {
       const { data } = await supabase.from("ai_employees")
-        .select("id, name, role_code, role_id, status, success_rate, reputation_score, bug_rate, model_name, provider, team_id")
+        .select("id, name, role_code, role_id, status, success_rate, reputation_score, bug_rate, escalation_rate, avg_cost, avg_latency, model_name, provider, team_id")
         .order("reputation_score", { ascending: false });
       return data ?? [];
     },
@@ -47,7 +52,7 @@ export default function TeamsPage() {
     queryKey: ["all-roles-teams"],
     queryFn: async () => {
       const { data } = await supabase.from("agent_roles")
-        .select("id, name, code, status, success_rate, total_runs, capacity_score, team_id");
+        .select("id, name, code, status, success_rate, total_runs, capacity_score, team_id, skill_profile");
       return data ?? [];
     },
   });
@@ -63,7 +68,6 @@ export default function TeamsPage() {
     },
   });
 
-  // Remove employee mutation
   const removeEmployee = useMutation({
     mutationFn: async (empId: string) => {
       const { error } = await supabase.from("ai_employees").update({ status: "terminated" }).eq("id", empId);
@@ -76,7 +80,6 @@ export default function TeamsPage() {
     },
   });
 
-  // Move employee mutation
   const moveEmployee = useMutation({
     mutationFn: async ({ empId, newTeamId }: { empId: string; newTeamId: string }) => {
       const { error } = await supabase.from("ai_employees").update({ team_id: newTeamId }).eq("id", empId);
@@ -88,13 +91,13 @@ export default function TeamsPage() {
     },
   });
 
-  const activeEmployees = allEmployees.filter((e) => e.status === "active");
-  const underperforming = allEmployees.filter((e) => e.status === "active" && ((e.success_rate ?? 0) < 0.6 || (e.bug_rate ?? 0) > 0.3));
+  const activeEmployees = allEmployees.filter((e) => !["terminated", "inactive"].includes(e.status));
+  const underperforming = allEmployees.filter((e) => e.status !== "terminated" && ((e.success_rate ?? 0) < 0.6 || (e.bug_rate ?? 0) > 0.3));
+  const probationCount = allEmployees.filter((e) => e.status === "probation").length;
+  const onboardingCount = allEmployees.filter((e) => e.status === "onboarding").length;
   const suggestions = hrData?.suggestions?.filter((s: any) => !s.resolved) ?? [];
-
   const hasNoSetup = departments.length === 0 && activeEmployees.length === 0;
 
-  /* ── Pool metrics per department ── */
   const getPoolMetrics = (deptId: string) => {
     const deptEmployees = activeEmployees.filter((e) => e.team_id === deptId);
     const deptRoles = allRoles.filter((r) => r.team_id === deptId);
@@ -107,7 +110,6 @@ export default function TeamsPage() {
     return { teamSize, avgSuccess, loadPct };
   };
 
-  // ── FIRST TIME: Show setup wizard
   if (hasNoSetup || showWizard) {
     return (
       <AppLayout title="AI Teams">
@@ -159,17 +161,31 @@ export default function TeamsPage() {
           </div>
 
           {/* ── Summary strip ── */}
-          <div className="flex items-center gap-5 text-[13px]">
+          <div className="flex items-center gap-5 text-[13px] flex-wrap">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground/50" />
               <span className="font-bold text-foreground font-mono">{activeEmployees.length}</span>
-              <span className="text-muted-foreground">active agents</span>
+              <span className="text-muted-foreground">active</span>
             </div>
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground/50" />
               <span className="font-bold text-foreground font-mono">{departments.length}</span>
               <span className="text-muted-foreground">capabilities</span>
             </div>
+            {probationCount > 0 && (
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-status-amber/60" />
+                <span className="font-bold text-status-amber font-mono">{probationCount}</span>
+                <span className="text-status-amber/70">probation</span>
+              </div>
+            )}
+            {onboardingCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-status-blue/60" />
+                <span className="font-bold text-status-blue font-mono">{onboardingCount}</span>
+                <span className="text-status-blue/70">onboarding</span>
+              </div>
+            )}
             {underperforming.length > 0 && (
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-destructive/60" />
@@ -177,18 +193,9 @@ export default function TeamsPage() {
                 <span className="text-destructive/70">at risk</span>
               </div>
             )}
-            {learningProposals.length > 0 && (
-              <div className="flex items-center gap-2">
-                <FlaskConical className="h-4 w-4 text-status-blue/60" />
-                <span className="font-bold text-status-blue font-mono">{learningProposals.length}</span>
-                <span className="text-status-blue/70">learning proposals</span>
-              </div>
-            )}
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              SECTION 1 — CAPABILITY POOLS
-              ════════════════════════════════════════════════════════ */}
+          {/* ═══ SECTION 1 — CAPABILITY POOLS ═══ */}
           <section>
             <SectionHeader icon={<Zap className="h-5 w-5" />} title="Capability Pools" />
             <div className="mt-4">
@@ -202,12 +209,20 @@ export default function TeamsPage() {
                     const isExpanded = expandedDeptId === dept.id;
                     const loadColor = m.loadPct > 85 ? "text-destructive" : m.loadPct < 30 ? "text-status-amber" : "text-status-green";
                     const deptEmployees = activeEmployees.filter((e) => e.team_id === dept.id);
+                    const deptRoles = allRoles.filter((r) => r.team_id === dept.id);
+
+                    // Team distribution for balance chart
+                    const distMembers = deptEmployees.map((e) => {
+                      const role = deptRoles.find((r) => r.id === e.role_id);
+                      const sp = role?.skill_profile as any;
+                      return { roleCode: e.role_code, seniority: sp?.seniority, riskTolerance: sp?.riskTolerance, speedVsQuality: sp?.speedVsQuality };
+                    });
+                    const distribution = computeTeamDistribution(distMembers);
 
                     return (
                       <div key={dept.id} className={`rounded-2xl border overflow-hidden transition-all ${
                         isExpanded ? "lg:col-span-2 border-primary/20 shadow-md" : "border-border hover:shadow-md hover:-translate-y-px"
                       } bg-card`}>
-                        {/* Card header */}
                         <div className="px-5 py-4">
                           <div className="flex items-start gap-3">
                             <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
@@ -223,12 +238,11 @@ export default function TeamsPage() {
                               <div className="flex items-center gap-4 text-[12px]">
                                 <span className="flex items-center gap-1"><Users className="h-3 w-3 text-muted-foreground/50" /> <strong className="text-foreground font-mono">{m.teamSize}</strong></span>
                                 <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3 text-status-green/60" /> <strong className="text-foreground font-mono">{m.avgSuccess}%</strong></span>
-                                <span className={`flex items-center gap-1`}><Gauge className={`h-3 w-3 ${loadColor}/60`} /> <strong className={`font-mono ${loadColor}`}>{m.loadPct}%</strong></span>
+                                <span className="flex items-center gap-1"><Gauge className={`h-3 w-3 ${loadColor}/60`} /> <strong className={`font-mono ${loadColor}`}>{m.loadPct}%</strong></span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Load bar + actions */}
                           <div className="flex items-center gap-3 mt-3">
                             <Progress value={m.loadPct} className="h-1.5 flex-1" />
                             <AddEmployeeDialog teamId={dept.id} teamName={dept.name}
@@ -246,14 +260,22 @@ export default function TeamsPage() {
                           </div>
                         </div>
 
-                        {/* Expanded: team members */}
                         {isExpanded && (
-                          <div className="px-5 pb-5 pt-2 border-t border-border/30">
+                          <div className="px-5 pb-5 pt-2 border-t border-border/30 space-y-4">
+                            {/* Team Balance Chart */}
+                            {deptEmployees.length > 0 && (
+                              <div>
+                                <p className="text-[12px] font-bold text-muted-foreground mb-2 flex items-center gap-1.5">
+                                  <BarChart3 className="h-3 w-3" /> Team Balance
+                                </p>
+                                <TeamBalanceChart distribution={distribution} total={deptEmployees.length} />
+                              </div>
+                            )}
+
                             {deptEmployees.length === 0 ? (
                               <div className="text-center py-6">
                                 <Users className="h-8 w-8 text-muted-foreground/15 mx-auto mb-2" />
                                 <p className="text-[14px] font-bold text-foreground">No members yet</p>
-                                <p className="text-[13px] text-muted-foreground mt-1">Add employees to this capability pool.</p>
                                 <AddEmployeeDialog teamId={dept.id} teamName={dept.name}
                                   trigger={<Button className="mt-3 h-9 gap-2 text-[12px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"><Plus className="h-3.5 w-3.5" /> Add First Member</Button>}
                                 />
@@ -277,13 +299,11 @@ export default function TeamsPage() {
             </div>
           </section>
 
-          {/* ════════════════════════════════════════════════════════
-              SECTION 2 — ALL TEAM MEMBERS
-              ════════════════════════════════════════════════════════ */}
+          {/* ═══ SECTION 2 — ALL TEAM MEMBERS ═══ */}
           <section>
             <div className="flex items-center justify-between">
               <SectionHeader icon={<Users className="h-5 w-5" />} title="All Team Members"
-                subtitle={`${activeEmployees.length} active agents across all capabilities`} />
+                subtitle={`${activeEmployees.length} agents across all capabilities`} />
               <AddEmployeeDialog teamName="Unassigned" />
             </div>
             <div className="mt-4">
@@ -291,7 +311,6 @@ export default function TeamsPage() {
                 <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-10 text-center">
                   <Users className="h-10 w-10 text-muted-foreground/15 mx-auto mb-3" />
                   <p className="text-[16px] font-bold text-foreground">No team members</p>
-                  <p className="text-[13px] text-muted-foreground mt-1">Use the setup wizard or "Add Employee" to create your first agent.</p>
                 </div>
               ) : (
                 <EmployeeGrid
@@ -305,18 +324,13 @@ export default function TeamsPage() {
             </div>
           </section>
 
-          {/* ════════════════════════════════════════════════════════
-              SECTION 3 — HR PROPOSALS
-              ════════════════════════════════════════════════════════ */}
-          <HRProposalsSection
-            departments={departments}
-            activeEmployees={activeEmployees}
-            allRoles={allRoles}
-          />
+          {/* ═══ SECTION 3 — HR HIRING PROPOSALS ═══ */}
+          <HRHiringProposalsSection departments={departments} activeEmployees={activeEmployees} allRoles={allRoles} />
 
-          {/* ════════════════════════════════════════════════════════
-              SECTION 4 — HIRING & PERFORMANCE
-              ════════════════════════════════════════════════════════ */}
+          {/* ═══ SECTION 4 — PERFORMANCE REVIEW ═══ */}
+          <PerformanceReviewSection allEmployees={allEmployees} departments={departments} allRoles={allRoles} />
+
+          {/* ═══ SECTION 5 — HIRING & PERFORMANCE STATS ═══ */}
           <section>
             <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Hiring & Performance" />
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -330,9 +344,10 @@ export default function TeamsPage() {
                   <div className="space-y-2">
                     {underperforming.slice(0, 5).map((emp) => (
                       <Link key={emp.id} to={`/employees/${emp.id}`}>
-                        <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-destructive/5 transition-colors group">
+                        <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-destructive/5 transition-colors">
                           <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
                           <span className="text-[14px] font-medium text-foreground truncate flex-1">{emp.name}</span>
+                          <StatusChip status={emp.status} />
                           <span className="text-[12px] font-mono text-destructive/70">{Math.round((emp.success_rate ?? 0) * 100)}%</span>
                         </div>
                       </Link>
@@ -393,7 +408,14 @@ export default function TeamsPage() {
    HELPER COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
 
-function HRProposalsSection({ departments, activeEmployees, allRoles }: { departments: any[]; activeEmployees: any[]; allRoles: any[] }) {
+import { Sparkles } from "lucide-react";
+
+function StatusChip({ status }: { status: string }) {
+  const meta = STATUS_META[status] ?? STATUS_META.active;
+  return <Badge className={`text-[9px] font-bold border-0 px-1.5 py-0 ${meta.bg} ${meta.color}`}>{meta.label}</Badge>;
+}
+
+function HRHiringProposalsSection({ departments, activeEmployees, allRoles }: { departments: any[]; activeEmployees: any[]; allRoles: any[] }) {
   const qc = useQueryClient();
   const [proposals, setProposals] = useState<HRProposal[]>([]);
   const [generated, setGenerated] = useState(false);
@@ -430,7 +452,6 @@ function HRProposalsSection({ departments, activeEmployees, allRoles }: { depart
       await supabase.from("ai_employees").insert({ name: generateEmployeeName(p.suggestedRole, Math.floor(Math.random() * 30)), role_code: p.suggestedRole, role_id: roleId ?? null, team_id: p.capabilityId, status: "onboarding", model_name: "gpt-4o", provider: "openai" });
       setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "approved" as const } : x));
       qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
       toast.success(`${label} approved — employee created in Onboarding status`);
     } catch (e: any) { toast.error(e.message); }
   };
@@ -445,27 +466,111 @@ function HRProposalsSection({ departments, activeEmployees, allRoles }: { depart
   return (
     <section>
       <div className="flex items-center justify-between">
-        <SectionHeader icon={<UserPlus className="h-5 w-5" />} title="HR Proposals" subtitle="AI-generated hiring suggestions based on team composition" />
+        <SectionHeader icon={<UserPlus className="h-5 w-5" />} title="HR Hiring Proposals" subtitle="Team composition gap analysis" />
         <Button onClick={generateAll} variant="outline" className="h-9 gap-2 text-[12px] font-bold rounded-xl shrink-0">
-          <Zap className="h-3.5 w-3.5" /> {generated ? "Regenerate" : "Generate Proposals"}
+          <Zap className="h-3.5 w-3.5" /> {generated ? "Regenerate" : "Analyze Gaps"}
         </Button>
       </div>
       {!generated ? (
         <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-8 text-center">
           <UserPlus className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
           <p className="text-[14px] font-bold text-foreground">No proposals yet</p>
-          <p className="text-[13px] text-muted-foreground mt-1">Click "Generate Proposals" to analyze team gaps and get hiring recommendations.</p>
+          <p className="text-[13px] text-muted-foreground mt-1">Click "Analyze Gaps" to get hiring recommendations.</p>
         </div>
       ) : proposals.length === 0 ? (
         <div className="mt-4 rounded-2xl border border-status-green/30 bg-status-green/5 p-6 text-center">
           <p className="text-[14px] font-bold text-foreground">All capabilities are well-staffed</p>
-          <p className="text-[13px] text-muted-foreground mt-1">No hiring recommendations at this time.</p>
         </div>
       ) : (
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {proposals.map((p) => (
-            <HRProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />
-          ))}
+          {proposals.map((p) => <HRProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />)}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PerformanceReviewSection({ allEmployees, departments, allRoles }: { allEmployees: any[]; departments: any[]; allRoles: any[] }) {
+  const qc = useQueryClient();
+  const [proposals, setProposals] = useState<HRPerformanceProposal[]>([]);
+  const [generated, setGenerated] = useState(false);
+
+  const generateAll = () => {
+    const result = generatePerformanceProposals(allEmployees, departments, allRoles);
+    setProposals(result);
+    setGenerated(true);
+  };
+
+  const handleApprove = async (id: string) => {
+    const p = proposals.find((x) => x.id === id);
+    if (!p) return;
+    try {
+      // Apply status change based on proposal type
+      let newStatus: string | undefined;
+      if (p.type === "probation") newStatus = "probation";
+      else if (p.type === "restore_active") newStatus = "active";
+      else if (p.type === "remove_from_capability") newStatus = "suspended";
+      else if (p.type === "replacement") newStatus = "suspended";
+      // role_adjustment and stack_adjustment don't change status
+
+      if (newStatus) {
+        const { error } = await supabase.from("ai_employees").update({ status: newStatus }).eq("id", p.employeeId);
+        if (error) throw error;
+      }
+
+      // If replacement, create new employee
+      if (p.type === "replacement" && p.replacementConfig) {
+        const rc = p.replacementConfig;
+        const label = ROLE_OPTIONS.find(r => r.code === rc.suggestedRole)?.label ?? rc.suggestedRole;
+        const { data: role } = await supabase.from("agent_roles").select("id").eq("code", rc.suggestedRole).eq("team_id", p.capabilityId).maybeSingle();
+        let roleId = role?.id;
+        if (!roleId) {
+          const { data: nr } = await supabase.from("agent_roles").insert({ code: rc.suggestedRole, name: label, description: label, team_id: p.capabilityId, skill_profile: rc.traits }).select("id").single();
+          roleId = nr?.id;
+        }
+        const { generateEmployeeName } = await import("@/services/EmployeeNamingService");
+        await supabase.from("ai_employees").insert({
+          name: generateEmployeeName(rc.suggestedRole, Math.floor(Math.random() * 30)),
+          role_code: rc.suggestedRole, role_id: roleId ?? null, team_id: p.capabilityId,
+          status: "onboarding", model_name: "gpt-4o", provider: "openai",
+        });
+      }
+
+      setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "approved" as const } : x));
+      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
+      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
+      toast.success(`${p.type === "replacement" ? "Replacement" : "Status change"} approved for ${p.employeeName}`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleReject = (id: string, reason: string) => {
+    setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "rejected" as const, rejectionReason: reason } : x));
+    toast.success("Proposal rejected");
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between">
+        <SectionHeader icon={<ShieldAlert className="h-5 w-5" />} title="Performance Review"
+          subtitle="Analyze employee metrics and generate review proposals" />
+        <Button onClick={generateAll} variant="outline" className="h-9 gap-2 text-[12px] font-bold rounded-xl shrink-0">
+          <ShieldAlert className="h-3.5 w-3.5" /> {generated ? "Re-analyze" : "Run Review"}
+        </Button>
+      </div>
+      {!generated ? (
+        <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-8 text-center">
+          <ShieldAlert className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
+          <p className="text-[14px] font-bold text-foreground">No performance review yet</p>
+          <p className="text-[13px] text-muted-foreground mt-1">Click "Run Review" to analyze all employees and generate proposals.</p>
+        </div>
+      ) : proposals.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-status-green/30 bg-status-green/5 p-6 text-center">
+          <p className="text-[14px] font-bold text-foreground">All employees performing within thresholds</p>
+          <p className="text-[13px] text-muted-foreground mt-1">No performance proposals at this time.</p>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {proposals.map((p) => <PerformanceProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />)}
         </div>
       )}
     </section>
@@ -499,7 +604,7 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {employees.map((emp) => {
         const persona = getPersona(emp.role_code);
-        const st = getStatusMeta(emp.status);
+        const stMeta = STATUS_META[emp.status] ?? STATUS_META.active;
         const role = emp.role_id ? roleMap[emp.role_id] : null;
         const roleName = role?.name ?? emp.role_code;
         const successPct = Math.round((emp.success_rate ?? 0) * 100);
@@ -507,15 +612,17 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
         const perfColor = repScore >= 0.8 ? "text-status-green" : repScore >= 0.5 ? "text-status-amber" : "text-destructive";
         const perfRing = repScore >= 0.8 ? "border-status-green/30" : repScore >= 0.5 ? "border-status-amber/30" : "border-destructive/30";
         const teamName = departments.find((d: any) => d.id === emp.team_id)?.name;
-        // Extract config from role's skill_profile
         const sp = role?.skill_profile as any;
         const seniority = sp?.seniority;
-        const mbtiType = sp?.mbtiType;
         const riskTol = sp?.riskTolerance;
         const riskCls = riskTol === "high" ? "text-destructive" : riskTol === "low" ? "text-status-green" : "text-status-amber";
+        const isProbation = emp.status === "probation";
+        const isUnderReview = emp.status === "under_review";
 
         return (
-          <div key={emp.id} className="rounded-xl border border-border bg-card p-4 hover:shadow-md hover:-translate-y-px transition-all group">
+          <div key={emp.id} className={`rounded-xl border bg-card p-4 hover:shadow-md hover:-translate-y-px transition-all group ${
+            isProbation ? "border-status-amber/30" : isUnderReview ? "border-lifecycle-review/30" : "border-border"
+          }`}>
             <div className="flex items-start gap-3">
               <div className="relative shrink-0">
                 <div className={`rounded-xl border-[3px] ${perfRing} p-0.5`}>
@@ -523,7 +630,17 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
                     className={`h-14 w-14 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
                     width={56} height={56} />
                 </div>
-                <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${st.dot}`} />
+                <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${stMeta.dot}`} />
+                {isProbation && (
+                  <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-status-amber/20 flex items-center justify-center">
+                    <ShieldAlert className="h-3 w-3 text-status-amber" />
+                  </span>
+                )}
+                {isUnderReview && (
+                  <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-lifecycle-review/20 flex items-center justify-center">
+                    <AlertTriangle className="h-3 w-3 text-lifecycle-review" />
+                  </span>
+                )}
               </div>
 
               <div className="flex-1 min-w-0">
@@ -532,14 +649,13 @@ function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
                 </Link>
                 <p className="text-[12px] text-muted-foreground truncate mt-0.5">{roleName}{seniority ? ` · ${seniority}` : ""}</p>
                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                  <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${st.chipBg}`}>{st.label}</Badge>
+                  <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${stMeta.bg} ${stMeta.color}`}>{stMeta.label}</Badge>
                   <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
                   <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
                   {riskTol && <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${riskCls}`}>{riskTol} risk</Badge>}
                   {seniority && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{seniority}</Badge>}
                   {teamName && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{teamName}</Badge>}
                 </div>
-                {/* Stack badges */}
                 {sp?.primaryStack?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {(sp.primaryStack as string[]).slice(0, 4).map((s: string) => (
