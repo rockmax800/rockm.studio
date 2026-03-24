@@ -1,12 +1,16 @@
 /* ═══════════════════════════════════════════════════════════
    ExecutionPolicyBadge — compact display-only strip showing
    the active execution engine, provider, model, and mode.
+
+   Accepts an optional `policyOverride` to display a local
+   session override instead of the global default.
    ═══════════════════════════════════════════════════════════ */
 
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Cpu, Zap, Bot, Sparkles } from "lucide-react";
+import type { ExecutionPolicy } from "@/types/execution";
 
 const PROVIDER_LABEL: Record<string, string> = {
   anthropic: "Claude",
@@ -19,19 +23,33 @@ interface Props {
   /** Contextual label shown before the chips */
   label?: string;
   className?: string;
+  /** If provided, renders this policy instead of the global one */
+  policyOverride?: ExecutionPolicy | null;
+  /** Whether this is showing an override (adds a visual marker) */
+  isOverride?: boolean;
 }
 
-export function ExecutionPolicyBadge({ label, className }: Props) {
-  const { policy, isLoading, isRuflo, isExperimental } = useExecutionPolicy();
+export function ExecutionPolicyBadge({ label, className, policyOverride, isOverride }: Props) {
+  const { policy: globalPolicy, isLoading } = useExecutionPolicy();
 
-  if (isLoading) return null;
+  if (isLoading && !policyOverride) return null;
 
+  const policy = policyOverride ?? globalPolicy;
+  const isRuflo = policy.executionEngine === "ruflo";
+  const isExperimental = policy.experimental;
   const EngineIcon = isRuflo ? Zap : Cpu;
 
   return (
     <div className={cn("flex items-center gap-2 flex-wrap", className)}>
       {label && (
         <span className="text-[11px] text-muted-foreground font-medium shrink-0">{label}</span>
+      )}
+
+      {/* Override marker */}
+      {isOverride && (
+        <Badge variant="outline" className="text-[9px] px-1.5 border-primary/40 text-primary font-semibold">
+          session
+        </Badge>
       )}
 
       {/* Engine */}
