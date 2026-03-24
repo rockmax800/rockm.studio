@@ -132,14 +132,35 @@ export async function executeRun(
       });
       artifactId = artifact.id;
 
-      // Store output summary on run
+      // PART 11 — Store execution trace: provider refs, tokens, cost, workspace link
+      const updateData: Record<string, unknown> = {
+        output_summary: providerResult.outputText.slice(0, 500),
+        ended_at: now,
+        updated_at: now,
+        provider_id: providerResult.providerId ?? null,
+        provider_model_id: providerResult.modelId ?? null,
+        input_tokens: providerResult.inputTokens ?? null,
+        output_tokens: providerResult.outputTokens ?? null,
+        estimated_cost: providerResult.estimatedCost ?? null,
+        logs_ref: `runs/${runId}/logs`,
+        heartbeat_at: now,
+        duration_ms: run.started_at
+          ? new Date(now).getTime() - new Date(run.started_at).getTime()
+          : null,
+      };
+
+      // Link workspace if one exists for this run
+      try {
+        const workspace = await tx.repo_workspaces?.findFirst({ where: { run_id: runId } });
+        if (workspace) {
+          updateData.workspace_id = workspace.id;
+          updateData.branch_name = workspace.branch_name;
+        }
+      } catch { /* best-effort */ }
+
       await tx.runs.update({
         where: { id: runId },
-        data: {
-          output_summary: providerResult.outputText.slice(0, 500),
-          ended_at: now,
-          updated_at: now,
-        },
+        data: updateData,
       });
     });
 
