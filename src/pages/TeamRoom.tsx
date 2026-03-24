@@ -428,9 +428,9 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
           {/* ── LEFT 8 cols — Working Session ── */}
           <div className="col-span-8 border-r border-border/20 flex flex-col min-h-0 bg-background">
 
-            {/* Specialist header */}
+            {/* Specialist header — briefing identity */}
             <div className="px-6 py-5 border-b border-border/15 bg-card/30">
-              <div className="flex items-center gap-5">
+              <div className="flex items-start gap-5">
                 <div className="relative shrink-0">
                   <img src={persona.avatar} alt={emp.name}
                     className={cn("h-[72px] w-[72px] rounded-2xl object-cover ring-2 ring-offset-[3px] ring-offset-background", persona.ringClass)}
@@ -446,7 +446,24 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                     <Badge variant="secondary" className="text-[11px] h-6 px-2.5 font-semibold rounded-lg">{roleName}</Badge>
                   </div>
                   <p className="text-[12px] text-muted-foreground/40 mt-0.5 italic">{persona.specialty}</p>
-                  <div className="flex items-center gap-3 mt-2">
+
+                  {/* Intro bubble — briefing feel */}
+                  <div className="mt-2.5 rounded-xl bg-secondary/60 border border-border/30 px-4 py-2.5 max-w-[520px]">
+                    <p className="text-[13px] text-foreground/70 leading-[160%]">
+                      {(() => {
+                        const intros: Record<string, string> = {
+                          product_strategist: "Let's clarify the scope and make sure we're solving the right problem.",
+                          solution_architect: "I'll map the architecture — let's define layers and boundaries.",
+                          frontend_builder: "Ready to translate specs into clean, maintainable interfaces.",
+                          reviewer: "I'll check for correctness, security gaps, and contract compliance.",
+                          qa_agent: "Let's identify edge cases and make sure nothing slips through.",
+                        };
+                        return intros[emp.role_code] ?? "Session active. Let's work through this together.";
+                      })()}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-2.5">
                     <div className="flex items-center gap-1.5">
                       <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
                       <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
