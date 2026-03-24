@@ -525,6 +525,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
             <div>
               <p className="text-[14px] font-bold text-foreground">{emp.name}</p>
               <p className="text-[11px] text-muted-foreground">{roleName}{emp.seniority ? ` · ${emp.seniority}` : ""}</p>
+              <p className="text-[10px] text-muted-foreground/40 italic mt-0.5">{persona.workStyle}</p>
             </div>
           </div>
 

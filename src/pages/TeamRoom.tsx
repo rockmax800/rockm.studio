@@ -407,13 +407,17 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                     <h2 className="text-[22px] font-bold text-foreground leading-tight">{emp.name}</h2>
                     <Badge variant="secondary" className="text-[11px] h-6 px-2.5 font-semibold rounded-lg">{roleName}</Badge>
                   </div>
-                  <div className="flex items-center gap-3 mt-1.5">
+                  <p className="text-[12px] text-muted-foreground/40 mt-0.5 italic">{persona.specialty}</p>
+                  <div className="flex items-center gap-3 mt-2">
                     <div className="flex items-center gap-1.5">
                       <span className={cn("w-2 h-2 rounded-full", statusInfo.dot)} />
                       <span className={cn("text-[13px] font-semibold", statusInfo.text)}>{statusInfo.label}</span>
                     </div>
                     <span className="text-[11px] text-muted-foreground/30">·</span>
-                    <span className="text-[12px] text-muted-foreground/50 italic">{persona.tag}</span>
+                    <span className="text-[12px] text-muted-foreground/50 italic">{persona.nickname}</span>
+                    {persona.chips.slice(0, 2).map((chip) => (
+                      <span key={chip} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground/60">{chip}</span>
+                    ))}
                   </div>
                 </div>
 
