@@ -354,7 +354,14 @@ export default function CompanyLeadSession() {
         </div>
 
         {/* Execution context */}
-        <ExecutionPolicyBadge label="The team will execute with" />
+        <div className="flex items-center gap-2">
+          <ExecutionPolicyBadge
+            label="The team will execute with"
+            policyOverride={execOverride.enabled ? execOverride.policy : null}
+            isOverride={execOverride.enabled}
+          />
+          <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
+        </div>
 
         {showEstimate && (
           <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono" style={{ background: "hsl(217 91% 60% / 0.06)", color: "hsl(217 91% 60%)" }}>
