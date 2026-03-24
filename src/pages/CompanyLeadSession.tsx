@@ -590,35 +590,35 @@ export default function CompanyLeadSession() {
                     { label: "Cost", value: `$${totalCost}` },
                     { label: "Timeline", value: `${totalDays}d` },
                   ].map((s) => (
-                    <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "hsl(220 20% 97%)" }}>
-                      <span className="text-[18px] font-bold font-mono" style={{ color: "hsl(222 32% 14%)" }}>{s.value}</span>
-                      <p className="text-[10px] font-medium mt-0.5" style={{ color: "hsl(220 10% 64%)" }}>{s.label}</p>
+                    <div key={s.label} className="rounded-xl p-3 text-center bg-muted">
+                      <span className="text-[18px] font-bold font-mono text-foreground">{s.value}</span>
+                      <p className="text-[10px] font-medium mt-0.5 text-muted-foreground">{s.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Module breakdown */}
-                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(220 14% 90%)" }}>
-                  <div className="grid grid-cols-4 gap-0 text-[10px] font-semibold uppercase tracking-wider px-3 py-2" style={{ background: "hsl(220 20% 97%)", color: "hsl(220 10% 64%)" }}>
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <div className="grid grid-cols-4 gap-0 text-[10px] font-semibold uppercase tracking-wider px-3 py-2 bg-muted text-muted-foreground">
                     <span>Module</span><span className="text-right">Tokens</span><span className="text-right">Cost</span><span className="text-right">Days</span>
                   </div>
                   {moduleEstimates.map((mod) => (
-                    <div key={mod.name} className="grid grid-cols-4 gap-0 px-3 py-2 text-[11px]" style={{ borderTop: "1px solid hsl(220 14% 94%)" }}>
-                      <span className="font-semibold truncate" style={{ color: "hsl(222 32% 24%)" }}>{mod.name}</span>
-                      <span className="text-right font-mono" style={{ color: "hsl(220 10% 56%)" }}>{(mod.tokens / 1000).toFixed(0)}k</span>
-                      <span className="text-right font-mono" style={{ color: "hsl(220 10% 56%)" }}>${mod.cost}</span>
-                      <span className="text-right font-mono" style={{ color: "hsl(220 10% 56%)" }}>{mod.days}d</span>
+                    <div key={mod.name} className="grid grid-cols-4 gap-0 px-3 py-2 text-[11px] border-t border-border">
+                      <span className="font-semibold truncate text-foreground">{mod.name}</span>
+                      <span className="text-right font-mono text-muted-foreground">{(mod.tokens / 1000).toFixed(0)}k</span>
+                      <span className="text-right font-mono text-muted-foreground">${mod.cost}</span>
+                      <span className="text-right font-mono text-muted-foreground">{mod.days}d</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Founder requirements */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "hsl(220 10% 64%)" }}>You must provide</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5 text-muted-foreground">You must provide</p>
                   <ul className="space-y-1">
                     {scope.founderRequirements.map((req) => (
-                      <li key={req} className="text-[11px] flex items-center gap-2" style={{ color: "hsl(222 32% 34%)" }}>
-                        <ArrowRight className="h-2.5 w-2.5 shrink-0" style={{ color: "hsl(220 10% 78%)" }} />
+                      <li key={req} className="text-[11px] flex items-center gap-2 text-foreground/80">
+                        <ArrowRight className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
                         {req}
                       </li>
                     ))}
@@ -629,23 +629,20 @@ export default function CompanyLeadSession() {
                 <div className="pt-2 space-y-2">
                   <button
                     onClick={handleApprove}
-                    className="h-12 w-full flex items-center justify-center gap-2 text-[14px] font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.99]"
-                    style={{ background: "hsl(222 32% 14%)", color: "white", boxShadow: "0 2px 8px -2px hsl(222 32% 14% / 0.3)" }}
+                    className="h-12 w-full flex items-center justify-center gap-2 text-[14px] font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.99] bg-primary text-primary-foreground shadow-[var(--shadow-elevated)]"
                   >
                     <CheckCircle2 className="h-4 w-4" /> Approve & Create Blueprint
                   </button>
                   <div className="flex gap-2">
                     <button
                       onClick={handleRevise}
-                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all"
-                      style={{ border: "1px solid hsl(220 14% 88%)", color: "hsl(222 32% 24%)", background: "white" }}
+                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all border border-border text-foreground bg-card"
                     >
                       <RotateCcw className="h-3 w-3" /> Revise
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all"
-                      style={{ border: "1px solid hsl(0 72% 51% / 0.2)", color: "hsl(0 72% 51%)", background: "white" }}
+                      className="flex-1 h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold rounded-xl transition-all border border-destructive/20 text-destructive bg-card"
                     >
                       <XCircle className="h-3 w-3" /> Cancel
                     </button>
