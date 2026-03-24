@@ -48,7 +48,7 @@ export async function aggregateEmployeePerformance(): Promise<EmployeeMetrics[]>
   const { data: reviews } = await supabase
     .from("reviews")
     .select("task_id, state, verdict")
-    .in("state", ["approved", "approved_with_notes", "rejected", "closed"])
+    .in("state", ["resolved", "closed"])
     .order("created_at", { ascending: false })
     .limit(300);
 
