@@ -746,7 +746,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
           </span>
           <button
             onClick={() => { onClose?.(); navigate("/lead"); }}
-            className="text-[11px] font-medium text-status-blue hover:underline flex items-center gap-1"
+            className="text-[11px] font-medium text-foreground hover:underline flex items-center gap-1"
           >
             Open full workspace <Maximize2 className="h-3 w-3" />
           </button>
