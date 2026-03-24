@@ -192,7 +192,7 @@ export default function TeamsPage() {
 
           {/* ═══ SECTION 1 — CAPABILITY POOLS ═══ */}
           <section>
-            <SectionHeader icon={<Zap className="h-5 w-5" />} title="Capability Pools" />
+            <SectionHeader icon={<Zap className="h-5 w-5" />} title="Capability Teams" />
             <div className="mt-4">
               {deptLoading ? (
                 <p className="text-[13px] text-muted-foreground">Loading…</p>
