@@ -22,7 +22,7 @@ import {
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
   AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
   Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
-  GraduationCap,
+  GraduationCap, Eye,
 } from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
