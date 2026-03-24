@@ -59,13 +59,15 @@ export async function ensureCapabilityRole(params: {
   const roleLabel = ROLE_OPTIONS.find((role) => role.code === roleCode)?.label ?? roleCode;
   const { data: createdRole, error: createdRoleError } = await supabase
     .from("agent_roles")
-    .insert({
-      code: roleCode,
-      name: roleLabel,
-      description: roleLabel,
-      team_id: teamId,
-      skill_profile: skillProfile,
-    })
+    .insert([
+      {
+        code: roleCode,
+        name: roleLabel,
+        description: roleLabel,
+        team_id: teamId,
+        skill_profile: skillProfile,
+      },
+    ])
     .select("id")
     .single();
 

@@ -179,7 +179,7 @@ export default function OfficePage() {
     );
   }
 
-  const teamData = data.teams ?? [];
+  const teamData = data?.teams ?? [];
   const allEmployeeCount = Object.values(teamEmployees).flat().length + unassignedEmployees.length;
 
   useEffect(() => {

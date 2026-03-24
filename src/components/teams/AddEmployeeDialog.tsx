@@ -51,7 +51,7 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
     queryKey: ["employees-for-assign"],
     queryFn: async () => {
       const { data } = await supabase.from("ai_employees")
-        .select("id, name, role_code, team_id, status, reputation_score, success_rate")
+        .select("id, name, role_code, role_id, team_id, status, reputation_score, success_rate")
         .not("status", "eq", "terminated")
         .order("name");
       return data ?? [];
