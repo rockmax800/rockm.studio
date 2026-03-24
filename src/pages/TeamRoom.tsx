@@ -21,7 +21,7 @@ import {
   Target, Layers, ListChecks, HelpCircle, BarChart3,
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
   AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
-  Sparkles, Clock, TrendingUp, Shield,
+  Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
 }from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
@@ -353,6 +353,34 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
+  // ── Published training prompt query
+  const { data: activeGuidance } = useQuery({
+    queryKey: ["active-guidance", emp.id],
+    queryFn: async () => {
+      // Find active/draft session for employee
+      const { data: sessions } = await supabase
+        .from("employee_training_sessions" as any)
+        .select("id")
+        .eq("employee_id", emp.id)
+        .in("status", ["draft", "active"])
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      if (!sessions || (sessions as any[]).length === 0) return null;
+      const sessionId = (sessions as any[])[0].id;
+      // Find published draft
+      const { data: drafts } = await supabase
+        .from("employee_prompt_drafts" as any)
+        .select("id, version_number, prompt_markdown, created_at, is_published")
+        .eq("session_id", sessionId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (!drafts || (drafts as any[]).length === 0) return null;
+      return (drafts as any[])[0] as { id: string; version_number: number; prompt_markdown: string; created_at: string; is_published: boolean };
+    },
+    staleTime: 30_000,
+  });
+
   const totalTokens = transcript.reduce((s, e) => s + e.tokenCost, 0);
   const lastEntry = transcript[transcript.length - 1];
   const previousEntries = transcript.slice(0, -1);
@@ -375,6 +403,30 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
 
   // Memory counts (seed)
   const memoryCounts = { coreRules: 4, learnedPatterns: 3, failures: 2 };
+
+  // Extract top guidance sections from published prompt markdown
+  const guidanceSections = useMemo(() => {
+    if (!activeGuidance?.prompt_markdown) return [];
+    const lines = activeGuidance.prompt_markdown.split("\n");
+    const sections: { title: string; preview: string }[] = [];
+    let currentTitle = "";
+    let currentContent = "";
+    for (const line of lines) {
+      if (line.startsWith("## ")) {
+        if (currentTitle && currentContent.trim()) {
+          sections.push({ title: currentTitle, preview: currentContent.trim().slice(0, 80) });
+        }
+        currentTitle = line.replace("## ", "").trim();
+        currentContent = "";
+      } else {
+        currentContent += line + " ";
+      }
+    }
+    if (currentTitle && currentContent.trim()) {
+      sections.push({ title: currentTitle, preview: currentContent.trim().slice(0, 80) });
+    }
+    return sections.slice(0, 3);
+  }, [activeGuidance]);
 
   const meetingDot = meetingStatus === "active" ? "bg-status-green animate-pulse" : meetingStatus === "frozen" ? "bg-status-amber" : "bg-muted-foreground/30";
   const meetingLabel = meetingStatus === "active" ? "Live" : meetingStatus === "frozen" ? "Frozen" : "Ended";
@@ -607,6 +659,51 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                     <p className="text-[12px] text-status-amber font-medium leading-relaxed">{extraction.estimatedComplexity}</p>
                   </div>
                 </div>
+              </div>
+
+              {/* ── Active Guidance (Training Prompt) ── */}
+              <div className="mx-5 mb-4 rounded-xl border border-border/30 bg-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/15 bg-muted/10">
+                  <h4 className="text-[13px] font-bold text-foreground flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground/40" /> Active Guidance
+                  </h4>
+                </div>
+                {activeGuidance ? (
+                  <div className="p-4 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <BadgeCheck className="h-3.5 w-3.5 text-status-green shrink-0" />
+                      <span className="text-[11px] font-bold text-status-green">Published training prompt</span>
+                      <span className="text-[10px] text-muted-foreground/40 ml-auto font-mono">v{activeGuidance.version_number}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/50">
+                      Last updated {new Date(activeGuidance.created_at).toLocaleDateString()}
+                    </p>
+                    {guidanceSections.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        {guidanceSections.map((s, i) => (
+                          <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
+                            <p className="text-[10px] font-bold text-foreground/70 mb-0.5">{s.title}</p>
+                            <p className="text-[10px] text-muted-foreground leading-relaxed truncate">{s.preview}{s.preview.length >= 80 ? "…" : ""}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Link to={`/employees/${emp.id}`}>
+                      <Button variant="outline" size="sm" className="w-full h-8 text-[12px] gap-1.5 rounded-lg border-border/40 mt-1">
+                        <BookOpen className="h-3.5 w-3.5" /> Open Training Lab
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-[11px] text-muted-foreground/50 mb-2">No active training guidance published</p>
+                    <Link to={`/employees/${emp.id}`}>
+                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5 rounded-lg border-border/40">
+                        <BookOpen className="h-3 w-3" /> Open Training Lab
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* ── Memory Snapshot ── */}
