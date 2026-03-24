@@ -10,6 +10,7 @@ import {
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
+import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -347,6 +348,9 @@ export default function CompanyLeadSession() {
             </div>
           ))}
         </div>
+
+        {/* Execution context */}
+        <ExecutionPolicyBadge label="The team will execute with" />
 
         {showEstimate && (
           <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono" style={{ background: "hsl(217 91% 60% / 0.06)", color: "hsl(217 91% 60%)" }}>
