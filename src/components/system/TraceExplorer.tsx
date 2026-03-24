@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Shield, Search, ExternalLink, Info, Clock, Database, AlertTriangle } from "lucide-react";
+import { Shield, Search, ExternalLink, Info, Clock, Database, AlertTriangle, Cpu, Zap, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useOperationalTrace, useProjectsForFilter, type TraceItem, type TraceFilters } from "@/hooks/use-operational-trace";
 import { cn } from "@/lib/utils";
+import { ExecutionTraceLegend } from "@/components/system/ExecutionTraceLegend";
 
 const ENTITY_TYPES = [
   { value: "all", label: "All entities" },
@@ -73,6 +74,9 @@ export default function TraceExplorer({ initialFilters }: TraceExplorerProps = {
 
   return (
     <div className="space-y-3">
+      {/* Execution trace legend */}
+      <ExecutionTraceLegend />
+
       {/* Honesty banner */}
       <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/30">
         <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -110,6 +114,38 @@ export default function TraceExplorer({ initialFilters }: TraceExplorerProps = {
             {ENTITY_TYPES.map((t) => (
               <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        {/* Engine filter — placeholder, disabled until run records carry metadata */}
+        <Select disabled value="all">
+          <SelectTrigger className="w-[140px] h-8 text-xs opacity-50">
+            <div className="flex items-center gap-1.5">
+              <Cpu className="h-3 w-3" />
+              <SelectValue placeholder="All engines" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All engines</SelectItem>
+            <SelectItem value="native">Native</SelectItem>
+            <SelectItem value="ruflo">Ruflo</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Provider filter — placeholder, disabled until run records carry metadata */}
+        <Select disabled value="all">
+          <SelectTrigger className="w-[150px] h-8 text-xs opacity-50">
+            <div className="flex items-center gap-1.5">
+              <Bot className="h-3 w-3" />
+              <SelectValue placeholder="All providers" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All providers</SelectItem>
+            <SelectItem value="anthropic">Claude</SelectItem>
+            <SelectItem value="openai">GPT</SelectItem>
+            <SelectItem value="google">Gemini</SelectItem>
+            <SelectItem value="local">Local</SelectItem>
           </SelectContent>
         </Select>
 
