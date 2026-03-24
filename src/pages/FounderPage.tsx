@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter, ShieldCheck, Rocket } from "lucide-react";
+import { Filter, ShieldCheck, ExternalLink } from "lucide-react";
 
 export default function FounderPage() {
   const navigate = useNavigate();
@@ -40,7 +40,6 @@ export default function FounderPage() {
   const retryLoops = risk.data?.retry_loops_detected ?? [];
   const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
 
-  // Build decision items
   const allItems: DecisionItem[] = useMemo(() => {
     const items: DecisionItem[] = [];
 
@@ -104,7 +103,6 @@ export default function FounderPage() {
       });
     }
 
-    // Sort: critical → high → normal, then by time
     items.sort((a, b) => {
       const order = { critical: 0, high: 1, normal: 2 };
       const d = order[a.riskLevel] - order[b.riskLevel];
@@ -114,7 +112,6 @@ export default function FounderPage() {
     return items;
   }, [pendingApprovals, escalations, retryLoops, degradedProviders, projectMap]);
 
-  // Apply filters
   const filteredItems = useMemo(() => {
     let items = allItems;
     if (filterProject) items = items.filter((i) => i.projectName === filterProject);
@@ -125,94 +122,88 @@ export default function FounderPage() {
 
   const selectedItem = filteredItems.find((i) => i.id === selectedId) ?? null;
 
-  // Stats
   const highRiskCount = allItems.filter((i) => i.riskLevel === "critical" || i.riskLevel === "high").length;
   const deployReadyCount = allItems.filter((i) => i.category === "deploy_production").length;
   const blockedCritical = bottlenecks.data?.blockedTasks?.length ?? 0;
 
-  // Risk panel data
   const escalatedItems = (bottlenecks.data?.escalationsUnresolved ?? []).map((t: any) => ({ id: t.id, title: t.title }));
   const stalledRunCount = (bottlenecks.data?.tasksStuckInProgress ?? []).length;
 
-  // Unique project names for filter
   const projectNames = [...new Set(allItems.map((i) => i.projectName).filter(Boolean))] as string[];
   const categoryTypes = [...new Set(allItems.map((i) => i.category))];
 
   return (
-    <AppLayout title="Founder">
-      <div className="max-w-[1800px] mx-auto flex flex-col gap-2 h-[calc(100vh-4rem)]">
-        {/* Status Strip */}
+    <AppLayout title="Decision Engine" fullHeight>
+      <div className="flex flex-col gap-3 h-full px-6 py-4 overflow-hidden">
+        {/* Top Strip */}
         <FounderStatusStrip
           systemMode={modeData?.mode ?? "production"}
           pendingDecisions={allItems.length}
           highRiskCount={highRiskCount}
           deployReadyCount={deployReadyCount}
           blockedCritical={blockedCritical}
+          projects={projects.map((p) => ({ id: p.id, name: p.name }))}
         />
 
-        {/* Risk Panel */}
-        <RiskPanel
-          highRiskTasks={allItems.filter((i) => i.riskLevel === "critical").map((i) => ({ id: i.id, title: i.title }))}
-          escalatedItems={escalatedItems}
-          stalledRuns={stalledRunCount}
-          retryLoops={retryLoops}
-        />
-
-        {/* Filters */}
-        <div className="flex items-center gap-1.5">
-          <Filter className="h-3 w-3 text-muted-foreground" />
+        {/* Filters inline */}
+        <div className="flex items-center gap-2">
+          <Filter className="h-3.5 w-3.5 text-muted-foreground" />
           <Select value={filterProject ?? "__all__"} onValueChange={(v) => setFilterProject(v === "__all__" ? null : v)}>
-            <SelectTrigger className="h-6 w-[130px] text-[9px] bg-transparent border-border/40">
+            <SelectTrigger className="h-7 w-[130px] text-[11px] bg-secondary border-border rounded-lg">
               <SelectValue placeholder="Project" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__" className="text-[10px]">All Projects</SelectItem>
-              {projectNames.map((n) => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}
+              <SelectItem value="__all__" className="text-[11px]">All Projects</SelectItem>
+              {projectNames.map((n) => <SelectItem key={n} value={n} className="text-[11px]">{n}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterRisk ?? "__all__"} onValueChange={(v) => setFilterRisk(v === "__all__" ? null : v)}>
-            <SelectTrigger className="h-6 w-[100px] text-[9px] bg-transparent border-border/40">
+            <SelectTrigger className="h-7 w-[100px] text-[11px] bg-secondary border-border rounded-lg">
               <SelectValue placeholder="Risk" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__" className="text-[10px]">All Risk</SelectItem>
-              <SelectItem value="critical" className="text-[10px]">Critical</SelectItem>
-              <SelectItem value="high" className="text-[10px]">High</SelectItem>
-              <SelectItem value="normal" className="text-[10px]">Normal</SelectItem>
+              <SelectItem value="__all__" className="text-[11px]">All Risk</SelectItem>
+              <SelectItem value="critical" className="text-[11px]">Critical</SelectItem>
+              <SelectItem value="high" className="text-[11px]">High</SelectItem>
+              <SelectItem value="normal" className="text-[11px]">Normal</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterType ?? "__all__"} onValueChange={(v) => setFilterType(v === "__all__" ? null : v)}>
-            <SelectTrigger className="h-6 w-[120px] text-[9px] bg-transparent border-border/40">
+            <SelectTrigger className="h-7 w-[120px] text-[11px] bg-secondary border-border rounded-lg">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__" className="text-[10px]">All Types</SelectItem>
-              {categoryTypes.map((c) => <SelectItem key={c} value={c} className="text-[10px]">{c.replace(/_/g, " ")}</SelectItem>)}
+              <SelectItem value="__all__" className="text-[11px]">All Types</SelectItem>
+              {categoryTypes.map((c) => <SelectItem key={c} value={c} className="text-[11px]">{c.replace(/_/g, " ")}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Badge variant="outline" className="text-[8px] px-1.5 py-0 h-5 border-border/40 font-mono">
-            {filteredItems.length} items
+          <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 border-border font-mono tabular-nums">
+            {filteredItems.length} decisions
           </Badge>
         </div>
 
-        {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-2 flex-1 min-h-0">
-          {/* Left — Decision Queue */}
-          <div className="border border-border/30 rounded-lg bg-card/20 p-2 flex flex-col min-h-0">
+        {/* Main — 8/4 Asymmetric */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0">
+          {/* Left 8 cols — Decision Queue */}
+          <div className="lg:col-span-8 flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Decision Queue
-              </h2>
+              <h2 className="text-[14px] font-bold text-foreground tracking-tight">Decision Queue</h2>
+              {filteredItems.length > 0 && (
+                <span className="text-[11px] text-muted-foreground font-mono">{highRiskCount} high risk</span>
+              )}
             </div>
 
             {filteredItems.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                <ShieldCheck className="h-6 w-6 text-status-green/30" />
-                <p className="text-[10px] text-muted-foreground">All clear — no pending decisions</p>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-[12px] bg-secondary border border-border">
+                <ShieldCheck className="h-4 w-4 text-status-green" />
+                <div>
+                  <p className="text-[13px] font-bold text-foreground">No pending decisions.</p>
+                  <p className="text-[11px] text-muted-foreground">All approvals resolved. System operating normally.</p>
+                </div>
               </div>
             ) : (
               <ScrollArea className="flex-1 -mr-1 pr-1">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {filteredItems.map((item) => (
                     <DecisionCard
                       key={item.id}
@@ -227,16 +218,35 @@ export default function FounderPage() {
             )}
           </div>
 
-          {/* Right — Context Preview */}
-          <div className="border border-border/30 rounded-lg bg-card/20 p-2.5 flex flex-col min-h-0">
-            <h2 className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-              Context Preview
-            </h2>
+          {/* Right 4 cols — Context Preview */}
+          <div className="lg:col-span-4 flex flex-col min-h-0 bg-card rounded-[14px] border border-border p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[13px] font-bold text-foreground tracking-tight">Context</h2>
+              {selectedItem && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] px-2 gap-1 text-muted-foreground"
+                  onClick={() => navigate(selectedItem.linkTo)}
+                >
+                  Open <ExternalLink className="h-2.5 w-2.5" />
+                </Button>
+              )}
+            </div>
             <div className="flex-1 min-h-0">
               <ContextPreview selectedItem={selectedItem} />
             </div>
           </div>
         </div>
+
+        {/* Bottom — System Risk Overview */}
+        <RiskPanel
+          highRiskTasks={allItems.filter((i) => i.riskLevel === "critical").map((i) => ({ id: i.id, title: i.title, linkTo: i.linkTo }))}
+          escalatedItems={escalatedItems}
+          stalledRuns={stalledRunCount}
+          retryLoops={retryLoops}
+          onNavigate={navigate}
+        />
       </div>
     </AppLayout>
   );

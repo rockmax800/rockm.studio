@@ -1,16 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Stamp,
-  AlertTriangle,
-  Rocket,
-  ShieldAlert,
-  BookOpen,
-  Globe,
-  GraduationCap,
-  FileSearch,
-  ChevronRight,
+  Stamp, AlertTriangle, Rocket, ShieldAlert, BookOpen, Globe, GraduationCap,
+  FileSearch, CheckCircle, XCircle, ExternalLink,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -48,80 +40,115 @@ const CATEGORY_CONFIG: Record<string, { icon: typeof Stamp; label: string; color
   risk: { icon: ShieldAlert, label: "Risk", color: "text-status-red" },
 };
 
+const SEVERITY_STRIP: Record<string, string> = {
+  critical: "border-l-[4px] border-l-status-red",
+  high: "border-l-[4px] border-l-status-amber",
+  normal: "border-l-[4px] border-l-border",
+};
+
+const SEVERITY_BG: Record<string, string> = {
+  critical: "bg-status-red/[0.03]",
+  high: "bg-status-amber/[0.02]",
+  normal: "bg-card",
+};
+
 export function DecisionCard({ item, isSelected, onSelect, onNavigate }: DecisionCardProps) {
   const config = CATEGORY_CONFIG[item.category] ?? CATEGORY_CONFIG.approval;
   const Icon = config.icon;
 
   return (
-    <Card
+    <div
       onClick={onSelect}
       className={`
-        cursor-pointer transition-all duration-200
-        border-border/30 hover:border-primary/30
-        ${isSelected ? "border-primary/50 bg-surface-glass" : "bg-card/40"}
-        ${item.riskLevel === "critical" ? "border-l-2 border-l-status-red" : ""}
-        ${item.riskLevel === "high" ? "border-l-2 border-l-status-amber" : ""}
+        group relative cursor-pointer transition-all duration-150
+        rounded-[12px] border border-border
+        hover:shadow-elevated hover:-translate-y-px
+        ${SEVERITY_STRIP[item.riskLevel]}
+        ${isSelected ? "ring-1 ring-primary/40 bg-primary/[0.03]" : SEVERITY_BG[item.riskLevel]}
       `}
     >
-      <CardContent className="p-2.5">
-        <div className="flex items-start gap-2">
-          {/* Icon */}
-          <div className={`h-7 w-7 rounded flex items-center justify-center shrink-0 ${
-            item.riskLevel === "critical" ? "bg-status-red/10" :
-            item.riskLevel === "high" ? "bg-status-amber/10" : "bg-muted/50"
-          }`}>
-            <Icon className={`h-3.5 w-3.5 ${config.color}`} />
+      <div className="flex items-start gap-3 px-4 py-3">
+        {/* Icon block */}
+        <div className={`h-9 w-9 rounded-[10px] flex items-center justify-center shrink-0 ${
+          item.riskLevel === "critical" ? "bg-status-red/10" :
+          item.riskLevel === "high" ? "bg-status-amber/10" : "bg-secondary"
+        }`}>
+          <Icon className={`h-4 w-4 ${config.color}`} />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Top meta row */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border font-semibold">
+              {config.label}
+            </Badge>
+            {item.projectName && (
+              <span className="text-[11px] font-mono text-muted-foreground truncate">{item.projectName}</span>
+            )}
+            {item.riskLevel === "critical" && (
+              <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-4 font-bold">CRITICAL</Badge>
+            )}
+            {item.riskLevel === "high" && (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-status-amber/40 text-status-amber font-bold">HIGH</Badge>
+            )}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <Badge variant="outline" className="text-[7px] px-1 py-0 h-3 border-border/30">
-                {config.label}
-              </Badge>
-              {item.projectName && (
-                <span className="text-[7px] font-mono text-muted-foreground truncate">{item.projectName}</span>
-              )}
-              {item.riskLevel === "critical" && (
-                <Badge variant="destructive" className="text-[6px] px-1 py-0 h-3">CRITICAL</Badge>
-              )}
-              {item.riskLevel === "high" && (
-                <Badge variant="outline" className="text-[6px] px-1 py-0 h-3 border-status-amber/30 text-status-amber">HIGH</Badge>
-              )}
+          {/* Title */}
+          <p className="text-[14px] font-semibold leading-snug text-foreground line-clamp-2">{item.title}</p>
+
+          {/* Explanation */}
+          <p className="text-[12px] text-muted-foreground mt-0.5 line-clamp-1">{item.explanation}</p>
+
+          {/* Impact summary */}
+          {item.impactSummary && (
+            <div className="flex items-start gap-1 mt-1.5 px-2 py-1 rounded-lg bg-secondary/60 border border-border/50">
+              <AlertTriangle className="h-3 w-3 text-status-amber shrink-0 mt-0.5" />
+              <span className="text-[11px] text-foreground/80 leading-snug">{item.impactSummary}</span>
             </div>
+          )}
 
-            <p className="text-[10px] font-medium leading-tight line-clamp-2">{item.title}</p>
-            <p className="text-[8px] text-muted-foreground mt-0.5 line-clamp-1">{item.explanation}</p>
-
-            {/* Bottom row */}
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-[7px] font-mono text-muted-foreground">
-                {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
-              </span>
-              {item.evidenceCount > 0 && (
-                <Badge variant="outline" className="text-[6px] px-1 py-0 h-3 border-border/30">
-                  {item.evidenceCount} evidence
-                </Badge>
-              )}
-              {item.impactSummary && (
-                <span className="text-[7px] text-muted-foreground/70 truncate flex-1">{item.impactSummary}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Action */}
-          <div className="flex flex-col gap-1 shrink-0">
-            <Button
-              size="sm"
-              className="h-5 text-[8px] px-2"
-              onClick={(e) => { e.stopPropagation(); onNavigate(); }}
-            >
-              Open
-            </Button>
-            <ChevronRight className="h-3 w-3 text-muted-foreground/20 mx-auto" />
+          {/* Bottom row */}
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-[11px] font-mono text-muted-foreground">
+              {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+            </span>
+            {item.evidenceCount > 0 && (
+              <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <FileSearch className="h-3 w-3" />
+                <span className="font-mono">{item.evidenceCount}</span>
+              </div>
+            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Action buttons */}
+        <div className="flex flex-col gap-1.5 shrink-0">
+          <Button
+            size="sm"
+            className="h-7 text-[11px] px-3 gap-1 bg-foreground text-background hover:bg-foreground/90 rounded-lg font-bold"
+            onClick={(e) => { e.stopPropagation(); onNavigate(); }}
+          >
+            <CheckCircle className="h-3 w-3" /> Approve
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-[11px] px-3 gap-1 rounded-lg"
+            onClick={(e) => { e.stopPropagation(); onNavigate(); }}
+          >
+            <XCircle className="h-3 w-3" /> Reject
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-[10px] px-2 gap-1 text-muted-foreground"
+            onClick={(e) => { e.stopPropagation(); onNavigate(); }}
+          >
+            <ExternalLink className="h-2.5 w-2.5" /> Open
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,88 +1,69 @@
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Clock, Zap, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  AlertTriangle, Clock, Zap, ShieldAlert, XCircle, ExternalLink,
+} from "lucide-react";
 
 interface RiskPanelProps {
-  highRiskTasks: { id: string; title: string }[];
+  highRiskTasks: { id: string; title: string; linkTo?: string }[];
   escalatedItems: { id: string; title: string }[];
   stalledRuns: number;
   retryLoops: { taskId: string; failedCount: number }[];
+  onNavigate?: (path: string) => void;
 }
 
-export function RiskPanel({ highRiskTasks, escalatedItems, stalledRuns, retryLoops }: RiskPanelProps) {
-  const [expanded, setExpanded] = useState(false);
+export function RiskPanel({ highRiskTasks, escalatedItems, stalledRuns, retryLoops, onNavigate }: RiskPanelProps) {
   const totalIssues = highRiskTasks.length + escalatedItems.length + stalledRuns + retryLoops.length;
 
   if (totalIssues === 0) {
     return (
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-sunken border border-border/30 rounded-lg">
+      <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-[12px] border border-border">
         <div className="h-1.5 w-1.5 rounded-full bg-status-green" />
-        <span className="text-[9px] text-status-green font-medium">No active risks</span>
+        <span className="text-[12px] text-status-green font-semibold">System healthy — no active risks</span>
       </div>
     );
   }
 
+  const allItems: { icon: typeof AlertTriangle; label: string; title: string; color: string; linkTo?: string }[] = [];
+
+  for (const t of highRiskTasks) {
+    allItems.push({ icon: AlertTriangle, label: "Critical", title: t.title, color: "text-status-red", linkTo: t.linkTo });
+  }
+  for (const e of escalatedItems) {
+    allItems.push({ icon: Zap, label: "Escalated", title: e.title, color: "text-lifecycle-escalated", linkTo: `/control/tasks/${e.id}` });
+  }
+  for (const r of retryLoops) {
+    allItems.push({ icon: ShieldAlert, label: "Retry Loop", title: `${r.failedCount} failures · ${r.taskId.slice(0, 8)}…`, color: "text-status-red", linkTo: `/control/tasks/${r.taskId}` });
+  }
+  if (stalledRuns > 0) {
+    allItems.push({ icon: Clock, label: "Stalled", title: `${stalledRuns} stalled run(s)`, color: "text-status-amber" });
+  }
+
   return (
-    <div className="bg-surface-sunken border border-border/30 rounded-lg">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-surface-glass/30 transition-colors rounded-lg"
-      >
-        <ShieldAlert className="h-3 w-3 text-status-red" />
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Risks</span>
-        <Badge variant="destructive" className="text-[7px] px-1 py-0 h-3">{totalIssues}</Badge>
-
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-2">
-          {highRiskTasks.length > 0 && <RiskChip icon={<AlertTriangle className="h-2.5 w-2.5" />} value={highRiskTasks.length} color="text-status-red" />}
-          {escalatedItems.length > 0 && <RiskChip icon={<Zap className="h-2.5 w-2.5" />} value={escalatedItems.length} color="text-lifecycle-escalated" />}
-          {stalledRuns > 0 && <RiskChip icon={<Clock className="h-2.5 w-2.5" />} value={stalledRuns} color="text-status-amber" />}
-          {retryLoops.length > 0 && <RiskChip icon={<ShieldAlert className="h-2.5 w-2.5" />} value={retryLoops.length} color="text-status-red" />}
-        </div>
-
-        {expanded ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />}
-      </button>
-
-      {expanded && (
-        <div className="px-3 pb-2 pt-1 border-t border-border/20">
-          <ScrollArea className="max-h-32">
-            <div className="space-y-0.5">
-              {highRiskTasks.map((t) => (
-                <RiskRow key={t.id} label="High Risk" title={t.title} color="text-status-red" />
-              ))}
-              {escalatedItems.map((e) => (
-                <RiskRow key={e.id} label="Escalated" title={e.title} color="text-lifecycle-escalated" />
-              ))}
-              {retryLoops.map((r) => (
-                <RiskRow key={r.taskId} label="Retry Loop" title={`${r.failedCount} failures · ${r.taskId.slice(0, 8)}…`} color="text-status-red" />
-              ))}
-              {stalledRuns > 0 && (
-                <RiskRow label="Stalled" title={`${stalledRuns} stalled run(s)`} color="text-status-amber" />
-              )}
+    <div className="bg-card rounded-[12px] border border-border px-4 py-2.5">
+      <div className="flex items-center gap-2 mb-2">
+        <ShieldAlert className="h-3.5 w-3.5 text-status-red" />
+        <span className="text-[12px] font-bold text-foreground">System Risk</span>
+        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 font-bold">{totalIssues}</Badge>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1.5">
+        {allItems.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={i}
+              onClick={() => item.linkTo && onNavigate?.(item.linkTo)}
+              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-secondary/60 border border-border/50 ${
+                item.linkTo ? "cursor-pointer hover:bg-secondary transition-colors" : ""
+              }`}
+            >
+              <Icon className={`h-3 w-3 shrink-0 ${item.color}`} />
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${item.color} shrink-0`}>{item.label}</span>
+              <span className="text-[11px] text-foreground/70 truncate flex-1">{item.title}</span>
+              {item.linkTo && <ExternalLink className="h-2.5 w-2.5 text-muted-foreground/30 shrink-0" />}
             </div>
-          </ScrollArea>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RiskChip({ icon, value, color }: { icon: React.ReactNode; value: number; color: string }) {
-  return (
-    <div className={`flex items-center gap-0.5 ${color}`}>
-      {icon}
-      <span className="text-[8px] font-mono font-bold">{value}</span>
-    </div>
-  );
-}
-
-function RiskRow({ label, title, color }: { label: string; title: string; color: string }) {
-  return (
-    <div className="flex items-center gap-2 py-0.5">
-      <span className={`text-[7px] font-semibold uppercase ${color}`}>{label}</span>
-      <span className="text-[8px] text-foreground/70 truncate">{title}</span>
+          );
+        })}
+      </div>
     </div>
   );
 }
