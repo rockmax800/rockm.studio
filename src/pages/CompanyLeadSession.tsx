@@ -374,8 +374,23 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
           ))}
         </div>
 
-        {/* Right side: execution badge + expand */}
+        {/* Right side: profile + training + execution badge + expand */}
         <div className="flex items-center gap-2">
+          <Link to="/lead/profile"
+            className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+            title="Open Lead Profile"
+            onClick={() => { if (embedded) onClose?.(); }}
+          >
+            <User className="h-3.5 w-3.5" /> Profile
+          </Link>
+          <Link to="/lead/profile"
+            className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+            title="Train Company Lead"
+            onClick={() => { if (embedded) onClose?.(); }}
+          >
+            <GraduationCap className="h-3.5 w-3.5" /> Train
+          </Link>
+
           {!embedded && (
             <>
               <ExecutionPolicyBadge

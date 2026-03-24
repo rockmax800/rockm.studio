@@ -56,6 +56,7 @@ const App = () => (
             <Route path="/employees/:id/tasks" element={<EmployeeTasksPage />} />
             <Route path="/presale/new" element={<IntakeComposer />} />
             <Route path="/lead" element={<CompanyLeadSession />} />
+            <Route path="/lead/profile" element={<CompanyLeadProfile />} />
             <Route path="/evolution" element={<EvolutionDashboard />} />
             <Route path="/smm" element={<SMMCapability />} />
 
