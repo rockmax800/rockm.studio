@@ -561,9 +561,9 @@ export default function CompanyLeadSession() {
                 )}
               </RailCard>
             ) : (
-              <div className="rounded-2xl p-6 text-center" style={{ border: "1.5px dashed hsl(220 14% 90%)", background: "hsl(0 0% 100% / 0.5)" }}>
-                <Target className="h-5 w-5 mx-auto mb-2" style={{ color: "hsl(220 10% 82%)" }} />
-                <p className="text-[12px] font-medium" style={{ color: "hsl(220 10% 72%)" }}>
+              <div className="rounded-2xl p-6 text-center border-[1.5px] border-dashed border-border bg-card/50">
+                <Target className="h-5 w-5 mx-auto mb-2 text-muted-foreground/60" />
+                <p className="text-[12px] font-medium text-muted-foreground">
                   Scope will appear here as you describe your project
                 </p>
               </div>
