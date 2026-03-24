@@ -1,7 +1,8 @@
 // Handoff Service — First-class domain entity for role-to-role collaboration
-// All handoff lifecycle changes emit ActivityEvents for audit trail.
+// All handoff lifecycle changes emit ActivityEvents and canonical event_log entries.
 
 import { GuardError } from "@/guards/GuardError";
+import { writeEventLog } from "@/lib/eventLogWriter";
 
 interface PrismaTransactionClient {
   [key: string]: {
