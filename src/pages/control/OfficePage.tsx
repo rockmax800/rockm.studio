@@ -1,23 +1,25 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useOfficeData, useOfficeRealtime } from "@/hooks/use-office-data";
 import { OfficeStatusStrip } from "@/components/office/OfficeStatusStrip";
+import { OfficeTeamStrip } from "@/components/office/OfficeTeamStrip";
 import { LifecycleRoom } from "@/components/office/LifecycleRoom";
 import { OfficeEventStream } from "@/components/office/OfficeEventStream";
-import { OfficeTeamStrip } from "@/components/office/OfficeTeamStrip";
 import { Button } from "@/components/ui/button";
 import { Rocket } from "lucide-react";
 import type { OfficeTaskCardData } from "@/components/office/OfficeTaskCard";
 
-const ROOMS = [
+const ACTIVE_LANES = [
   { key: "ready", label: "Ready", states: ["ready", "assigned"] },
   { key: "in_progress", label: "In Progress", states: ["in_progress"] },
   { key: "waiting_review", label: "Review", states: ["waiting_review"] },
   { key: "rework", label: "Rework", states: ["rework_required"] },
   { key: "blocked", label: "Blocked", states: ["blocked"] },
   { key: "escalated", label: "Escalated", states: ["escalated"] },
+] as const;
+
+const LOWER_LANES = [
   { key: "validated", label: "Validated", states: ["validated"] },
   { key: "done", label: "Done", states: ["done"] },
   { key: "release", label: "Release", states: [] },
@@ -68,7 +70,6 @@ export default function OfficePage() {
     };
   }, [data]);
 
-  // Team presence data
   const teamPresence = useMemo(() => {
     if (!data) return [];
     const activeRoles = data.roles ?? [];
@@ -117,13 +118,15 @@ export default function OfficePage() {
     return raw?.domain === "release" && !["done", "cancelled"].includes(t.state);
   });
 
-  const totalTasks = filteredTasks.length;
-  const isEmpty = totalTasks === 0;
+  const isEmpty = filteredTasks.length === 0;
+
+  const getLaneTasks = (states: readonly string[]) =>
+    filteredTasks.filter((t) => (states as readonly string[]).includes(t.state));
 
   return (
     <AppLayout title="Production Floor" fullHeight>
       <div className="grid-content flex flex-col gap-3 px-6 py-4 h-full overflow-hidden">
-        {/* Status Strip */}
+        {/* Top Strip */}
         <OfficeStatusStrip
           systemMode={data.systemMode}
           {...stats}
@@ -137,58 +140,57 @@ export default function OfficePage() {
           onLifecycleChange={setSelectedLifecycle}
         />
 
-        {/* Team Presence Strip */}
+        {/* Team Presence */}
         <OfficeTeamStrip agents={teamPresence} />
 
         {isEmpty ? (
-          /* Empty state */
           <div className="flex-1 flex items-center justify-center">
-            <div className="flex items-center gap-4 px-6 py-4 rounded-[16px] bg-secondary border border-border">
+            <div className="flex items-center gap-4 px-6 py-4 rounded-[14px] bg-secondary border border-border">
               <div>
-                <p className="text-[16px] font-semibold text-foreground">Production floor idle.</p>
+                <p className="text-[16px] font-bold text-foreground">Production floor idle.</p>
                 <p className="text-[13px] text-muted-foreground mt-0.5">No active tasks in the pipeline.</p>
               </div>
               <Link to="/presale/new">
-                <Button size="sm" className="h-8 text-[13px] gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg font-semibold">
+                <Button size="sm" className="h-8 text-[13px] gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg font-bold">
                   <Rocket className="h-3.5 w-3.5" /> Start Intake
                 </Button>
               </Link>
             </div>
           </div>
         ) : (
-          /* Main: Lifecycle Lanes + Live Flow */
-          <div className="flex gap-3 flex-1 min-h-0">
-            {/* Lifecycle Lanes — 3×3 grid */}
-            <div
-              className="flex-1 grid gap-2 min-h-0"
-              style={{
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gridTemplateRows: "repeat(3, 1fr)",
-              }}
-            >
-              {ROOMS.map((room) => {
-                let roomTasks: OfficeTaskCardData[];
-                if (room.key === "release") {
-                  roomTasks = releaseTasks;
-                } else {
-                  roomTasks = filteredTasks.filter((t) =>
-                    (room.states as readonly string[]).includes(t.state)
-                  );
-                }
-                return (
+          <div className="flex gap-3 flex-1 min-h-0 overflow-hidden">
+            {/* Lanes area */}
+            <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-auto">
+              {/* Upper — Active lanes (3x2) */}
+              <div className="grid grid-cols-3 gap-2" style={{ minHeight: "55%" }}>
+                {ACTIVE_LANES.map((lane) => (
                   <LifecycleRoom
-                    key={room.key}
-                    label={room.label}
-                    stateKey={room.key}
-                    tasks={roomTasks}
+                    key={lane.key}
+                    label={lane.label}
+                    stateKey={lane.key}
+                    tasks={getLaneTasks(lane.states)}
                     onTaskClick={handleTaskClick}
                   />
-                );
-              })}
+                ))}
+              </div>
+
+              {/* Lower — Completed lanes (3x1, shorter) */}
+              <div className="grid grid-cols-3 gap-2" style={{ minHeight: 120 }}>
+                {LOWER_LANES.map((lane) => (
+                  <LifecycleRoom
+                    key={lane.key}
+                    label={lane.label}
+                    stateKey={lane.key}
+                    tasks={lane.key === "release" ? releaseTasks : getLaneTasks(lane.states)}
+                    onTaskClick={handleTaskClick}
+                    compact
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* Live Flow — right panel */}
-            <div className="w-64 shrink-0 ds-card p-3 flex flex-col min-h-0">
+            {/* Live Event Wall */}
+            <div className="w-72 shrink-0 ds-card p-3 flex flex-col min-h-0 overflow-hidden">
               <OfficeEventStream
                 officeEvents={data.officeEvents ?? []}
                 activityEvents={data.recentEvents ?? []}
