@@ -351,18 +351,6 @@ export default function OfficePage() {
                             <div className="flex items-center justify-between mb-4">
                               <h4 className="text-[16px] font-bold text-foreground">Team Members</h4>
                               <div className="flex items-center gap-2">
-                                <AddEmployeeDialog teamId={team.id} teamName={team.name}
-                                  trigger={
-                                    <Button size="sm" variant="outline" className="h-8 text-[12px] font-bold gap-1.5 rounded-lg">
-                                      <Plus className="h-3 w-3" /> Add Member
-                                    </Button>
-                                  }
-                                />
-                                <Link to="/presale/new">
-                                  <Button size="sm" className="h-8 text-[12px] font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg">
-                                    <Plus className="h-3 w-3" /> Start Intake
-                                  </Button>
-                                </Link>
                               </div>
                             </div>
 

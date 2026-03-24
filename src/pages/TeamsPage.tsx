@@ -5,28 +5,25 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDepartments } from "@/hooks/use-department-data";
-import { useHRDashboard } from "@/hooks/use-hr-data";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { getPersona } from "@/lib/personas";
 import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
-import { HRProposalCard } from "@/components/teams/HRProposalCard";
-import { PerformanceProposalCard } from "@/components/teams/PerformanceProposalCard";
 import { TeamBalanceChart } from "@/components/teams/TeamBalanceChart";
 import { toast } from "sonner";
 import { getMBTI } from "@/lib/mbtiData";
 import { getNationality } from "@/lib/nationalityData";
 import {
-  generateHRProposals, generatePerformanceProposals, computeTeamDistribution,
-  type HRProposal, type HRPerformanceProposal, ROLE_OPTIONS, STATUS_META,
+  computeTeamDistribution,
+  ROLE_OPTIONS, STATUS_META,
 } from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
-  ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy,
-  Zap, Activity, GraduationCap, FlaskConical, Plus,
-  UserPlus, ShieldAlert, BarChart3, Sparkles,
+  ChevronDown, ChevronRight, AlertTriangle, ShieldAlert, BarChart3,
+  Zap, Activity, Plus,
+  Sparkles,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
@@ -36,7 +33,6 @@ export default function TeamsPage() {
   const [expandedDeptId, setExpandedDeptId] = useState<string | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const { data: departments = [], isLoading: deptLoading } = useDepartments();
-  const { data: hrData } = useHRDashboard();
 
   const { data: allEmployees = [] } = useQuery({
     queryKey: ["all-employees-full"],
@@ -53,17 +49,6 @@ export default function TeamsPage() {
     queryFn: async () => {
       const { data } = await supabase.from("agent_roles")
         .select("id, name, code, status, success_rate, total_runs, capacity_score, team_id, skill_profile");
-      return data ?? [];
-    },
-  });
-
-  const { data: learningProposals = [] } = useQuery({
-    queryKey: ["learning-proposals-teams"],
-    queryFn: async () => {
-      const { data } = await supabase.from("learning_proposals")
-        .select("id, proposal_type, status, hypothesis, created_at")
-        .in("status", ["candidate", "approved"])
-        .order("created_at", { ascending: false }).limit(10);
       return data ?? [];
     },
   });
@@ -95,7 +80,6 @@ export default function TeamsPage() {
   const underperforming = allEmployees.filter((e) => e.status !== "terminated" && ((e.success_rate ?? 0) < 0.6 || (e.bug_rate ?? 0) > 0.3));
   const probationCount = allEmployees.filter((e) => e.status === "probation").length;
   const onboardingCount = allEmployees.filter((e) => e.status === "onboarding").length;
-  const suggestions = hrData?.suggestions?.filter((s: any) => !s.resolved) ?? [];
   const hasNoSetup = departments.length === 0 && activeEmployees.length === 0;
 
   const getPoolMetrics = (deptId: string) => {
@@ -329,83 +313,6 @@ export default function TeamsPage() {
             </div>
           </section>
 
-          {/* ═══ SECTION 3 — HIRING & PERFORMANCE (CONSOLIDATED) ═══ */}
-          <section>
-            <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Hiring & Performance" />
-
-            <div className="mt-4 space-y-6">
-              {/* HR Hiring Proposals */}
-              <HRHiringProposalsSection departments={departments} activeEmployees={activeEmployees} allRoles={allRoles} />
-
-              {/* Performance Review */}
-              <PerformanceReviewSection allEmployees={allEmployees} departments={departments} allRoles={allRoles} />
-
-              {/* Stats row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-destructive/30">
-                  <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-destructive/60" /> At Risk
-                  </h3>
-                  {underperforming.length === 0 ? (
-                    <p className="text-[13px] text-muted-foreground/50">All agents performing well.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {underperforming.slice(0, 5).map((emp) => (
-                        <Link key={emp.id} to={`/employees/${emp.id}`}>
-                          <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-destructive/5 transition-colors">
-                            <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
-                            <span className="text-[14px] font-medium text-foreground truncate flex-1">{emp.name}</span>
-                            <StatusChip status={emp.status} />
-                            <span className="text-[12px] font-mono text-destructive/70">{Math.round((emp.success_rate ?? 0) * 100)}%</span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-amber/30">
-                  <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-status-amber/60" /> Suggestions
-                  </h3>
-                  {suggestions.length === 0 ? (
-                    <p className="text-[13px] text-muted-foreground/50">No active suggestions.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {suggestions.slice(0, 5).map((s: any) => (
-                        <div key={s.id} className="py-2 px-3 rounded-lg bg-secondary/30">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-status-amber">{s.suggestion_type}</span>
-                          <p className="text-[13px] text-foreground mt-0.5 line-clamp-2">{s.reason}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-blue/30">
-                  <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
-                    <FlaskConical className="h-4 w-4 text-status-blue/60" /> Learning Pipeline
-                  </h3>
-                  {learningProposals.length === 0 ? (
-                    <p className="text-[13px] text-muted-foreground/50">No open proposals.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {learningProposals.slice(0, 5).map((lp) => (
-                        <div key={lp.id} className="py-2 px-3 rounded-lg bg-secondary/30">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-status-blue">{lp.status}</span>
-                            <span className="text-[10px] text-muted-foreground/50 ml-auto font-mono">
-                              {new Date(lp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                            </span>
-                          </div>
-                          <p className="text-[13px] text-foreground mt-0.5 line-clamp-2">{lp.hypothesis || lp.proposal_type}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
           <div className="h-8" />
         </div>
       </ScrollArea>
@@ -527,162 +434,6 @@ function EmployeeTable({ employees, allRoles, departments, onRemove, onMove }: {
   );
 }
 
-function HRHiringProposalsSection({ departments, activeEmployees, allRoles }: { departments: any[]; activeEmployees: any[]; allRoles: any[] }) {
-  const qc = useQueryClient();
-  const [proposals, setProposals] = useState<HRProposal[]>([]);
-  const [generated, setGenerated] = useState(false);
-
-  const generateAll = () => {
-    const all: HRProposal[] = [];
-    for (const dept of departments) {
-      const deptEmps = activeEmployees.filter((e: any) => e.team_id === dept.id);
-      const deptRoles = allRoles.filter((r: any) => r.team_id === dept.id);
-      const members = deptEmps.map((e: any) => {
-        const role = deptRoles.find((r: any) => r.id === e.role_id);
-        const sp = role?.skill_profile as any;
-        return { roleCode: e.role_code, seniority: sp?.seniority ?? "Middle", riskTolerance: sp?.riskTolerance, speedVsQuality: sp?.speedVsQuality, successRate: e.success_rate, bugRate: e.bug_rate };
-      });
-      const stack = (deptRoles[0]?.skill_profile as any)?.primaryStack ?? [];
-      all.push(...generateHRProposals(dept.id, dept.name, members, stack));
-    }
-    setProposals(all);
-    setGenerated(true);
-  };
-
-  const handleApprove = async (id: string) => {
-    const p = proposals.find((x) => x.id === id);
-    if (!p) return;
-    try {
-      const label = ROLE_OPTIONS.find((r) => r.code === p.suggestedRole)?.label ?? p.suggestedRole;
-      const { data: role } = await supabase.from("agent_roles").select("id").eq("code", p.suggestedRole).eq("team_id", p.capabilityId).maybeSingle();
-      let roleId = role?.id;
-      if (!roleId) {
-        const { data: nr } = await supabase.from("agent_roles").insert({ code: p.suggestedRole, name: label, description: label, team_id: p.capabilityId, skill_profile: p.traits }).select("id").single();
-        roleId = nr?.id;
-      }
-      const { generateEmployeeName } = await import("@/services/EmployeeNamingService");
-      await supabase.from("ai_employees").insert({ name: generateEmployeeName(p.suggestedRole, Math.floor(Math.random() * 30)), role_code: p.suggestedRole, role_id: roleId ?? null, team_id: p.capabilityId, status: "onboarding", model_name: "gpt-4o", provider: "openai" });
-      setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "approved" as const } : x));
-      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-      toast.success(`${label} approved — employee created in Onboarding status`);
-    } catch (e: any) { toast.error(e.message); }
-  };
-
-  const handleReject = (id: string, reason: string) => {
-    setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "rejected" as const, rejectionReason: reason } : x));
-    toast.success("Proposal rejected");
-  };
-
-  if (departments.length === 0) return null;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[16px] font-bold text-foreground flex items-center gap-2">
-          <UserPlus className="h-4 w-4 text-muted-foreground/50" /> Hiring Proposals
-        </h3>
-        <Button onClick={generateAll} variant="outline" className="h-8 gap-2 text-[12px] font-bold rounded-lg shrink-0">
-          <Zap className="h-3.5 w-3.5" /> {generated ? "Regenerate" : "Analyze Gaps"}
-        </Button>
-      </div>
-      {!generated ? (
-        <div className="rounded-xl border-2 border-dashed border-border bg-secondary/10 p-6 text-center">
-          <p className="text-[13px] text-muted-foreground">Click "Analyze Gaps" to get AI hiring recommendations.</p>
-        </div>
-      ) : proposals.length === 0 ? (
-        <div className="rounded-xl border border-status-green/30 bg-status-green/5 p-4 text-center">
-          <p className="text-[13px] font-bold text-foreground">All capabilities are well-staffed</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {proposals.map((p) => <HRProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PerformanceReviewSection({ allEmployees, departments, allRoles }: { allEmployees: any[]; departments: any[]; allRoles: any[] }) {
-  const qc = useQueryClient();
-  const [proposals, setProposals] = useState<HRPerformanceProposal[]>([]);
-  const [generated, setGenerated] = useState(false);
-
-  const generateAll = () => {
-    const result = generatePerformanceProposals(allEmployees, departments, allRoles);
-    setProposals(result);
-    setGenerated(true);
-  };
-
-  const handleApprove = async (id: string) => {
-    const p = proposals.find((x) => x.id === id);
-    if (!p) return;
-    try {
-      let newStatus: string | undefined;
-      if (p.type === "probation") newStatus = "probation";
-      else if (p.type === "restore_active") newStatus = "active";
-      else if (p.type === "remove_from_capability") newStatus = "suspended";
-      else if (p.type === "replacement") newStatus = "suspended";
-
-      if (newStatus) {
-        const { error } = await supabase.from("ai_employees").update({ status: newStatus }).eq("id", p.employeeId);
-        if (error) throw error;
-      }
-
-      if (p.type === "replacement" && p.replacementConfig) {
-        const rc = p.replacementConfig;
-        const label = ROLE_OPTIONS.find(r => r.code === rc.suggestedRole)?.label ?? rc.suggestedRole;
-        const { data: role } = await supabase.from("agent_roles").select("id").eq("code", rc.suggestedRole).eq("team_id", p.capabilityId).maybeSingle();
-        let roleId = role?.id;
-        if (!roleId) {
-          const { data: nr } = await supabase.from("agent_roles").insert({ code: rc.suggestedRole, name: label, description: label, team_id: p.capabilityId, skill_profile: rc.traits }).select("id").single();
-          roleId = nr?.id;
-        }
-        const { generateEmployeeName } = await import("@/services/EmployeeNamingService");
-        await supabase.from("ai_employees").insert({
-          name: generateEmployeeName(rc.suggestedRole, Math.floor(Math.random() * 30)),
-          role_code: rc.suggestedRole, role_id: roleId ?? null, team_id: p.capabilityId,
-          status: "onboarding", model_name: "gpt-4o", provider: "openai",
-        });
-      }
-
-      setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "approved" as const } : x));
-      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
-      toast.success(`${p.type === "replacement" ? "Replacement" : "Status change"} approved for ${p.employeeName}`);
-    } catch (e: any) { toast.error(e.message); }
-  };
-
-  const handleReject = (id: string, reason: string) => {
-    setProposals((prev) => prev.map((x) => x.id === id ? { ...x, status: "rejected" as const, rejectionReason: reason } : x));
-    toast.success("Proposal rejected");
-  };
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[16px] font-bold text-foreground flex items-center gap-2">
-          <ShieldAlert className="h-4 w-4 text-muted-foreground/50" /> Performance Review
-        </h3>
-        <Button onClick={generateAll} variant="outline" className="h-8 gap-2 text-[12px] font-bold rounded-lg shrink-0">
-          <ShieldAlert className="h-3.5 w-3.5" /> {generated ? "Re-analyze" : "Run Review"}
-        </Button>
-      </div>
-      {!generated ? (
-        <div className="rounded-xl border-2 border-dashed border-border bg-secondary/10 p-6 text-center">
-          <p className="text-[13px] text-muted-foreground">Click "Run Review" to analyze employee performance.</p>
-        </div>
-      ) : proposals.length === 0 ? (
-        <div className="rounded-xl border border-status-green/30 bg-status-green/5 p-4 text-center">
-          <p className="text-[13px] font-bold text-foreground">All employees are performing within expectations</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {proposals.map((p) => <PerformanceProposalCard key={p.id} proposal={p} onApprove={handleApprove} onReject={handleReject} />)}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
   return (
