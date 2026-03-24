@@ -367,7 +367,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                 <span className="hidden sm:inline">{PHASE_LABELS[p]}</span>
               </div>
               {i < PHASE_ORDER.length - 1 && (
-                <div className="w-6 h-px bg-border" style={i < currentPhaseIdx ? { background: "hsl(217 91% 60%)" } : undefined} />
+                <div className="w-6 h-px bg-border" style={i < currentPhaseIdx ? { background: "hsl(152 56% 42%)" } : undefined} />
               )}
             </div>
           ))}
