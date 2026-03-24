@@ -122,6 +122,7 @@ Controlled self-improvement and experimental features.
 | 32 | Failure Classification | Standardized error_class values for run failure categorization |
 | 33 | Operational Diagnostics | Read-only observability layer with diagnostic endpoints |
 | 34 | Client Portal | Read-only external view for client project tracking |
+| 35 | Context Reproducibility | Snapshot semantics for reproducible and auditable Runs |
 
 ---
 
