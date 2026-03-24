@@ -86,7 +86,7 @@ const COMPLEXITY_CONFIG = {
 };
 
 const SEVERITY_CONFIG = {
-  info: { label: "Info", color: "hsl(217 91% 60%)", bg: "hsl(217 91% 60% / 0.06)", border: "hsl(217 91% 60% / 0.15)" },
+  info: { label: "Info", color: "hsl(210 40% 52%)", bg: "hsl(210 40% 52% / 0.06)", border: "hsl(210 40% 52% / 0.15)" },
   warning: { label: "Warning", color: "hsl(38 92% 50%)", bg: "hsl(38 92% 50% / 0.06)", border: "hsl(38 92% 50% / 0.15)" },
   critical: { label: "Critical", color: "hsl(0 72% 51%)", bg: "hsl(0 72% 51% / 0.06)", border: "hsl(0 72% 51% / 0.15)" },
 };
@@ -367,7 +367,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                 <span className="hidden sm:inline">{PHASE_LABELS[p]}</span>
               </div>
               {i < PHASE_ORDER.length - 1 && (
-                <div className="w-6 h-px bg-border" style={i < currentPhaseIdx ? { background: "hsl(217 91% 60%)" } : undefined} />
+                <div className="w-6 h-px bg-border" style={i < currentPhaseIdx ? { background: "hsl(152 56% 42%)" } : undefined} />
               )}
             </div>
           ))}
@@ -397,7 +397,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
           )}
 
           {showEstimate && (
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-status-blue">
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-foreground">
               <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>
               <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {totalDays}d</span>
             </div>
@@ -408,7 +408,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
       {/* ── Purpose strip ────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-2 border-b border-border/50 bg-secondary/30">
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Target className="h-3 w-3 text-status-blue/60" />
+          <Target className="h-3 w-3 text-muted-foreground" />
           <span className="font-medium">This conversation feeds the project blueprint and estimate.</span>
         </div>
         {showExtraction && scope.goal && (
@@ -522,7 +522,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                       }}
                       className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99] bg-card border border-border shadow-[var(--shadow-card)]"
                     >
-                      <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-accent text-status-blue">
+                      <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-accent text-foreground">
                         <opt.icon className="h-5 w-5" strokeWidth={1.8} />
                       </div>
                       <div>
@@ -555,7 +555,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                 <button
                   onClick={handleSend}
                   disabled={!inputValue.trim() || isThinking}
-                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5 bg-status-blue text-white"
+                  className="h-9 px-5 flex items-center gap-2 text-[12px] font-bold rounded-xl transition-all disabled:opacity-30 shrink-0 mb-0.5 bg-primary text-primary-foreground"
                 >
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
@@ -746,7 +746,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
           </span>
           <button
             onClick={() => { onClose?.(); navigate("/lead"); }}
-            className="text-[11px] font-medium text-status-blue hover:underline flex items-center gap-1"
+            className="text-[11px] font-medium text-foreground hover:underline flex items-center gap-1"
           >
             Open full workspace <Maximize2 className="h-3 w-3" />
           </button>
@@ -779,7 +779,7 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
       {isLead ? (
         <img src={leadAvatar} alt="Lead" width={36} height={36} className="rounded-xl shrink-0" style={{ imageRendering: "auto" }} />
       ) : (
-        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-status-blue text-white">
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground">
           <span className="text-[13px] font-bold">Y</span>
         </div>
       )}
@@ -787,16 +787,16 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={cn(
           "rounded-2xl px-5 py-3.5 max-w-[80%]",
-          isLead ? "bg-card border border-border shadow-[var(--shadow-card)]" : "bg-status-blue text-white"
+          isLead ? "bg-card border border-border shadow-[var(--shadow-card)]" : "bg-primary text-primary-foreground"
         )}
       >
         {isLead && (
           <span className="text-[10px] font-semibold block mb-1.5 text-muted-foreground">Company Lead</span>
         )}
-        <p className={cn("text-[14px] leading-[1.65] whitespace-pre-wrap", isLead ? "text-foreground" : "text-white")}>
+        <p className={cn("text-[14px] leading-[1.65] whitespace-pre-wrap", isLead ? "text-foreground" : "text-primary-foreground")}>
           {message.content}
         </p>
-        <span className={cn("text-[10px] mt-2 block", isLead ? "text-muted-foreground" : "text-white/50")}>
+        <span className={cn("text-[10px] mt-2 block", isLead ? "text-muted-foreground" : "text-primary-foreground/50")}>
           {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
@@ -814,7 +814,7 @@ function LightThinkingIndicator() {
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
-                className="h-2 w-2 rounded-full ls-thinking-dot bg-status-blue/40"
+                className="h-2 w-2 rounded-full ls-thinking-dot bg-muted-foreground/40"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}

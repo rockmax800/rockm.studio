@@ -179,7 +179,7 @@ export default function TeamRoom() {
                   </div>
                   <Button
                     className="h-12 px-8 gap-2.5 text-[14px] font-bold rounded-xl mb-2"
-                    style={{ backgroundColor: "hsl(217 91% 60%)", color: "white" }}
+                    style={{ backgroundColor: "hsl(0 0% 93%)", color: "hsl(0 0% 7%)" }}
                     onClick={() => setSessionActive(true)}
                   >
                     <Play className="h-4 w-4" /> Begin Session
@@ -187,7 +187,7 @@ export default function TeamRoom() {
                   <button
                     onClick={() => setSelectedEmpId(null)}
                     className="text-[12px] hover:underline"
-                    style={{ color: "hsl(217 91% 60%)" }}
+                    style={{ color: "hsl(0 0% 55%)" }}
                   >
                     Choose a different specialist
                   </button>
