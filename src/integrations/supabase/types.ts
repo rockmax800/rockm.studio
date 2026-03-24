@@ -1352,6 +1352,65 @@ export type Database = {
           },
         ]
       }
+      evaluation_baselines: {
+        Row: {
+          baseline_metrics_json: Json
+          id: string
+          last_updated: string
+          suite_id: string
+        }
+        Insert: {
+          baseline_metrics_json?: Json
+          id?: string
+          last_updated?: string
+          suite_id: string
+        }
+        Update: {
+          baseline_metrics_json?: Json
+          id?: string
+          last_updated?: string
+          suite_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_baselines_suite_id_fkey"
+            columns: ["suite_id"]
+            isOneToOne: true
+            referencedRelation: "evaluation_suites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_reports: {
+        Row: {
+          baseline_comparison_json: Json | null
+          created_at: string
+          id: string
+          protected_scenarios_passed: boolean
+          summary_json: Json
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          baseline_comparison_json?: Json | null
+          created_at?: string
+          id?: string
+          protected_scenarios_passed?: boolean
+          summary_json?: Json
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          baseline_comparison_json?: Json | null
+          created_at?: string
+          id?: string
+          protected_scenarios_passed?: boolean
+          summary_json?: Json
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       evaluation_runs: {
         Row: {
           base_run_id: string | null
@@ -1359,11 +1418,15 @@ export type Database = {
           completed_at: string | null
           context_snapshot_ref: string | null
           created_at: string
+          failed_scenarios_json: Json | null
           id: string
           learning_proposal_id: string
+          pass_rate: number | null
+          related_run_id: string | null
           result_metrics_json: Json | null
           started_at: string | null
           status: string
+          suite_id: string | null
         }
         Insert: {
           base_run_id?: string | null
@@ -1371,11 +1434,15 @@ export type Database = {
           completed_at?: string | null
           context_snapshot_ref?: string | null
           created_at?: string
+          failed_scenarios_json?: Json | null
           id?: string
           learning_proposal_id: string
+          pass_rate?: number | null
+          related_run_id?: string | null
           result_metrics_json?: Json | null
           started_at?: string | null
           status?: string
+          suite_id?: string | null
         }
         Update: {
           base_run_id?: string | null
@@ -1383,11 +1450,15 @@ export type Database = {
           completed_at?: string | null
           context_snapshot_ref?: string | null
           created_at?: string
+          failed_scenarios_json?: Json | null
           id?: string
           learning_proposal_id?: string
+          pass_rate?: number | null
+          related_run_id?: string | null
           result_metrics_json?: Json | null
           started_at?: string | null
           status?: string
+          suite_id?: string | null
         }
         Relationships: [
           {
@@ -1397,7 +1468,82 @@ export type Database = {
             referencedRelation: "learning_proposals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "evaluation_runs_suite_id_fkey"
+            columns: ["suite_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_suites"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      evaluation_scenarios: {
+        Row: {
+          created_at: string
+          critical: boolean
+          expected_outcome_json: Json
+          id: string
+          input_fixture_ref: string | null
+          scenario_description: string
+          scenario_name: string
+          suite_id: string
+        }
+        Insert: {
+          created_at?: string
+          critical?: boolean
+          expected_outcome_json?: Json
+          id?: string
+          input_fixture_ref?: string | null
+          scenario_description?: string
+          scenario_name: string
+          suite_id: string
+        }
+        Update: {
+          created_at?: string
+          critical?: boolean
+          expected_outcome_json?: Json
+          id?: string
+          input_fixture_ref?: string | null
+          scenario_description?: string
+          scenario_name?: string
+          suite_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_scenarios_suite_id_fkey"
+            columns: ["suite_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_suites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_suites: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          protected: boolean
+          suite_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          protected?: boolean
+          suite_type?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          protected?: boolean
+          suite_type?: string
+        }
+        Relationships: []
       }
       event_log: {
         Row: {
