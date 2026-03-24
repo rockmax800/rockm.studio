@@ -5,6 +5,7 @@ import {
   Crown,
   Settings,
   Users,
+  Megaphone,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -32,6 +33,7 @@ const operationsNav = [
 
 const managementNav = [
   { title: "Teams", url: "/teams", icon: Users },
+  { title: "Content", url: "/smm", icon: Megaphone },
 ];
 
 export function AppSidebar() {
