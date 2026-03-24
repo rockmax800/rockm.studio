@@ -397,7 +397,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
           )}
 
           {showEstimate && (
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-status-blue">
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl text-[12px] font-mono bg-accent text-foreground">
               <span className="flex items-center gap-1"><Coins className="h-3 w-3" /> ${totalCost}</span>
               <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {totalDays}d</span>
             </div>
