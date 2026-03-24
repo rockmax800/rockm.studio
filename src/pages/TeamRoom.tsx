@@ -580,23 +580,20 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
             {!showHistory && <div className="flex-1" />}
 
             {/* ── Composer ── */}
-            <div className="border-t border-border/20 px-6 py-4 bg-card/50 shrink-0">
-              <div className="rounded-xl border border-border/40 bg-background overflow-hidden focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  </div>
+            <div className="border-t border-border/15 px-6 py-3 bg-card/30 shrink-0">
+              <div className="rounded-xl border border-border/30 bg-background overflow-hidden focus-within:border-foreground/15 transition-all">
+                <div className="flex items-center gap-3 px-4 py-2.5">
                   <Input
                     value={founderInput}
                     onChange={(e) => setFounderInput(e.target.value)}
                     placeholder="Clarify, redirect, or ask a question…"
-                    className="h-8 text-[14px] border-0 shadow-none focus-visible:ring-0 px-0 bg-transparent flex-1"
+                    className="h-8 text-[13px] border-0 shadow-none focus-visible:ring-0 px-0 bg-transparent flex-1"
                     disabled={meetingStatus !== "active"}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   />
-                  <Button className="h-9 px-5 gap-2 text-[13px] font-bold rounded-lg bg-foreground text-background hover:bg-foreground/90 shrink-0" onClick={handleSend}
+                  <Button className="h-8 px-4 gap-1.5 text-[12px] font-bold rounded-lg bg-foreground text-background hover:bg-foreground/90 shrink-0" onClick={handleSend}
                     disabled={meetingStatus !== "active" || !founderInput.trim()}>
-                    <Send className="h-3.5 w-3.5" /> Send
+                    <Send className="h-3 w-3" /> Send
                   </Button>
                 </div>
               </div>
