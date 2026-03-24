@@ -571,3 +571,57 @@ html {
   background-color: hsl(var(--ls-border));
   color: hsl(var(--ls-text-faint));
 }
+
+/* ═══════════════════════════════════════════════════════════
+   INTAKE COMPOSER — Light hero island
+   Scoped to .intake-hero-root
+   ═══════════════════════════════════════════════════════════ */
+
+.intake-hero-root {
+  --ih-bg: 220 20% 97%;
+  --ih-surface: 0 0% 100%;
+  --ih-border: 220 14% 90%;
+  --ih-text: 222 32% 14%;
+  --ih-text-muted: 220 10% 46%;
+  --ih-accent: 217 91% 60%;
+  --ih-accent-soft: 217 91% 96%;
+  --ih-green: 152 60% 42%;
+}
+
+.intake-hero-root {
+  background-color: hsl(var(--ih-bg));
+  color: hsl(var(--ih-text));
+}
+
+.ih-grid-bg {
+  background-image:
+    linear-gradient(hsl(217 60% 85% / 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(217 60% 85% / 0.15) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+.ih-speech-bubble {
+  position: relative;
+  background: hsl(var(--ih-surface));
+  border: 1px solid hsl(var(--ih-border));
+  border-radius: 20px;
+  box-shadow: 0 4px 24px -4px hsl(220 20% 10% / 0.06);
+}
+
+.ih-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 11px solid hsl(var(--ih-surface));
+  filter: drop-shadow(0 1px 0 hsl(var(--ih-border)));
+}
+
+@keyframes ih-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.ih-float { animation: ih-float 4s ease-in-out infinite; }
