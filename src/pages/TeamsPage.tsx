@@ -295,7 +295,7 @@ export default function TeamsPage() {
           <section>
             <div className="flex items-center justify-between">
               <SectionHeader icon={<Users className="h-5 w-5" />} title="All Team Members"
-                subtitle={`${activeEmployees.length} agents across all capabilities`} />
+                subtitle={`${activeEmployees.length} agents across all teams`} />
             </div>
             <div className="mt-4">
               {activeEmployees.length === 0 ? (
