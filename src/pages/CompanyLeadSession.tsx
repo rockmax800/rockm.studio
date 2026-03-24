@@ -584,9 +584,12 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             <div className="flex items-center gap-2 px-1">
               <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.8} />
               <span className="text-[11px] font-semibold tracking-[0.02em] text-muted-foreground">
-                Live Extraction
+                Live Extraction → Blueprint
               </span>
             </div>
+            <p className="text-[10px] text-muted-foreground/50 px-1 -mt-2">
+              Structured outputs extracted from the briefing conversation
+            </p>
 
             {/* Scope */}
             {showExtraction ? (
