@@ -387,6 +387,9 @@ export default function ProjectDetail() {
             />
           </div>
 
+          {/* ══ ROW 4 — EXECUTION TELEMETRY ══ */}
+          <RunTraceMetaCard trace={null} title="Latest Run Execution Telemetry" />
+
           <div className="h-8" />
         </div>
       </ScrollArea>
