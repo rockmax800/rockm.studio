@@ -10,6 +10,7 @@ import { EvidencePanel } from "@/components/project-cockpit/EvidencePanel";
 import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness";
 import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
+import { ProductionFlow } from "@/components/ProductionFlow";
 
 export default function ProjectDetail() {
   const { id } = useParams();
