@@ -11,6 +11,7 @@ import { RiskHealth } from "@/components/command-center/RiskHealth";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWorkerNodes, fetchStalledEntities } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductionFlow } from "@/components/ProductionFlow";
 
 export default function CommandCenter() {
   const { data: projects = [] } = useProjects();
