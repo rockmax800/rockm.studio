@@ -138,15 +138,15 @@ UC-02 Assign Task (+ create Handoff)
 
 ---
 
-## 9 — Delivery Spine Hooks
+## 9 — Delivery Lane Hooks
 
-Orchestration integrates with the Delivery Spine for code-producing tasks.
-No external API calls — model-only records.
+Orchestration integrates with the Delivery Lane for code-producing tasks.
+GitHub is canonical VCS. GitHub Actions is CI. Docker-based deploy to single VPS.
 
 ### 9.1 UC-03 (Start Run) — Workspace Creation
 
 When `task.domain ∈ {frontend, backend, frontend_delivery, backend_delivery}`:
-1. Find the project's default repository
+1. Validate repository is GitHub via `DeliveryLaneService.validateRepository()`
 2. Create a `repo_workspaces` record linked to project, task, run, repository
 3. Branch name: `task/{task_id_prefix}/run-{run_number}`
 4. Best-effort: run proceeds even if no repository configured
@@ -155,15 +155,32 @@ When `task.domain ∈ {frontend, backend, frontend_delivery, backend_delivery}`:
 
 When task is validated and `task.domain` is a code domain:
 1. Find the run's workspace
-2. Create a `pull_requests` record (logical only, no GitHub API)
+2. Create a `pull_requests` record
 3. Source branch from workspace, target branch from repository default
 4. PR title includes task ID prefix and task title
 
-### 9.3 Deployment (Manual)
+### 9.3 PR Merge → Staging Deploy
 
-Deployments are created manually for now. Future integration will automate:
-- PR merge → staging deployment
-- Staging verification → production deployment
-- Rollback tracking via `rollback_of_deployment_id`
+On PR merge (via `DeliveryLaneService.recordPRMerge()`):
+1. Validate CI passed via `validatePRMergeReady()`
+2. Record PR as merged
+3. Create staging Deployment record via `createStagingDeployment()`
+4. Deploy executes externally (GitHub Actions or manual)
+5. Update deployment status to `live` or `failed`
 
-For full use case details, see original `docs/22-orchestration-use-cases-v1.md`.
+### 9.4 Staging → Production Promotion
+
+Founder-only action via `DeliveryLaneService.promoteToProduction()`:
+1. Validate staging deployment is `live`
+2. Create production Deployment record
+3. Same Docker image — no rebuild
+4. Deploy via SSH to VPS
+
+### 9.5 Rollback
+
+Founder-only action via `DeliveryLaneService.rollback()`:
+1. Mark current live deployment as `rolled_back`
+2. Create new deployment with `rollback_of_deployment_id`
+3. Deploy target version's Docker image
+
+For full Delivery Lane spec, see `core/30-delivery-lane.md`.
