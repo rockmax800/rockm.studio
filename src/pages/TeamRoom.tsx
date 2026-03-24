@@ -410,7 +410,6 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
               />
               <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
             </div>
-            </div>
 
             <div className="flex items-center gap-4">
               <span className="text-[11px] text-muted-foreground/60 font-mono flex items-center gap-1.5">
