@@ -17,28 +17,28 @@ export default {
         "2xl": "1440px",
       },
     },
-    /* ── Brockmann spacing: 4px base unit ─────────────────── */
+    /* ── 8px spacing scale (Brockmann) ────────────────────── */
     spacing: {
       px: "1px",
       "0": "0px",
       "0.5": "2px",
-      "1": "4px",       /* base unit */
+      "1": "4px",
       "1.5": "6px",
-      "2": "8px",        /* 2× */
+      "2": "8px",        /* base rhythm */
       "2.5": "10px",
       "3": "12px",
       "3.5": "14px",
-      "4": "16px",       /* 4× */
+      "4": "16px",       /* 2× */
       "5": "20px",
-      "6": "24px",       /* 6× */
+      "6": "24px",       /* 3× */
       "7": "28px",
-      "8": "32px",       /* 8× */
+      "8": "32px",       /* 4× */
       "9": "36px",
-      "10": "40px",
+      "10": "40px",      /* 5× */
       "11": "44px",
-      "12": "48px",      /* 12× */
-      "14": "56px",
-      "16": "64px",      /* 16× */
+      "12": "48px",      /* 6× */
+      "14": "56px",      /* 7× */
+      "16": "64px",      /* 8× */
       "20": "80px",
       "24": "96px",
       "28": "112px",
@@ -60,16 +60,16 @@ export default {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
-      /* ── Font sizes: intentional hierarchy ─────────────── */
       fontSize: {
-        "display": ["42px", { lineHeight: "110%", fontWeight: "600", letterSpacing: "-0.02em" }],
-        "page-title": ["28px", { lineHeight: "120%", fontWeight: "600", letterSpacing: "-0.015em" }],
-        "section-title": ["18px", { lineHeight: "120%", fontWeight: "600" }],
-        "card-title": ["15px", { lineHeight: "130%", fontWeight: "600" }],
-        "body": ["14px", { lineHeight: "150%" }],
-        "meta": ["13px", { lineHeight: "150%" }],
-        "label": ["12px", { lineHeight: "130%" }],
-        "micro": ["11px", { lineHeight: "130%" }],
+        "display":       ["44px", { lineHeight: "110%", fontWeight: "600", letterSpacing: "-0.025em" }],
+        "page-title":    ["30px", { lineHeight: "120%", fontWeight: "600", letterSpacing: "-0.02em" }],
+        "section-title": ["20px", { lineHeight: "120%", fontWeight: "600", letterSpacing: "-0.01em" }],
+        "card-title":    ["16px", { lineHeight: "130%", fontWeight: "600" }],
+        "body":          ["14px", { lineHeight: "150%" }],
+        "body-lg":       ["15px", { lineHeight: "150%" }],
+        "meta":          ["13px", { lineHeight: "150%" }],
+        "label":         ["12px", { lineHeight: "130%" }],
+        "micro":         ["11px", { lineHeight: "130%" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -81,6 +81,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -158,7 +159,6 @@ export default {
         elevated: "var(--shadow-elevated)",
         glow: "var(--shadow-glow)",
       },
-      /* ── Grid: 12-column Brockmann ─────────────────────── */
       gridTemplateColumns: {
         "12": "repeat(12, minmax(0, 1fr))",
         "layout": "280px 1fr",
@@ -190,7 +190,6 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.22s ease-out forwards",
       },
-      /* ── Transition durations: 180–250ms ───────────────── */
       transitionDuration: {
         "180": "180ms",
         "220": "220ms",

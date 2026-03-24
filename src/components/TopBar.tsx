@@ -2,7 +2,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { useSystemMode } from "@/hooks/use-system-mode";
 import { useDashboardCounts } from "@/hooks/use-data";
-import { AlertTriangle, Zap, ShieldCheck, Stamp } from "lucide-react";
+import { AlertTriangle, Zap, Stamp, ShieldCheck } from "lucide-react";
 
 interface TopBarProps {
   title?: string;
@@ -13,52 +13,34 @@ export function TopBar({ title }: TopBarProps) {
   const { data: counts } = useDashboardCounts();
 
   return (
-    <header className="h-10 flex items-center justify-between border-b border-border/50 px-3 bg-surface-overlay shrink-0">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="h-7 w-7 text-muted-foreground" />
+    <header className="h-12 flex items-center justify-between border-b border-border px-4 bg-card shrink-0">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground" />
         {title && (
-          <h1 className="text-xs font-semibold tracking-tight text-foreground">{title}</h1>
+          <h1 className="text-[16px] font-semibold text-foreground tracking-tight">{title}</h1>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Live counters */}
+      <div className="flex items-center gap-4">
         {counts && (
-          <div className="flex items-center gap-2.5 text-[10px] font-mono">
-            <CounterPill
-              icon={<AlertTriangle className="h-3 w-3" />}
-              value={counts.blockedTasks}
-              color="destructive"
-            />
-            <CounterPill
-              icon={<Zap className="h-3 w-3" />}
-              value={counts.failedRuns}
-              color="destructive"
-            />
-            <CounterPill
-              icon={<Stamp className="h-3 w-3" />}
-              value={counts.pendingApprovals}
-              color="amber"
-            />
-            <CounterPill
-              icon={<ShieldCheck className="h-3 w-3" />}
-              value={counts.waitingReview}
-              color="cyan"
-            />
+          <div className="flex items-center gap-3 text-[13px] font-mono">
+            <Pill icon={AlertTriangle} value={counts.blockedTasks} color="text-status-red" />
+            <Pill icon={Zap} value={counts.failedRuns} color="text-status-red" />
+            <Pill icon={Stamp} value={counts.pendingApprovals} color="text-status-amber" />
+            <Pill icon={ShieldCheck} value={counts.waitingReview} color="text-status-blue" />
           </div>
         )}
 
-        {/* System mode */}
         {modeData && (
           <Badge
             variant="outline"
-            className={`text-[9px] font-mono px-2 py-0 h-5 border ${
+            className={`text-[12px] font-mono font-medium px-2.5 py-0.5 h-6 border ${
               modeData.mode === "production"
                 ? "border-status-green/40 text-status-green bg-status-green/5"
                 : "border-status-amber/40 text-status-amber bg-status-amber/5"
             }`}
           >
-            {modeData.mode === "production" ? "PROD" : "EXP"}
+            {modeData.mode === "production" ? "PROD" : "DEV"}
           </Badge>
         )}
       </div>
@@ -66,27 +48,12 @@ export function TopBar({ title }: TopBarProps) {
   );
 }
 
-function CounterPill({
-  icon,
-  value,
-  color,
-}: {
-  icon: React.ReactNode;
-  value: number;
-  color: "destructive" | "amber" | "cyan";
-}) {
+function Pill({ icon: Icon, value, color }: { icon: any; value: number; color: string }) {
   if (value === 0) return null;
-
-  const colorMap = {
-    destructive: "text-status-red",
-    amber: "text-status-amber",
-    cyan: "text-status-cyan",
-  };
-
   return (
-    <div className={`flex items-center gap-1 ${colorMap[color]}`}>
-      {icon}
-      <span className="font-bold">{value}</span>
+    <div className={`flex items-center gap-1 ${color}`}>
+      <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+      <span className="font-bold tabular-nums">{value}</span>
     </div>
   );
 }
