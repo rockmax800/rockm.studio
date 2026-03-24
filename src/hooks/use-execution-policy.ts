@@ -77,7 +77,7 @@ export function useExecutionPolicy(): {
   isExperimental: boolean;
   presetId: string;
 } {
-  const { settings, isLoading } = useSystemMode();
+  const { data: settings, isLoading } = useSystemMode();
 
   const policy = useMemo(() => {
     const features = (settings as any)?.experimental_features as
