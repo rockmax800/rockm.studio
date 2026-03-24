@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import DepartmentsPage from "./pages/Departments";
 import DepartmentDetail from "./pages/DepartmentDetail";
 import PresaleDetail from "./pages/PresaleDetail";
+import IntakeComposer from "./pages/IntakeComposer";
 import ProjectsPage from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/departments" element={<DepartmentsPage />} />
           <Route path="/departments/:slug" element={<DepartmentDetail />} />
+          <Route path="/presale/new" element={<IntakeComposer />} />
           <Route path="/departments/:slug/presales/:id" element={<PresaleDetail />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
