@@ -849,6 +849,109 @@ export type Database = {
           },
         ]
       }
+      handoffs: {
+        Row: {
+          acceptance_criteria_json: Json
+          acknowledged_at: string | null
+          closed_at: string | null
+          constraints_json: Json | null
+          context_pack_id: string | null
+          created_at: string
+          created_from_review_id: string | null
+          id: string
+          open_questions_json: Json | null
+          project_id: string
+          requested_outcome: Database["public"]["Enums"]["handoff_outcome"]
+          source_artifact_ids_json: Json | null
+          source_role_id: string
+          status: Database["public"]["Enums"]["handoff_status"]
+          target_role_id: string
+          task_id: string
+          urgency: Database["public"]["Enums"]["task_urgency"]
+        }
+        Insert: {
+          acceptance_criteria_json?: Json
+          acknowledged_at?: string | null
+          closed_at?: string | null
+          constraints_json?: Json | null
+          context_pack_id?: string | null
+          created_at?: string
+          created_from_review_id?: string | null
+          id?: string
+          open_questions_json?: Json | null
+          project_id: string
+          requested_outcome: Database["public"]["Enums"]["handoff_outcome"]
+          source_artifact_ids_json?: Json | null
+          source_role_id: string
+          status?: Database["public"]["Enums"]["handoff_status"]
+          target_role_id: string
+          task_id: string
+          urgency?: Database["public"]["Enums"]["task_urgency"]
+        }
+        Update: {
+          acceptance_criteria_json?: Json
+          acknowledged_at?: string | null
+          closed_at?: string | null
+          constraints_json?: Json | null
+          context_pack_id?: string | null
+          created_at?: string
+          created_from_review_id?: string | null
+          id?: string
+          open_questions_json?: Json | null
+          project_id?: string
+          requested_outcome?: Database["public"]["Enums"]["handoff_outcome"]
+          source_artifact_ids_json?: Json | null
+          source_role_id?: string
+          status?: Database["public"]["Enums"]["handoff_status"]
+          target_role_id?: string
+          task_id?: string
+          urgency?: Database["public"]["Enums"]["task_urgency"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handoffs_context_pack_id_fkey"
+            columns: ["context_pack_id"]
+            isOneToOne: false
+            referencedRelation: "context_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handoffs_created_from_review_id_fkey"
+            columns: ["created_from_review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handoffs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handoffs_source_role_id_fkey"
+            columns: ["source_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handoffs_target_role_id_fkey"
+            columns: ["target_role_id"]
+            isOneToOne: false
+            referencedRelation: "agent_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handoffs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_suggestions: {
         Row: {
           created_at: string
@@ -1965,6 +2068,7 @@ export type Database = {
           closed_at: string | null
           constraints: Json | null
           created_at: string
+          current_handoff_id: string | null
           domain: Database["public"]["Enums"]["task_domain"]
           escalation_reason: string | null
           expected_output_type: Database["public"]["Enums"]["task_output_type"]
@@ -1987,6 +2091,7 @@ export type Database = {
           closed_at?: string | null
           constraints?: Json | null
           created_at?: string
+          current_handoff_id?: string | null
           domain: Database["public"]["Enums"]["task_domain"]
           escalation_reason?: string | null
           expected_output_type: Database["public"]["Enums"]["task_output_type"]
@@ -2009,6 +2114,7 @@ export type Database = {
           closed_at?: string | null
           constraints?: Json | null
           created_at?: string
+          current_handoff_id?: string | null
           domain?: Database["public"]["Enums"]["task_domain"]
           escalation_reason?: string | null
           expected_output_type?: Database["public"]["Enums"]["task_output_type"]
@@ -2026,6 +2132,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_current_handoff_id_fkey"
+            columns: ["current_handoff_id"]
+            isOneToOne: false
+            referencedRelation: "handoffs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_owner_role_id_fkey"
             columns: ["owner_role_id"]
@@ -2140,6 +2253,14 @@ export type Database = {
         | "artifact"
         | "review"
         | "approval"
+      handoff_outcome:
+        | "implementation"
+        | "review"
+        | "clarification"
+        | "approval_prep"
+        | "qa"
+        | "release"
+      handoff_status: "created" | "acknowledged" | "completed" | "cancelled"
       project_state:
         | "draft"
         | "scoped"
@@ -2404,6 +2525,15 @@ export const Constants = {
         "review",
         "approval",
       ],
+      handoff_outcome: [
+        "implementation",
+        "review",
+        "clarification",
+        "approval_prep",
+        "qa",
+        "release",
+      ],
+      handoff_status: ["created", "acknowledged", "completed", "cancelled"],
       project_state: [
         "draft",
         "scoped",
