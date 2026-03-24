@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -12,12 +11,12 @@ import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TrainingLab } from "@/components/employees/TrainingLab";
 
 import {
-  TrendingUp, TrendingDown, Shield, Brain, GraduationCap, Wrench, AlertTriangle,
+  TrendingUp, Shield, Brain, GraduationCap, Wrench, AlertTriangle,
   CheckCircle2, XCircle, Clock, FileCode, Lock, Unlock, Plus, Pencil,
   ChevronDown, ChevronRight, Zap, Rocket, RotateCcw, FlaskConical,
   ArrowUpRight, GitPullRequest, Server, FolderX, FolderCheck as FolderCheckIcon,
-  BookOpen, Lightbulb, Ban, Save, ArrowLeft, Activity, Eye, Layers,
-}from "lucide-react";
+  BookOpen, Lightbulb, Activity, Eye, Layers, ArrowLeft,
+} from "lucide-react";
 
 export default function EmployeeProfile() {
   const { id = "" } = useParams();
@@ -146,7 +145,6 @@ export default function EmployeeProfile() {
   const ciRate = ciTotal > 0 ? Math.round((ciPassed / ciTotal) * 100) : null;
   const lastReviewVerdict = reviews[0]?.verdict ?? null;
   const trendPoints = [62, 68, 65, 72, 78, successPct];
-  const trendUp = trendPoints.length >= 2 && trendPoints[trendPoints.length - 1] >= trendPoints[trendPoints.length - 2];
   const loadPct = tasks.length > 0 ? Math.min(100, Math.round((tasks.length / 4) * 100)) : 0;
 
   const memoryCategories = [
@@ -194,121 +192,109 @@ export default function EmployeeProfile() {
   return (
     <AppLayout title={employee.name} fullHeight>
       <ScrollArea className="h-full">
-        <div className="px-8 py-6 space-y-6 max-w-[1200px]">
+        <div className="px-6 lg:px-8 py-5 space-y-5 max-w-[1100px]">
 
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
             <Link to="/office" className="hover:text-foreground transition-colors flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" /> Office
             </Link>
-            <span>/</span>
+            <span className="text-border">/</span>
             <span className="text-foreground font-medium">{employee.name}</span>
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              COMPACT HEADER
-              ════════════════════════════════════════════════════════ */}
-          <div className={`rounded-xl border overflow-hidden ${trainingMode ? "ring-1 ring-status-amber/40 border-status-amber/20" : "border-border"} bg-card`}>
-            {trainingMode && (
-              <div className="px-5 py-2 bg-status-amber/5 border-b border-status-amber/15 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-amber animate-pulse" />
-                <span className="text-[11px] font-bold text-status-amber">Training Mode</span>
-                <span className="text-[11px] text-muted-foreground">— Memory editable, changes staged</span>
-                <Badge className="ml-auto text-[9px] font-bold bg-status-amber/10 text-status-amber border-0 px-1.5">
-                  {pendingUpdates.length} pending
-                </Badge>
-              </div>
-            )}
+          {/* ═══ HEADER ═══ */}
+          {trainingMode && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-status-amber/5 border border-status-amber/15">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-amber animate-pulse" />
+              <span className="text-[11px] font-bold text-status-amber">Training Mode Active</span>
+              <span className="text-[11px] text-muted-foreground/60">— Memory editable, changes staged</span>
+              {pendingUpdates.length > 0 && (
+                <span className="ml-auto text-[10px] font-mono text-status-amber">{pendingUpdates.length} pending</span>
+              )}
+            </div>
+          )}
 
-            <div className="px-6 py-5">
-              <div className="flex items-start gap-5">
-                {/* Avatar — compact */}
-                <div className="relative shrink-0">
-                  <img src={persona.avatar} alt={employee.name}
-                    className="h-16 w-16 rounded-xl object-cover"
-                    width={64} height={64} />
-                  <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${st.dot}`} />
-                </div>
-
-                {/* Identity */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="text-[20px] font-bold text-foreground tracking-tight leading-tight">{employee.name}</h1>
-                    <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${st.chipBg}`}>{st.label}</Badge>
-                    {isUnderperforming && (
-                      <Badge className="text-[10px] font-bold px-2 py-0.5 border-0 bg-destructive/10 text-destructive gap-1">
-                        <AlertTriangle className="h-3 w-3" /> At Risk
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-[13px] text-muted-foreground mt-0.5">{roleName} <span className="text-muted-foreground/40">· {persona.tag}</span></p>
-                  <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
-                    <span>{employee.model_name ?? "—"}</span>
-                    <span className="text-border">·</span>
-                    <span>{employee.provider ?? "—"}</span>
-                    <span className="text-border">·</span>
-                    <span>Hired {new Date(employee.hired_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                  </div>
-                </div>
-
-                {/* Inline stats strip */}
-                <div className="flex items-center gap-5 shrink-0">
-                  <InlineStat label="Score" value={Math.round(reputationScore * 100)} color={perfColor} />
-                  <InlineStat label="Success" value={`${successPct}%`} />
-                  <InlineStat label="Bug" value={`${Math.round((employee.bug_rate ?? 0) * 100)}%`} color={(employee.bug_rate ?? 0) > 0.2 ? "text-destructive" : undefined} />
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Trend</span>
-                    <MiniSparkline points={trendPoints} />
-                  </div>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Load</span>
-                    <div className="flex items-center gap-1.5">
-                      <Progress value={loadPct} className="h-1.5 w-12" />
-                      <span className="text-[10px] font-mono text-foreground">{loadPct}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <img src={persona.avatar} alt={employee.name}
+                className="h-14 w-14 rounded-xl object-cover ring-1 ring-border/30 ring-offset-1 ring-offset-background"
+                width={56} height={56} />
+              <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${st.dot}`} />
             </div>
 
-            {/* Action bar */}
-            <div className="px-6 py-2.5 border-t border-border/30 flex items-center gap-2">
+            {/* Identity + meta */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[18px] font-bold text-foreground tracking-tight leading-tight">{employee.name}</h1>
+                <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0.5 h-auto">{st.label}</Badge>
+                {isUnderperforming && (
+                  <Badge variant="destructive" className="text-[10px] font-medium px-2 py-0.5 h-auto gap-1">
+                    <AlertTriangle className="h-3 w-3" /> At Risk
+                  </Badge>
+                )}
+              </div>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                {roleName}
+                <span className="text-muted-foreground/30 mx-1.5">·</span>
+                {employee.model_name ?? "—"}
+                <span className="text-muted-foreground/30 mx-1.5">·</span>
+                {employee.provider ?? "—"}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
-                variant={trainingMode ? "outline" : "default"}
-                className={`h-8 text-[12px] font-bold gap-1.5 px-4 ${!trainingMode ? "bg-foreground text-background hover:bg-foreground/90" : ""}`}
+                variant={trainingMode ? "outline" : "secondary"}
+                className="h-8 text-[11px] font-semibold gap-1.5 px-3"
                 onClick={() => setTrainingMode(!trainingMode)}
               >
-                {trainingMode ? <><Lock className="h-3.5 w-3.5" /> Exit Training</> : <><GraduationCap className="h-3.5 w-3.5" /> Training Mode</>}
+                {trainingMode ? <><Lock className="h-3.5 w-3.5" /> Exit Training</> : <><GraduationCap className="h-3.5 w-3.5" /> Train</>}
               </Button>
               <Link to="/control/tasks">
-                <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 px-4 font-medium">
+                <Button size="sm" variant="ghost" className="h-8 text-[11px] gap-1.5 px-3">
                   <Eye className="h-3.5 w-3.5" /> Tasks
                 </Button>
               </Link>
-              <div className="ml-auto flex items-center gap-4 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> <strong className="text-foreground font-mono">{totalTokens.toLocaleString()}</strong> tkn</span>
-                <span className="flex items-center gap-1"><Activity className="h-3 w-3" /> <strong className="text-foreground font-mono">${totalCost.toFixed(3)}</strong></span>
-              </div>
             </div>
           </div>
 
-          {/* ════════════════════════════════════════════════════════
-              CURRENT WORK
-              ════════════════════════════════════════════════════════ */}
-          <section>
-            <SectionHeader icon={<Wrench className="h-4 w-4" />} title="Current Work" />
-            <div className="grid grid-cols-12 gap-4 mt-3">
-              {/* Active tasks */}
-              <div className="col-span-12 lg:col-span-5">
-                <SectionCard title="Active Tasks" accent="border-l-status-amber">
+          {/* ═══ STATS ROW ═══ */}
+          <div className="flex items-center gap-4 flex-wrap text-[12px]">
+            <StatPill label="Score" value={Math.round(reputationScore * 100)} color={perfColor} />
+            <StatPill label="Success" value={`${successPct}%`} />
+            <StatPill label="Bug Rate" value={`${Math.round((employee.bug_rate ?? 0) * 100)}%`} color={(employee.bug_rate ?? 0) > 0.2 ? "text-destructive" : undefined} />
+            <StatPill label="CI" value={ciRate !== null ? `${ciRate}%` : "—"} color={ciRate !== null && ciRate < 70 ? "text-destructive" : undefined} />
+            <StatPill label="Review" value={lastReviewVerdict === "approved" ? "✓" : lastReviewVerdict === "rejected" ? "✗" : "—"} color={lastReviewVerdict === "approved" ? "text-status-green" : lastReviewVerdict === "rejected" ? "text-destructive" : undefined} />
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground/50">Load</span>
+              <Progress value={loadPct} className="h-1 w-10" />
+              <span className="font-mono text-muted-foreground/60 text-[10px]">{loadPct}%</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MiniSparkline points={trendPoints} />
+            </div>
+            <div className="ml-auto flex items-center gap-3 text-[11px] text-muted-foreground/50">
+              <span className="flex items-center gap-1"><Zap className="h-3 w-3" /><span className="font-mono text-foreground/70">{totalTokens.toLocaleString()}</span> tkn</span>
+              <span className="flex items-center gap-1"><Activity className="h-3 w-3" /><span className="font-mono text-foreground/70">${totalCost.toFixed(3)}</span></span>
+            </div>
+          </div>
+
+          {/* ═══ CURRENT WORK ═══ */}
+          <Section icon={<Wrench className="h-4 w-4" />} title="Current Work">
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-12 lg:col-span-6">
+                <Panel title="Active Tasks" accent="border-l-status-amber">
                   {tasks.length === 0 ? <EmptyLine text="No active tasks" /> : (
-                    <div className="space-y-0.5">
+                    <div className="space-y-0">
                       {tasks.map((t) => (
                         <Link key={t.id} to={`/control/tasks/${t.id}`}>
-                          <div className="flex items-center gap-2.5 py-2 px-2.5 hover:bg-secondary/30 rounded-lg transition-colors group">
+                          <div className="flex items-center gap-2.5 py-2 px-2 hover:bg-secondary/20 rounded-lg transition-colors group">
                             <TaskStateDot state={t.state} />
-                            <span className="text-[13px] text-foreground truncate flex-1">{t.title}</span>
+                            <span className="text-[12px] text-foreground truncate flex-1">{t.title}</span>
                             {t.priority === "high" && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
                             <ArrowUpRight className="h-3 w-3 text-muted-foreground/0 group-hover:text-muted-foreground shrink-0 transition-colors" />
                           </div>
@@ -316,21 +302,19 @@ export default function EmployeeProfile() {
                       ))}
                     </div>
                   )}
-                </SectionCard>
+                </Panel>
               </div>
-
-              {/* Runs */}
-              <div className="col-span-12 lg:col-span-4">
-                <SectionCard title="Recent Runs">
+              <div className="col-span-12 lg:col-span-6">
+                <Panel title="Recent Runs">
                   {runs.length === 0 ? <EmptyLine text="No recent runs" /> : (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {runs.slice(0, 4).map((r) => (
-                        <div key={r.id} className="flex items-center gap-2.5 text-[12px]">
+                        <div key={r.id} className="flex items-center gap-2 text-[11px]">
                           <RunStateDot state={r.state} />
-                          <span className="font-mono text-[11px] text-muted-foreground">{r.id.slice(0, 8)}</span>
-                          <span className="text-muted-foreground/50 capitalize">{r.state}</span>
+                          <span className="font-mono text-muted-foreground/60">{r.id.slice(0, 8)}</span>
+                          <span className="text-muted-foreground/40 capitalize">{r.state}</span>
                           {r.duration_ms && (
-                            <span className="text-muted-foreground/40 ml-auto flex items-center gap-1">
+                            <span className="text-muted-foreground/30 ml-auto flex items-center gap-1">
                               <Clock className="h-3 w-3" />{Math.round(r.duration_ms / 1000)}s
                             </span>
                           )}
@@ -338,97 +322,78 @@ export default function EmployeeProfile() {
                       ))}
                     </div>
                   )}
-                </SectionCard>
-              </div>
-
-              {/* Stats */}
-              <div className="col-span-12 lg:col-span-3 space-y-3">
-                <MiniStatCard label="Last Review"
-                  value={lastReviewVerdict === "approved" ? "Approved" : lastReviewVerdict === "rejected" ? "Rejected" : "—"}
-                  valueColor={lastReviewVerdict === "approved" ? "text-status-green" : lastReviewVerdict === "rejected" ? "text-destructive" : "text-muted-foreground"} />
-                <MiniStatCard label="CI Pass Rate" value={ciRate !== null ? `${ciRate}%` : "—"}
-                  valueColor={ciRate !== null && ciRate < 70 ? "text-destructive" : "text-foreground"} />
-                <MiniStatCard label="Deployments" value={String(deployments.length)} valueColor="text-foreground" />
+                </Panel>
               </div>
             </div>
-          </section>
+          </Section>
 
-          {/* ════════════════════════════════════════════════════════
-              SYSTEM CONTRACT
-              ════════════════════════════════════════════════════════ */}
-          <section>
-            <SectionHeader icon={<Shield className="h-4 w-4" />} title="System Contract" subtitle="Enforced boundaries — read only" />
-            <div className="mt-3">
-              {!contract && !roleData ? (
-                <div className="rounded-xl border border-border bg-card p-5 text-[13px] text-muted-foreground">No role contract assigned.</div>
-              ) : (
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-12 md:col-span-4">
-                    <ContractPathBlock title="Allowed Paths" icon={<FolderCheckIcon className="h-3.5 w-3.5 text-status-green" />}
-                      items={parseJsonArray(contract?.allowed_repo_paths_json)} fallback="No path restrictions" accentClass="border-l-status-green" />
-                  </div>
-                  <div className="col-span-12 md:col-span-4">
-                    <ContractPathBlock title="Forbidden Paths" icon={<FolderX className="h-3.5 w-3.5 text-destructive" />}
-                      items={parseJsonArray(contract?.forbidden_repo_paths_json)} fallback="No forbidden paths" accentClass="border-l-destructive" />
-                  </div>
-                  <div className="col-span-12 md:col-span-4">
-                    <SectionCard title="Permissions" titleIcon={<Layers className="h-3.5 w-3.5 text-muted-foreground" />}>
-                      <div className="space-y-2.5 text-[13px]">
-                        <PermRow label="Deploy" icon={<Rocket className="h-3.5 w-3.5" />} allowed={contract?.may_deploy} />
-                        <PermRow label="Merge PRs" icon={<GitPullRequest className="h-3.5 w-3.5" />} allowed={contract?.may_merge} />
-                        <PermRow label="Modify Schema" icon={<Server className="h-3.5 w-3.5" />} allowed={contract?.may_modify_schema} />
-                        <div className="flex items-center justify-between pt-2.5 border-t border-border/30">
-                          <span className="text-muted-foreground flex items-center gap-1.5 text-[12px]">
-                            <AlertTriangle className="h-3.5 w-3.5" />Risk Threshold
-                          </span>
-                          <span className="font-mono font-bold text-foreground">{contract?.risk_threshold ?? "—"}</span>
-                        </div>
-                      </div>
-                    </SectionCard>
-                  </div>
+          {/* ═══ SYSTEM CONTRACT ═══ */}
+          <Section icon={<Shield className="h-4 w-4" />} title="System Contract" subtitle="Enforced boundaries — read only">
+            {!contract && !roleData ? (
+              <p className="text-[12px] text-muted-foreground/50 py-2">No role contract assigned.</p>
+            ) : (
+              <div className="grid grid-cols-12 gap-3">
+                <div className="col-span-12 md:col-span-4">
+                  <ContractPathBlock title="Allowed Paths" icon={<FolderCheckIcon className="h-3.5 w-3.5 text-status-green" />}
+                    items={parseJsonArray(contract?.allowed_repo_paths_json)} fallback="No path restrictions" accentClass="border-l-status-green" />
                 </div>
-              )}
-            </div>
-          </section>
+                <div className="col-span-12 md:col-span-4">
+                  <ContractPathBlock title="Forbidden Paths" icon={<FolderX className="h-3.5 w-3.5 text-destructive" />}
+                    items={parseJsonArray(contract?.forbidden_repo_paths_json)} fallback="No forbidden paths" accentClass="border-l-destructive" />
+                </div>
+                <div className="col-span-12 md:col-span-4">
+                  <Panel title="Permissions" titleIcon={<Layers className="h-3.5 w-3.5 text-muted-foreground/40" />}>
+                    <div className="space-y-2 text-[12px]">
+                      <PermRow label="Deploy" icon={<Rocket className="h-3.5 w-3.5" />} allowed={contract?.may_deploy} />
+                      <PermRow label="Merge PRs" icon={<GitPullRequest className="h-3.5 w-3.5" />} allowed={contract?.may_merge} />
+                      <PermRow label="Modify Schema" icon={<Server className="h-3.5 w-3.5" />} allowed={contract?.may_modify_schema} />
+                      <div className="flex items-center justify-between pt-2 border-t border-border/20">
+                        <span className="text-muted-foreground/60 flex items-center gap-1.5 text-[11px]">
+                          <AlertTriangle className="h-3.5 w-3.5" />Risk Threshold
+                        </span>
+                        <span className="font-mono font-bold text-foreground text-[12px]">{contract?.risk_threshold ?? "—"}</span>
+                      </div>
+                    </div>
+                  </Panel>
+                </div>
+              </div>
+            )}
+          </Section>
 
-          {/* ════════════════════════════════════════════════════════
-              MEMORY
-              ════════════════════════════════════════════════════════ */}
-          <section>
-            <SectionHeader icon={<Brain className="h-4 w-4" />} title="Memory"
-              subtitle={trainingMode ? "Click entries to edit — changes staged until saved" : `${memoryCategories.length} categories`} />
-
-            <div className="mt-3 space-y-2">
+          {/* ═══ MEMORY ═══ */}
+          <Section icon={<Brain className="h-4 w-4" />} title="Memory"
+            subtitle={trainingMode ? "Click entries to edit — changes staged until saved" : `${memoryCategories.length} categories`}>
+            <div className="space-y-1.5">
               {memoryCategories.map((cat) => {
                 const isExpanded = expandedMemory[cat.key] ?? false;
                 return (
-                  <div key={cat.key} className={`rounded-xl border overflow-hidden ${trainingMode ? "border-status-amber/20" : "border-border"} bg-card`}>
+                  <div key={cat.key} className={`rounded-xl border overflow-hidden bg-card ${trainingMode ? "border-status-amber/15" : "border-border/40"}`}>
                     <button onClick={() => toggleMemory(cat.key)}
-                      className="w-full flex items-center gap-2.5 px-5 py-3 text-left hover:bg-secondary/20 transition-colors">
-                      <span className="text-muted-foreground">{cat.icon}</span>
-                      <span className="text-[13px] font-bold text-foreground flex-1">{cat.title}</span>
-                      <span className="text-[10px] text-muted-foreground font-mono bg-secondary/40 px-2 py-0.5 rounded">{cat.items.length}</span>
-                      {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/40" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-secondary/15 transition-colors">
+                      <span className="text-muted-foreground/50">{cat.icon}</span>
+                      <span className="text-[12px] font-bold text-foreground flex-1">{cat.title}</span>
+                      <span className="text-[10px] text-muted-foreground/40 font-mono">{cat.items.length}</span>
+                      {isExpanded ? <ChevronDown className="h-3 w-3 text-muted-foreground/30" /> : <ChevronRight className="h-3 w-3 text-muted-foreground/30" />}
                     </button>
                     {isExpanded && (
-                      <div className="px-5 pb-4 pt-0 border-t border-border/20">
-                        <div className="space-y-0.5 mt-2">
+                      <div className="px-4 pb-3 pt-0 border-t border-border/15">
+                        <div className="space-y-0 mt-1.5">
                           {cat.items.map((item, i) => {
                             const sb = SOURCE_BADGE[item.source] ?? SOURCE_BADGE.contract;
                             return (
-                              <div key={i} className="flex items-start gap-2.5 group py-2 px-3 rounded-lg hover:bg-secondary/15 transition-colors">
-                                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25 mt-2 shrink-0" />
+                              <div key={i} className="flex items-start gap-2 group py-1.5 px-2.5 rounded-lg hover:bg-secondary/10 transition-colors">
+                                <span className="w-1 h-1 rounded-full bg-muted-foreground/20 mt-2 shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] text-foreground leading-relaxed">{item.text}</p>
-                                  <p className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</p>
-                                  <div className="flex items-center gap-2 mt-1.5">
+                                  <p className="text-[12px] text-foreground leading-relaxed">{item.text}</p>
+                                  <p className="text-[11px] text-muted-foreground/50 mt-0.5">{item.desc}</p>
+                                  <div className="flex items-center gap-2 mt-1">
                                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${sb.cls}`}>{sb.label}</span>
-                                    <span className="text-[10px] text-muted-foreground/40">{item.updated}</span>
+                                    <span className="text-[9px] text-muted-foreground/30">{item.updated}</span>
                                   </div>
                                 </div>
                                 {trainingMode && (
                                   <button className="opacity-0 group-hover:opacity-100 transition-opacity mt-1">
-                                    <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                                    <Pencil className="h-3 w-3 text-muted-foreground/40 hover:text-foreground" />
                                   </button>
                                 )}
                               </div>
@@ -436,9 +401,9 @@ export default function EmployeeProfile() {
                           })}
                         </div>
                         {trainingMode && (
-                          <button className="mt-2 flex items-center gap-1 text-[11px] text-foreground/70 hover:text-foreground transition-colors font-medium px-3"
+                          <button className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground/50 hover:text-foreground transition-colors font-medium px-2.5"
                             onClick={() => { setNewRuleCategory(cat.key); }}>
-                            <Plus className="h-3.5 w-3.5" /> Add entry
+                            <Plus className="h-3 w-3" /> Add entry
                           </button>
                         )}
                       </div>
@@ -447,52 +412,44 @@ export default function EmployeeProfile() {
                 );
               })}
             </div>
-          </section>
+          </Section>
 
-          {/* ════════════════════════════════════════════════════════
-              TRAINING LAB
-              ════════════════════════════════════════════════════════ */}
-          <section>
-            <SectionHeader icon={<GraduationCap className="h-4 w-4" />} title="Training Lab"
-              subtitle="Conversation, notes, and structured prompt drafting" />
-            <div className="mt-3">
-              {!trainingMode ? (
-                <div className="rounded-xl border border-border bg-card p-5 flex items-center gap-5">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-bold text-foreground">Open Training Lab</p>
-                    <p className="text-[12px] text-muted-foreground mt-0.5">
-                      Enter training mode to teach through conversation, add materials, and refine prompts.
-                    </p>
-                  </div>
-                  <Button className="h-9 text-[12px] font-bold gap-1.5 px-5 shrink-0 bg-foreground text-background hover:bg-foreground/90" onClick={() => setTrainingMode(true)}>
-                    <Unlock className="h-3.5 w-3.5" /> Open
-                  </Button>
+          {/* ═══ TRAINING LAB ═══ */}
+          <Section icon={<GraduationCap className="h-4 w-4" />} title="Training Lab"
+            subtitle="Conversation, notes, and structured prompt drafting">
+            {!trainingMode ? (
+              <div className="rounded-xl border border-border/40 bg-card px-5 py-4 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-bold text-foreground">Open Training Lab</p>
+                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+                    Enter training mode to teach through conversation, add materials, and refine prompts.
+                  </p>
                 </div>
-              ) : (
-                <TrainingLab employeeId={id} employeeName={employee.name} roleName={roleName} />
-              )}
-            </div>
-          </section>
+                <Button size="sm" className="h-8 text-[11px] font-semibold gap-1.5 px-4 shrink-0 bg-foreground text-background hover:bg-foreground/90" onClick={() => setTrainingMode(true)}>
+                  <Unlock className="h-3.5 w-3.5" /> Open
+                </Button>
+              </div>
+            ) : (
+              <TrainingLab employeeId={id} employeeName={employee.name} roleName={roleName} />
+            )}
+          </Section>
 
-          {/* ════════════════════════════════════════════════════════
-              LEARNING HISTORY
-              ════════════════════════════════════════════════════════ */}
-          <section>
-            <SectionHeader icon={<TrendingUp className="h-4 w-4" />} title="Learning History" />
-            <div className="mt-3 rounded-xl border border-border bg-card p-5">
+          {/* ═══ LEARNING HISTORY ═══ */}
+          <Section icon={<TrendingUp className="h-4 w-4" />} title="Learning History">
+            <div className="rounded-xl border border-border/40 bg-card px-5 py-4">
               {learningProposals.length === 0 ? (
                 <EmptyLine text="No learning history yet" />
               ) : (
-                <div className="space-y-0 max-w-[640px]">
+                <div className="space-y-0 max-w-[600px]">
                   {learningProposals.slice(0, 15).map((lp, i) => (
                     <LearningTimelineItem key={lp.id} proposal={lp} isLast={i === Math.min(learningProposals.length, 15) - 1} />
                   ))}
                 </div>
               )}
             </div>
-          </section>
+          </Section>
 
-          <div className="h-6" />
+          <div className="h-4" />
         </div>
       </ScrollArea>
     </AppLayout>
@@ -503,20 +460,23 @@ export default function EmployeeProfile() {
    HELPER COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
 
-function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
+function Section({ icon, title, subtitle, children }: { icon: React.ReactNode; title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-muted-foreground">{icon}</span>
-      <h2 className="text-[16px] font-bold text-foreground tracking-tight">{title}</h2>
-      {subtitle && <span className="text-[11px] text-muted-foreground ml-1">— {subtitle}</span>}
-    </div>
+    <section className="space-y-2.5">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground/50">{icon}</span>
+        <h2 className="text-[15px] font-bold text-foreground tracking-tight">{title}</h2>
+        {subtitle && <span className="text-[11px] text-muted-foreground/40 ml-1">— {subtitle}</span>}
+      </div>
+      {children}
+    </section>
   );
 }
 
-function SectionCard({ title, titleIcon, accent, children }: { title: string; titleIcon?: React.ReactNode; accent?: string; children: React.ReactNode }) {
+function Panel({ title, titleIcon, accent, children }: { title: string; titleIcon?: React.ReactNode; accent?: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-4 h-full ${accent ? `border-l-[3px] ${accent}` : ""}`}>
-      <h3 className="text-[13px] font-bold text-foreground mb-3 flex items-center gap-1.5">
+    <div className={`rounded-xl border border-border/40 bg-card p-4 h-full ${accent ? `border-l-[3px] ${accent}` : ""}`}>
+      <h3 className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
         {titleIcon}{title}
       </h3>
       {children}
@@ -524,17 +484,17 @@ function SectionCard({ title, titleIcon, accent, children }: { title: string; ti
   );
 }
 
-function InlineStat({ label, value, color }: { label: string; value: string | number; color?: string }) {
+function StatPill({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">{label}</span>
-      <span className={`text-[16px] font-bold font-mono tabular-nums ${color ?? "text-foreground"}`}>{value}</span>
+    <div className="flex items-center gap-1.5">
+      <span className="text-muted-foreground/50">{label}</span>
+      <span className={`font-bold font-mono tabular-nums ${color ?? "text-foreground"}`}>{value}</span>
     </div>
   );
 }
 
 function EmptyLine({ text }: { text: string }) {
-  return <p className="text-[12px] text-muted-foreground/50 py-2">{text}</p>;
+  return <p className="text-[11px] text-muted-foreground/40 py-1.5">{text}</p>;
 }
 
 function MiniSparkline({ points }: { points: number[] }) {
@@ -542,23 +502,14 @@ function MiniSparkline({ points }: { points: number[] }) {
   const max = Math.max(...points, 100);
   const min = Math.min(...points, 0);
   const range = max - min || 1;
-  const w = 48, h = 20;
+  const w = 40, h = 16;
   const pathD = points.map((p, i) => {
     const x = (i / (points.length - 1)) * w;
     const y = h - ((p - min) / range) * h;
     return `${i === 0 ? "M" : "L"} ${x} ${y}`;
   }).join(" ");
   const up = points[points.length - 1] >= points[points.length - 2];
-  return <svg width={w} height={h} className="block"><path d={pathD} fill="none" stroke={up ? "hsl(var(--status-green))" : "hsl(var(--destructive))"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-function MiniStatCard({ label, value, valueColor }: { label: string; value: string; valueColor: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-3 text-center">
-      <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1 font-medium">{label}</div>
-      <div className={`text-[16px] font-bold font-mono tabular-nums ${valueColor}`}>{value}</div>
-    </div>
-  );
+  return <svg width={w} height={h} className="block"><path d={pathD} fill="none" stroke={up ? "hsl(var(--status-green))" : "hsl(var(--destructive))"} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function parseJsonArray(val: any): string[] {
@@ -569,72 +520,59 @@ function parseJsonArray(val: any): string[] {
 
 function TaskStateDot({ state }: { state: string }) {
   const c: Record<string, string> = { in_progress: "bg-status-amber", waiting_review: "bg-lifecycle-review", blocked: "bg-destructive", assigned: "bg-status-neutral" };
-  return <span className={`w-2 h-2 rounded-full shrink-0 ${c[state] ?? "bg-muted-foreground/30"}`} />;
+  return <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c[state] ?? "bg-muted-foreground/20"}`} />;
 }
 
 function RunStateDot({ state }: { state: string }) {
   const c: Record<string, string> = { running: "bg-status-amber animate-pulse", finalized: "bg-status-green", produced_output: "bg-status-green/70", failed: "bg-destructive", timed_out: "bg-destructive/70" };
-  return <span className={`w-2 h-2 rounded-full shrink-0 ${c[state] ?? "bg-muted-foreground/30"}`} />;
+  return <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c[state] ?? "bg-muted-foreground/20"}`} />;
 }
 
 function ContractPathBlock({ title, icon, items, fallback, accentClass }: { title: string; icon: React.ReactNode; items: string[]; fallback: string; accentClass: string }) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-4 border-l-[3px] ${accentClass} h-full`}>
-      <h3 className="text-[13px] font-bold text-foreground mb-2.5 flex items-center gap-1.5">{icon}{title}</h3>
-      {items.length === 0 ? <p className="text-[12px] text-muted-foreground/50">{fallback}</p> : (
-        <div className="space-y-1">{items.map((p, i) => <div key={i} className="text-[11px] font-mono text-foreground/70 bg-secondary/30 rounded px-2.5 py-1">{p}</div>)}</div>
+    <Panel title={title} titleIcon={icon} accent={accentClass}>
+      {items.length === 0 ? <p className="text-[11px] text-muted-foreground/40">{fallback}</p> : (
+        <div className="space-y-1">{items.map((p, i) => <div key={i} className="text-[11px] font-mono text-foreground/60 bg-secondary/20 rounded px-2 py-1">{p}</div>)}</div>
       )}
-    </div>
+    </Panel>
   );
 }
 
 function PermRow({ label, icon, allowed }: { label: string; icon: React.ReactNode; allowed?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-muted-foreground flex items-center gap-1.5 text-[12px]">{icon}{label}</span>
-      {allowed ? <span className="flex items-center gap-1 text-status-green text-[12px] font-bold"><CheckCircle2 className="h-3.5 w-3.5" /> Yes</span>
-        : <span className="flex items-center gap-1 text-muted-foreground/40 text-[12px]"><XCircle className="h-3.5 w-3.5" /> No</span>}
+      <span className="text-muted-foreground/50 flex items-center gap-1.5 text-[11px]">{icon}{label}</span>
+      {allowed ? <span className="flex items-center gap-1 text-status-green text-[11px] font-bold"><CheckCircle2 className="h-3.5 w-3.5" /> Yes</span>
+        : <span className="flex items-center gap-1 text-muted-foreground/30 text-[11px]"><XCircle className="h-3.5 w-3.5" /> No</span>}
     </div>
-  );
-}
-
-function TrainingAction({ icon, label, desc }: { icon: React.ReactNode; label: string; desc: string }) {
-  return (
-    <button className="rounded-xl border border-border bg-card p-3.5 flex items-start gap-2.5 hover:bg-secondary/30 transition-all text-left group">
-      <span className="text-muted-foreground group-hover:text-foreground transition-colors mt-0.5">{icon}</span>
-      <div>
-        <span className="text-[13px] font-bold text-foreground block">{label}</span>
-        <span className="text-[11px] text-muted-foreground">{desc}</span>
-      </div>
-    </button>
   );
 }
 
 function LearningTimelineItem({ proposal, isLast }: { proposal: any; isLast: boolean }) {
   const cfg: Record<string, { icon: React.ReactNode; label: string; dotColor: string }> = {
-    candidate:   { icon: <FlaskConical className="h-3.5 w-3.5" />, label: "Proposal Created",        dotColor: "bg-status-neutral" },
-    approved:    { icon: <CheckCircle2 className="h-3.5 w-3.5" />, label: "Approved for Evaluation",  dotColor: "bg-status-amber" },
-    promoted:    { icon: <Rocket className="h-3.5 w-3.5" />,       label: "Promoted to Production",   dotColor: "bg-status-green" },
-    rejected:    { icon: <XCircle className="h-3.5 w-3.5" />,      label: "Rejected",                 dotColor: "bg-destructive" },
-    rolled_back: { icon: <RotateCcw className="h-3.5 w-3.5" />,    label: "Rolled Back",              dotColor: "bg-destructive/70" },
+    candidate:   { icon: <FlaskConical className="h-3 w-3" />, label: "Proposal Created",        dotColor: "bg-status-neutral" },
+    approved:    { icon: <CheckCircle2 className="h-3 w-3" />, label: "Approved for Evaluation",  dotColor: "bg-status-amber" },
+    promoted:    { icon: <Rocket className="h-3 w-3" />,       label: "Promoted to Production",   dotColor: "bg-status-green" },
+    rejected:    { icon: <XCircle className="h-3 w-3" />,      label: "Rejected",                 dotColor: "bg-destructive" },
+    rolled_back: { icon: <RotateCcw className="h-3 w-3" />,    label: "Rolled Back",              dotColor: "bg-destructive/70" },
   };
   const c = cfg[proposal.status] ?? cfg.candidate;
   const dateStr = new Date(proposal.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
-        <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${c.dotColor}`} />
-        {!isLast && <div className="w-px flex-1 bg-border/30 my-1" />}
+        <span className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${c.dotColor}`} />
+        {!isLast && <div className="w-px flex-1 bg-border/20 my-1" />}
       </div>
-      <div className="pb-4 min-w-0 flex-1">
+      <div className="pb-3 min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">{c.icon}</span>
-          <span className="text-[13px] font-bold text-foreground">{c.label}</span>
-          <span className="text-[10px] text-muted-foreground/40 ml-auto font-mono">{dateStr}</span>
+          <span className="text-muted-foreground/40">{c.icon}</span>
+          <span className="text-[12px] font-bold text-foreground">{c.label}</span>
+          <span className="text-[10px] text-muted-foreground/30 ml-auto font-mono">{dateStr}</span>
         </div>
-        <p className="text-[12px] text-muted-foreground mt-0.5 leading-relaxed">{proposal.hypothesis || proposal.proposal_type}</p>
+        <p className="text-[11px] text-muted-foreground/60 mt-0.5 leading-relaxed">{proposal.hypothesis || proposal.proposal_type}</p>
         {proposal.status === "rejected" && proposal.rejection_reason && (
-          <p className="text-[11px] text-destructive/70 mt-0.5">Reason: {proposal.rejection_reason}</p>
+          <p className="text-[10px] text-destructive/60 mt-0.5">Reason: {proposal.rejection_reason}</p>
         )}
       </div>
     </div>
