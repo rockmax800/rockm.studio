@@ -119,7 +119,7 @@ export function QuickActions() {
       <div className="grid grid-cols-3 gap-3">
         {actions.map((a) => (
           <Link key={a.label} to={a.to}>
-            <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-surface-raised border border-border/30 hover:border-border/60 hover:bg-surface-glass transition-all duration-180 group cursor-pointer">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-card border border-border hover:border-border-strong hover:bg-secondary transition-all group cursor-pointer">
               <a.icon className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" strokeWidth={1.8} />
               <span className="text-[13px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
             </div>
