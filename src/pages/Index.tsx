@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useProjects, useDashboardCounts, useApprovals, useActivityEvents, useTasks } from "@/hooks/use-data";
 import { useSystemMode } from "@/hooks/use-system-mode";
-import { useFounderInbox, useRiskAnalytics } from "@/hooks/use-founder-data";
+import { useFounderInbox } from "@/hooks/use-founder-data";
 import { StatusStrip } from "@/components/command-center/StatusStrip";
 import { FounderInbox } from "@/components/command-center/FounderInbox";
 import { ActiveDelivery } from "@/components/command-center/ActiveDelivery";
@@ -18,7 +18,6 @@ export default function CommandCenter() {
   const { data: events = [] } = useActivityEvents(undefined, 40);
   const { data: modeData } = useSystemMode();
   const { data: tasks = [] } = useTasks();
-  const risk = useRiskAnalytics();
   const inbox = useFounderInbox();
 
   const { data: workers = [] } = useQuery({ queryKey: ["workers"], queryFn: fetchWorkerNodes, staleTime: 15_000 });
@@ -35,7 +34,6 @@ export default function CommandCenter() {
 
   const pendingApprovals = approvals.filter((a) => a.state === "pending");
   const escalations = inbox.data?.escalations ?? [];
-
   const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
 
   const inboxItems = [
@@ -81,13 +79,12 @@ export default function CommandCenter() {
   const inProgressTasks = tasks.filter((t) => t.state === "in_progress").map(toDeliveryTask);
   const waitingReviewTasks = tasks.filter((t) => t.state === "waiting_review").map(toDeliveryTask);
   const blockedTasks = tasks.filter((t) => t.state === "blocked").map(toDeliveryTask);
-
   const onlineWorkers = workers.filter((w: any) => w.derived_status === "online").length;
 
   return (
     <AppLayout title="Command Center">
-      <div className="max-w-[1800px] mx-auto space-y-2 h-[calc(100vh-4rem)] flex flex-col">
-        {/* STATUS STRIP */}
+      <div className="grid-content space-y-4 pb-8">
+        {/* STATUS STRIP — full width, 64px height */}
         <StatusStrip
           systemMode={modeData?.mode ?? "production"}
           workerCount={onlineWorkers}
@@ -98,27 +95,22 @@ export default function CommandCenter() {
           deploysInProgress={activeDeploys.length}
         />
 
-        {/* HERO COMPOSER */}
+        {/* HERO COMPOSER — 12 columns */}
         <HeroComposer />
 
-        {/* 3-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-1 min-h-0">
-          {/* Column 1 — Founder Inbox */}
-          <div className="rounded-lg bg-surface-overlay border border-border/40 p-2.5 flex flex-col min-h-0 shadow-lg shadow-background/50">
+        {/* 3-COLUMN GRID — 4+4+4 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ minHeight: "calc(100vh - 380px)" }}>
+          <div className="ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <FounderInbox items={inboxItems} />
           </div>
-
-          {/* Column 2 — Active Delivery */}
-          <div className="rounded-lg bg-surface-overlay border border-border/40 p-2.5 flex flex-col min-h-0 shadow-lg shadow-background/50">
+          <div className="ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <ActiveDelivery
               inProgress={inProgressTasks}
               waitingReview={waitingReviewTasks}
               blocked={blockedTasks}
             />
           </div>
-
-          {/* Column 3 — Live Flow */}
-          <div className="rounded-lg bg-surface-overlay border-l-2 border-l-primary/30 border border-border/40 p-2.5 flex flex-col min-h-0 shadow-lg shadow-background/50">
+          <div className="ds-card p-4 flex flex-col min-h-0 overflow-hidden">
             <LiveFlow events={events} />
           </div>
         </div>

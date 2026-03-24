@@ -6,7 +6,6 @@ import {
   Settings,
   Building2,
   Users,
-  ChevronRight,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -44,17 +43,17 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-3">
-        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-2"}`}>
-          <div className="h-7 w-7 rounded bg-primary/20 border border-primary/30 flex items-center justify-center animate-glow">
-            <span className="text-primary text-[10px] font-bold font-mono">AI</span>
+      <SidebarHeader className="p-4">
+        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-2.5"}`}>
+          <div className="h-8 w-8 rounded-[10px] bg-primary flex items-center justify-center shrink-0">
+            <span className="text-primary-foreground text-[11px] font-bold font-mono">AI</span>
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-semibold text-xs text-foreground tracking-tight">
+              <span className="font-semibold text-[14px] text-foreground tracking-tight leading-tight">
                 Production Studio
               </span>
-              <span className="text-[9px] font-mono text-muted-foreground">v2.1 · cockpit</span>
+              <span className="text-[11px] font-mono text-muted-foreground">v2.1</span>
             </div>
           )}
         </div>
@@ -62,7 +61,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted text-[9px] uppercase tracking-widest">
+          <SidebarGroupLabel className="text-muted-foreground text-[12px] font-medium px-4 mb-1">
             Operations
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -73,11 +72,11 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      activeClassName="bg-primary/10 text-primary border-l-2 border-primary font-medium"
+                      className="hover:bg-secondary text-muted-foreground rounded-lg mx-2 px-3 py-2"
+                      activeClassName="bg-secondary text-foreground font-medium"
                     >
-                      <item.icon className="mr-2 h-3.5 w-3.5" />
-                      {!collapsed && <span className="text-xs">{item.title}</span>}
+                      <item.icon className="mr-2.5 h-4 w-4" />
+                      {!collapsed && <span className="text-[14px]">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -87,7 +86,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted text-[9px] uppercase tracking-widest">
+          <SidebarGroupLabel className="text-muted-foreground text-[12px] font-medium px-4 mb-1">
             Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -97,11 +96,11 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      activeClassName="bg-primary/10 text-primary border-l-2 border-primary font-medium"
+                      className="hover:bg-secondary text-muted-foreground rounded-lg mx-2 px-3 py-2"
+                      activeClassName="bg-secondary text-foreground font-medium"
                     >
-                      <item.icon className="mr-2 h-3.5 w-3.5" />
-                      {!collapsed && <span className="text-xs">{item.title}</span>}
+                      <item.icon className="mr-2.5 h-4 w-4" />
+                      {!collapsed && <span className="text-[14px]">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -111,10 +110,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-4">
         {!collapsed && (
-          <div className="flex items-center gap-1.5 text-[9px] font-mono text-sidebar-muted">
-            <div className="h-1.5 w-1.5 rounded-full bg-status-green animate-pulse" />
+          <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+            <div className="h-2 w-2 rounded-full bg-status-green" />
             System Online
           </div>
         )}
