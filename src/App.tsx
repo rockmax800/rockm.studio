@@ -13,6 +13,7 @@ import IntakeComposer from "./pages/IntakeComposer";
 import ProjectsPage from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import OfficePage from "./pages/control/OfficePage";
+import TeamRoom from "./pages/TeamRoom";
 
 // Management pages
 import FounderPage from "./pages/FounderPage";
