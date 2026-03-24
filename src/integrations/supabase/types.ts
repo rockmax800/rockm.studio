@@ -361,18 +361,26 @@ export type Database = {
           artifact_category: string | null
           artifact_type: Database["public"]["Enums"]["artifact_type"]
           canonical_flag: boolean
+          changed_files_json: Json | null
           content_text: string | null
           created_at: string
           external_ref: string | null
           file_path: string | null
           id: string
           project_id: string
+          related_check_suite_id: string | null
+          related_deployment_id: string | null
+          related_pull_request_id: string | null
+          related_repo_workspace_id: string | null
           run_id: string | null
+          source_entity_id: string | null
+          source_entity_type: string | null
           state: Database["public"]["Enums"]["artifact_state"]
           storage_kind: Database["public"]["Enums"]["storage_kind"]
           summary: string | null
           supersedes_artifact_id: string | null
           task_id: string | null
+          tests_executed_json: Json | null
           title: string
           updated_at: string
           version: number
@@ -381,18 +389,26 @@ export type Database = {
           artifact_category?: string | null
           artifact_type: Database["public"]["Enums"]["artifact_type"]
           canonical_flag?: boolean
+          changed_files_json?: Json | null
           content_text?: string | null
           created_at?: string
           external_ref?: string | null
           file_path?: string | null
           id?: string
           project_id: string
+          related_check_suite_id?: string | null
+          related_deployment_id?: string | null
+          related_pull_request_id?: string | null
+          related_repo_workspace_id?: string | null
           run_id?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
           state?: Database["public"]["Enums"]["artifact_state"]
           storage_kind?: Database["public"]["Enums"]["storage_kind"]
           summary?: string | null
           supersedes_artifact_id?: string | null
           task_id?: string | null
+          tests_executed_json?: Json | null
           title: string
           updated_at?: string
           version?: number
@@ -401,18 +417,26 @@ export type Database = {
           artifact_category?: string | null
           artifact_type?: Database["public"]["Enums"]["artifact_type"]
           canonical_flag?: boolean
+          changed_files_json?: Json | null
           content_text?: string | null
           created_at?: string
           external_ref?: string | null
           file_path?: string | null
           id?: string
           project_id?: string
+          related_check_suite_id?: string | null
+          related_deployment_id?: string | null
+          related_pull_request_id?: string | null
+          related_repo_workspace_id?: string | null
           run_id?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
           state?: Database["public"]["Enums"]["artifact_state"]
           storage_kind?: Database["public"]["Enums"]["storage_kind"]
           summary?: string | null
           supersedes_artifact_id?: string | null
           task_id?: string | null
+          tests_executed_json?: Json | null
           title?: string
           updated_at?: string
           version?: number
@@ -423,6 +447,34 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_related_check_suite_id_fkey"
+            columns: ["related_check_suite_id"]
+            isOneToOne: false
+            referencedRelation: "check_suites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_related_deployment_id_fkey"
+            columns: ["related_deployment_id"]
+            isOneToOne: false
+            referencedRelation: "deployments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_related_pull_request_id_fkey"
+            columns: ["related_pull_request_id"]
+            isOneToOne: false
+            referencedRelation: "pull_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_related_repo_workspace_id_fkey"
+            columns: ["related_repo_workspace_id"]
+            isOneToOne: false
+            referencedRelation: "repo_workspaces"
             referencedColumns: ["id"]
           },
           {

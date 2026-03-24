@@ -204,12 +204,29 @@ export async function executeRun(
     const now = new Date().toISOString();
     let artifactId: string | null = null;
     await prisma.$transaction(async (tx) => {
+      // Determine artifact category based on task domain
+      const CODE_DOMAINS = ["frontend_delivery", "backend_delivery", "frontend", "backend"];
+      const isCodeTask = task.domain && CODE_DOMAINS.includes(task.domain);
+      const artifactCategory = isCodeTask ? "implementation_patch" : "technical_plan";
+
+      // Look up workspace for evidence linking
+      let workspaceId: string | null = null;
+      try {
+        const ws = await tx.repo_workspaces?.findFirst({ where: { run_id: runId } });
+        if (ws) workspaceId = ws.id;
+      } catch { /* best-effort */ }
+
       const artifact = await tx.artifacts.create({
         data: {
           project_id: run.project_id,
           task_id: run.task_id,
           run_id: runId,
           artifact_type: "document",
+          artifact_category: artifactCategory,
+          source_entity_type: "run",
+          source_entity_id: runId,
+          related_repo_workspace_id: workspaceId,
+          changed_files_json: providerResult.changedFiles ?? null,
           title: "Provider Output",
           state: "created",
           storage_kind: "db_text",
