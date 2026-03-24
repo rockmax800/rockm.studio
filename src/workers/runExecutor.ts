@@ -221,6 +221,23 @@ export async function executeRun(
       });
       artifactId = artifact.id;
 
+      // PART 14b — Post-execution path validation against role contract
+      if (providerResult.changedFiles && (roleContract || taskSpecForRun)) {
+        const pathResult = contractEnforcement.validateChangedFiles(
+          providerResult.changedFiles,
+          roleContract,
+          taskSpecForRun,
+        );
+        if (!pathResult.valid) {
+          logInfo("role_contract_path_violations_detected", {
+            runId,
+            violations: pathResult.violations,
+          });
+          // Record violations in artifact summary for reviewer visibility
+          providerResult.outputText += `\n\n⚠️ ROLE CONTRACT VIOLATIONS:\n${pathResult.violations.join("\n")}`;
+        }
+      }
+
       // PART 11 — Store execution trace: provider refs, tokens, cost, workspace link
       const updateData: Record<string, unknown> = {
         output_summary: providerResult.outputText.slice(0, 500),
