@@ -174,9 +174,9 @@ export class TaskService {
       // PART 8 — Reload and re-validate inside transaction
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
 
-      if (task.state !== "approved") {
+      if (task.state !== "validated") {
         throw new GuardError({
-          message: `Task must be in "approved" state to complete. Current: "${task.state}"`,
+          message: `Task must be in "validated" state to complete. Current: "${task.state}"`,
           entityType: "task",
           entityId: taskId,
           fromState: task.state,
