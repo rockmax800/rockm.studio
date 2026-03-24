@@ -1,149 +1,122 @@
-# AI Production Studio
+# AI Production Studio v1.1 — Spine Stabilized
 
-Internal agent-first development workspace for turning product ideas into production-ready software.
-
-## Purpose
-
-AI Production Studio is a private development environment for a solo product founder.
-It orchestrates AI agents across product planning, frontend delivery, backend implementation, review, testing, and release — reducing dependency on external engineering teams.
-
-## Core Principle
-
-The founder defines goals, constraints, and approval gates.
-Agents execute work inside explicit boundaries.
-The founder does not manually supervise coding step by step.
+Deterministic AI-powered software delivery operating system for a solo product founder.
 
 ---
 
-## Architecture Overview
+## What This Is
 
-The system is organized into three layers:
+A production-grade orchestration system that routes client briefs through a deterministic pipeline — from intake to deployment — using AI agents under strict founder control.
 
-| Layer | Purpose | Docs |
-|-------|---------|------|
-| **Core** | Projects, tasks, runs, artifacts, reviews | `docs/core/` |
-| **Company** | AI employees, HR, talent market, media | `docs/company/` |
-| **Autonomy** | Self-improvement, prompt versioning, budget controls | `docs/autonomy/` |
-
-High-level overview: [`docs/00-system-overview-v2.md`](docs/00-system-overview-v2.md)
+**Production Mode is the default.** Experimental features are gated behind feature flags and disabled in production.
 
 ---
 
-## UI Structure (v2.1)
+## Architecture: Four Operational Planes
 
-Navigation is split into **Production** and **Management** sections.
+```
+┌─────────────────────────────────────────────────────────────┐
+│  EXPERIENCE    Founder Dashboard, Pixel Office, Client Portal│
+├─────────────────────────────────────────────────────────────┤
+│  KNOWLEDGE     Scoring, proposals, prompt versions, learning │
+├─────────────────────────────────────────────────────────────┤
+│  DELIVERY      Tasks, Runs, Artifacts, Reviews, CI/CD, Deploy│
+├─────────────────────────────────────────────────────────────┤
+│  INTENT        Intake, Blueprints, Estimates, Launch Gates   │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### Production
-
-| Route | Page | What's inside |
-|-------|------|---------------|
-| `/` | Home | Active projects, draft presales, founder decision queue |
-| `/departments` | Departments | Department cards (Mobile Studio, Web Studio, etc.), blueprints, presales |
-| `/departments/:slug` | Department Detail | Blueprints tab, presales tab, presale workflow |
-| `/projects` | Projects | All projects with state filters |
-| `/projects/:id` | Project Detail | Tasks, runs, artifacts, reviews for a single project |
-| `/office` | Office | Real-time agent activity visualization |
-
-### Management
-
-| Route | Page | What's inside |
-|-------|------|---------------|
-| `/founder` | Founder | Approval queue, system stats, autonomy controls |
-| `/company` | Company | Internal departments dashboard (HR, Talent Market, Media) |
-| `/system` | System | Provider health, system mode, diagnostics |
-
-UI spec: [`docs/13-lovable-ui-spec-v1.md`](docs/13-lovable-ui-spec-v1.md)
+**Dependency rule:** Intent → Delivery → Knowledge → Experience. No reverse writes.
 
 ---
 
-## Company Page — Internal Departments
+## Core Capabilities
 
-The `/company` page is a dashboard with three department cards:
+### Front Office (Intent Plane)
+Intake → Blueprint Contract → Estimate Report → Launch Decision → Project
 
-| Department | Badge | Key metrics | Detail view |
-|-----------|-------|-------------|-------------|
-| **HR Department** | Blue | Employees, Avg Performance, Suggestions | Employee table, system suggestions |
-| **AI Talent Market** | Cyan | Ranked models, Experiments, Upgrades | Model benchmarking leaderboard |
-| **Media & SMM** | Green | Drafts, Approved, Published | Blog posts, "Generate from Events" CTA |
+### Deterministic Delivery Core
+Task → Run → Artifact → Review → Approval (with rework loop)
+
+### Execution Spine
+Run → RepoWorkspace → PullRequest → CheckSuite → Deployment → DomainBinding
+
+### Infrastructure
+- **Event Log** — append-only canonical truth (immutable, never updated)
+- **Transactional Outbox** — reliable external event dispatch
+- **Sandbox Isolation** — Docker-based execution with resource limits
+- **Optimistic Locking** — version-based concurrency on all entities
+
+### Deployment Pipeline
+GitHub → CI (GitHub Actions) → Docker → VPS. Auto-deploy to production is forbidden.
+
+### Governance
+- Founder approval gates at every critical transition
+- Role Contracts with enforceable path boundaries
+- Typed Artifact evidence model (10 categories)
+- Client Portal (read-only project visibility)
+
+### Operating Modes
+- **Production (MSOM)** — default. Minimal stable operating mode.
+- **Experimental** — enables shadow testing, prompt A/B, model competition.
 
 ---
 
-## Tech Stack
+## Minimal Stable Operating Mode (MSOM)
 
-- **Frontend**: React 18 + Vite + TypeScript + Tailwind CSS + shadcn/ui
-- **Backend**: Lovable Cloud (Supabase) — database, auth, edge functions, storage
-- **State**: TanStack React Query
-- **Routing**: React Router v6
+Production Mode disables all experimental subsystems:
+- No autonomous task generation
+- No prompt A/B experiments
+- No model competition
+- No shadow testing
+- No auto-retry beyond configured policy
 
-Decision log: [`docs/19-tech-stack-decision-v1.md`](docs/19-tech-stack-decision-v1.md)
+Only deterministic delivery operates: Task → Run → Review → Approval → Deploy.
 
 ---
 
-## Documentation Map
+## What This Is NOT
 
-### Foundation
+- **Not a chat playground.** Agents execute structured tasks, not free-form conversations.
+- **Not uncontrolled autonomy.** Every meaningful action requires explicit approval or guard validation.
+- **Not auto-deploying AI.** Production deployment always requires founder approval after CI passes.
+- **Not a simulation.** This is an operational system with real execution, real artifacts, and real deployments.
 
-| File | Content |
-|------|---------|
-| `AGENTS.md` | Execution policy for AI agents |
-| `docs/00-project-brief.md` | Project intent and scope |
-| `docs/00-system-overview-v2.md` | System architecture overview |
-| `docs/04-domain-boundaries.md` | Domain map and separation rules |
-| `docs/07-system-mode.md` | Operating modes (lean, full, maintenance) |
-| `docs/08-feature-flags.md` | Feature flag registry |
+---
 
-### Core Layer — `docs/core/`
+## Documentation Structure
 
-| File | Content |
-|------|---------|
-| `01-project-lifecycle.md` | Project states and transitions |
-| `02-domain-boundaries.md` | Entity ownership rules |
-| `03-state-machine.md` | State machine definitions |
-| `04-data-model.md` | Database schema and relations |
-| `05-guard-matrix.md` | Transition guard conditions |
-| `06-orchestration-use-cases.md` | Task orchestration patterns |
-| `07-backend-architecture.md` | API and service layer design |
-| `08-provider-architecture.md` | AI provider routing and fallback |
-| `09-performance-scoring.md` | Agent performance metrics |
+```
+docs/
+├── 00-system-overview.md          System architecture & 4 planes
+├── core/                          Deterministic engine (Delivery Plane)
+│   ├── 01–13                      Lifecycle, state machines, guards, data model,
+│   │                              orchestration, event log, operational planes
+├── front-office/                  Intent Plane
+│   ├── intake, blueprint, estimate, launch, presale, client-portal
+├── delivery/                      Execution spine
+│   ├── backend, providers, delivery-lane, sandbox, failure, diagnostics
+├── company/                       Organizational model (Knowledge/Experience)
+├── autonomy/                      Experimental features (gated)
+│   ├── 20–27                      Autonomy, prompts, models, learning pipeline
+├── business/                      Commercial model
+├── product/                       Product direction
+└── archive/                       Superseded v1 documents
+```
 
-### Company Layer — `docs/company/`
+---
 
-| File | Content |
-|------|---------|
-| `10-department-system.md` | Department structure and UI mapping |
-| `11-ai-employee-hr-model.md` | AI employee lifecycle (hire, evaluate, replace) |
-| `12-load-balancer.md` | Task distribution across agents |
-| `13-hiring-market.md` | Model competition and benchmarking |
-| `14-performance-rating-engine.md` | Reputation scoring system |
-| `15-replacement-engine.md` | Underperformer replacement logic |
-| `16-company-blog.md` | AI-generated marketing posts |
-| `17-realtime-office.md` | Live office visualization |
-| `18-prediction-bottleneck-engine.md` | Bottleneck detection and alerts |
+## Technology Stack
 
-### Autonomy Layer — `docs/autonomy/`
-
-| File | Content |
-|------|---------|
-| `20-autonomy-layer.md` | Self-execution pipeline |
-| `21-lean-mode.md` | Minimal-overhead operating mode |
-| `22-prompt-versioning.md` | Prompt A/B testing and versioning |
-| `23-model-competition.md` | Model ranking and upgrade suggestions |
-| `24-context-compression.md` | Context window optimization |
-| `25-spec-to-release-mode.md` | End-to-end autonomous delivery |
-| `26-safety-budget-controls.md` | Token budgets and safety limits |
-
-### Cross-cutting
-
-| File | Content |
-|------|---------|
-| `docs/05-lifecycle-state-machine.md` | Entity state machines |
-| `docs/11-ai-agent-instructions.md` | Agent behavior rules |
-| `docs/12-ai-collaboration-protocol.md` | Handoff, review, escalation |
-| `docs/14-data-model-v1.md` | Full data model reference |
-| `docs/21-lifecycle-transition-guards-v1.md` | Guard implementation details |
-| `docs/27-operating-modes.md` | Mode switching logic |
-| `docs/28-token-economy-and-budgeting.md` | Cost tracking and limits |
-| `docs/29-risk-and-safety-matrix.md` | Risk classification |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React + Vite + Tailwind + TypeScript |
+| Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
+| ORM | Supabase client SDK |
+| State | TanStack React Query |
+| Routing | React Router v6 |
+| CI/CD | GitHub Actions → Docker → VPS |
+| Real-time | Supabase Realtime (WebSocket) |
 
 ---
 
@@ -151,32 +124,22 @@ Decision log: [`docs/19-tech-stack-decision-v1.md`](docs/19-tech-stack-decision-
 
 ```
 src/
-├── components/       # Shared UI components (AppLayout, Sidebar, StatusBadge)
-├── components/ui/    # shadcn/ui primitives
-├── components/office/# Office visualization components
-├── pages/            # Route-level pages
-├── pages/control/    # Legacy detail pages (still used for deep links)
-├── hooks/            # Data fetching hooks (use-hr-data, use-department-data, etc.)
-├── services/         # Business logic services
-├── guards/           # State transition guards
-├── lib/              # Utilities (api, logger, status helpers)
-├── data/             # Mock data for development
-├── config/           # Environment config
-├── workers/          # Background execution (runExecutor)
+├── components/       UI components (AppLayout, Sidebar, StatusBadge)
+├── components/ui/    shadcn/ui primitives
+├── components/office/ Office visualization
+├── pages/            Route-level pages
+├── hooks/            Data fetching hooks
+├── services/         Business logic services
+├── guards/           State transition guards
+├── workers/          Background execution (runExecutor)
+├── lib/              Utilities
 supabase/
-├── functions/        # Edge functions (blog, HR, predictions, benchmarks)
-├── migrations/       # Database migrations (read-only)
-├── config.toml       # Project configuration
-prisma/
-├── schema.prisma     # Prisma schema (reference)
+├── functions/        Edge functions
+├── migrations/       Database migrations
 ```
 
 ---
 
-## Non-goals for V1
+## Version
 
-- Full autonomy without approval gates
-- Production deployment without review
-- Multi-tenant SaaS
-- Voice-first interaction
-- Unrestricted code changes across the repository
+**v1.1 — Spine Stabilized.** See `VERSION.md` for changelog.
