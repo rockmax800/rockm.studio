@@ -274,7 +274,7 @@ export class ReviewService {
       actorType,
       actorRoleId: review.reviewer_role_id,
       projectId,
-      metadata: { use_case: "UC-07", trigger: "rejection finalized", reason },
+      metadata: { use_case: "UC-06", trigger: "rejection finalized", reason },
     });
 
     await this.orchestration.transitionEntity({
