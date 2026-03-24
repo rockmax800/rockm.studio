@@ -127,17 +127,17 @@ export class GodelModeService {
   /**
    * Promote an approved proposal. Stores previous version for rollback.
    */
-  static async promote(proposalId: string, previousSnapshot: Record<string, unknown>) {
+  static async promote(proposalId: string, previousSnapshot: Record<string, unknown> & { [key: string]: string | number | boolean | null }) {
     const { error } = await supabase
       .from("self_modification_proposals")
       .update({
         status: "promoted",
         promoted_at: new Date().toISOString(),
-        previous_version_snapshot: previousSnapshot,
+        previous_version_snapshot: previousSnapshot as any,
         updated_at: new Date().toISOString(),
       })
       .eq("id", proposalId)
-      .eq("status", "approved");
+      .eq("status", "approved" as any);
 
     if (error) throw error;
 
@@ -182,13 +182,13 @@ export class GodelModeService {
   /**
    * List proposals with optional status filter.
    */
-  static async list(statusFilter?: string) {
+  static async list(statusFilter?: "candidate" | "evaluated" | "approved" | "rejected" | "promoted") {
     let query = supabase
       .from("self_modification_proposals")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (statusFilter) query = query.eq("status", statusFilter);
+    if (statusFilter) query = query.eq("status", statusFilter as any);
 
     const { data, error } = await query;
     if (error) throw error;

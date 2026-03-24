@@ -120,17 +120,17 @@ export class DarwinModeService {
   /**
    * Promote a survived experiment (requires prior Founder Approval).
    */
-  static async promote(experimentId: string, approvalId: string, previousSnapshot: Record<string, unknown>) {
+  static async promote(experimentId: string, approvalId: string, previousSnapshot: Record<string, unknown> & { [key: string]: string | number | boolean | null }) {
     const { error } = await supabase
       .from("mutation_experiments")
       .update({
         approval_id: approvalId,
         promoted_at: new Date().toISOString(),
-        previous_version_snapshot: previousSnapshot,
+        previous_version_snapshot: previousSnapshot as any,
         updated_at: new Date().toISOString(),
       })
       .eq("id", experimentId)
-      .eq("status", "survived");
+      .eq("status", "survived" as any);
 
     if (error) throw error;
 
@@ -171,13 +171,13 @@ export class DarwinModeService {
     console.log(`[DarwinMode] Experiment ${experimentId} ROLLED BACK`);
   }
 
-  static async list(statusFilter?: string) {
+  static async list(statusFilter?: "running" | "survived" | "rejected") {
     let query = supabase
       .from("mutation_experiments")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (statusFilter) query = query.eq("status", statusFilter);
+    if (statusFilter) query = query.eq("status", statusFilter as any);
 
     const { data, error } = await query;
     if (error) throw error;

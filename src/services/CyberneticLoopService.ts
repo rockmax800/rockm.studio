@@ -169,13 +169,13 @@ export class CyberneticLoopService {
     console.log(`[CyberneticLoop] Correction ${proposalId} ${action}`);
   }
 
-  static async listProposals(statusFilter?: string) {
+  static async listProposals(statusFilter?: "proposed" | "acknowledged" | "applied" | "dismissed") {
     let query = supabase
       .from("correction_proposals")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (statusFilter) query = query.eq("status", statusFilter);
+    if (statusFilter) query = query.eq("status", statusFilter as any);
 
     const { data, error } = await query;
     if (error) throw error;
