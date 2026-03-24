@@ -242,6 +242,9 @@ For guard details, see `05-guard-matrix.md`.
 11. **Review verdict is null until lifecycle reaches `resolved`**
 12. **Approval decision is null until lifecycle reaches `decided`**
 13. **Task `validated` ≠ Approval `decided` with decision=approved — these are distinct concepts**
+14. **Every task owner change must create a Handoff record**
+15. **No run may start without an acknowledged Handoff on the task**
+16. **Every Handoff must have `requested_outcome` and `acceptance_criteria`**
 
 ---
 
@@ -251,14 +254,56 @@ For guard details, see `05-guard-matrix.md`.
 `failed`/`timed_out` → finalize → task remains active/blocked → retry, reassign, or escalate
 
 ### Review rejection loop
-Artifact under review → review resolved (verdict=rejected) → task `rework_required` → reassigned → new run → new review
+Artifact under review → review resolved (verdict=rejected) → task `rework_required` → **rework Handoff created** (reviewer → implementer) → reassigned → new run → new review
 
 ### Founder escalation loop
 Task/review escalated → founder decision → reassign, pause, change, or cancel
 
 ---
 
-## 11 — Migration Mapping
+## 11 — Handoff State Machine
+
+### 11.1 States
+
+| Status | Meaning |
+|--------|---------|
+| created | Handoff record exists, target not yet acknowledged |
+| acknowledged | Target role accepted the handoff |
+| completed | Work finished successfully |
+| cancelled | Handoff cancelled (task reassigned, cancelled, etc.) |
+
+### 11.2 Transitions
+
+| From | To | Trigger | Guard |
+|------|----|---------|-------|
+| created | acknowledged | Target role accepts | Actor = target_role_id |
+| acknowledged | completed | Work done | Actor = target_role_id or system |
+| created | cancelled | Task cancelled/reassigned | — |
+| acknowledged | cancelled | Task cancelled/reassigned | — |
+
+### 11.3 Terminal States: `completed`, `cancelled`
+
+### 11.4 Handoff Lifecycle Invariants
+
+1. A handoff is created when `task.owner_role_id` changes (via UC-02 assignTask)
+2. A rework handoff is created when review verdict = rejected (reviewer → implementer)
+3. `task.current_handoff_id` always points to the most recent active handoff
+4. A run cannot start unless `task.current_handoff_id` references an `acknowledged` handoff
+5. Multiple handoffs per task are allowed (history preserved)
+6. Only the target role may acknowledge a handoff
+
+### 11.5 Required Fields
+
+| Field | Required |
+|-------|----------|
+| requested_outcome | **Yes** — implementation, review, clarification, approval_prep, qa, release |
+| acceptance_criteria_json | **Yes** — at least one criterion |
+| source_role_id | **Yes** |
+| target_role_id | **Yes** |
+
+---
+
+## 12 — Migration Mapping
 
 | Entity | Old State | New Lifecycle State | New Outcome Field |
 |--------|-----------|--------------------|--------------------|

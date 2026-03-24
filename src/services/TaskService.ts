@@ -3,8 +3,10 @@
 // Hardened with:
 // - Serializable isolation
 // - Re-check reviews/approvals in complete (PART 6)
+// - Handoff creation on assignment (PART 9)
 
 import { GuardError } from "@/guards/GuardError";
+import { HandoffService, type HandoffOutcome } from "@/services/HandoffService";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -13,6 +15,7 @@ interface PrismaTransactionClient {
     findFirst: (args: any) => Promise<any>;
     findMany: (args: any) => Promise<any>;
     update: (args: any) => Promise<any>;
+    updateMany: (args: any) => Promise<{ count: number }>;
     create: (args: any) => Promise<any>;
     count: (args: any) => Promise<number>;
   };
@@ -41,20 +44,34 @@ const ASSIGNABLE_STATES = ["ready", "rework_required", "blocked", "escalated", "
 export class TaskService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
+  private handoffService: HandoffService;
 
   constructor(prisma: PrismaLike, orchestrationService: OrchestrationServiceLike) {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
+    this.handoffService = new HandoffService(prisma);
   }
 
   async assignTask({
     taskId,
     ownerRoleId,
     actorType,
+    handoffParams,
   }: {
     taskId: string;
     ownerRoleId: string;
     actorType: "system" | "founder" | "agent_role";
+    handoffParams?: {
+      sourceRoleId: string;
+      requestedOutcome: HandoffOutcome;
+      acceptanceCriteria: unknown[];
+      constraints?: unknown[];
+      openQuestions?: unknown[];
+      contextPackId?: string;
+      sourceArtifactIds?: string[];
+      urgency?: "normal" | "high" | "blocker";
+      createdFromReviewId?: string;
+    };
   }) {
     const validationResult = await this.prisma.$transaction(async (tx) => {
       const task = await tx.tasks.findUniqueOrThrow({ where: { id: taskId } });
@@ -145,6 +162,24 @@ export class TaskService {
       return { task, agentRole };
     }, { isolationLevel: "Serializable" });
 
+    // PART 9 — Create Handoff record if params provided
+    if (handoffParams) {
+      await this.handoffService.createHandoff({
+        projectId: validationResult.task.project_id,
+        taskId,
+        sourceRoleId: handoffParams.sourceRoleId,
+        targetRoleId: ownerRoleId,
+        requestedOutcome: handoffParams.requestedOutcome,
+        acceptanceCriteria: handoffParams.acceptanceCriteria,
+        constraints: handoffParams.constraints,
+        openQuestions: handoffParams.openQuestions,
+        contextPackId: handoffParams.contextPackId,
+        sourceArtifactIds: handoffParams.sourceArtifactIds,
+        urgency: handoffParams.urgency,
+        createdFromReviewId: handoffParams.createdFromReviewId,
+      });
+    }
+
     const updated = await this.orchestration.transitionEntity({
       entityType: "task",
       entityId: taskId,
@@ -157,6 +192,7 @@ export class TaskService {
         trigger: "task assigned to role",
         from_state: validationResult.task.state,
         owner_role_name: validationResult.agentRole.name,
+        has_handoff: !!handoffParams,
       },
     });
 

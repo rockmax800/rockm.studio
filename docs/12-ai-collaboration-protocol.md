@@ -72,29 +72,60 @@ A role may only act within its assigned scope.
 
 ---
 
-## 5 — Handoff Object
+## 5 — Handoff Entity (First-Class Domain Object)
 
-Every handoff between agents must include a structured handoff object.
+Handoff is a first-class entity stored in the `handoffs` table.
+Every role-to-role collaboration transition creates a traceable Handoff record.
 
-## 5.1 Required Handoff Fields
+### 5.1 Handoff Fields
 
-| Field | Description |
-|---|---|
-| handoff_id | unique handoff identifier |
-| source_role | role sending the work |
-| target_role | role receiving the work |
-| task_id | linked task |
-| project_id | linked project |
-| purpose | what the receiver is expected to do |
-| artifact_refs | linked artifacts |
-| context_pack_ref | linked context pack |
-| constraints | must / must not rules for this handoff |
-| acceptance_criteria | what counts as success |
-| open_questions | unresolved items if any |
-| urgency | normal, high, blocker |
-| requested_outcome | review, implementation, clarification, approval preparation |
+| Field | Type | Description |
+|---|---|---|
+| id | uuid | Unique handoff identifier |
+| project_id | FK | Linked project |
+| task_id | FK | Linked task |
+| source_role_id | FK | Role sending the work |
+| target_role_id | FK | Role receiving the work |
+| requested_outcome | enum | implementation, review, clarification, approval_prep, qa, release |
+| context_pack_id | FK (nullable) | Linked context pack |
+| source_artifact_ids_json | jsonb | Referenced artifact IDs |
+| constraints_json | jsonb | Must / must not rules for this handoff |
+| acceptance_criteria_json | jsonb | What counts as success (**required, non-empty**) |
+| open_questions_json | jsonb | Unresolved items if any |
+| urgency | enum | normal, high, blocker |
+| status | enum | created, acknowledged, completed, cancelled |
+| created_from_review_id | FK (nullable) | If handoff originated from a review rejection |
+| created_at | timestamp | Creation time |
+| acknowledged_at | timestamp | When target role acknowledged |
+| closed_at | timestamp | When completed or cancelled |
 
-## 5.2 Handoff Rule
+### 5.2 Handoff Lifecycle
+
+```
+created → acknowledged → completed
+created → cancelled
+acknowledged → cancelled
+```
+
+### 5.3 Handoff Invariants (Enforced in Code)
+
+1. **Every task owner change** creates a Handoff record via `TaskService.assignTask()`
+2. **No run may start** without an acknowledged Handoff (`RunService.startRun()` validates)
+3. **`task.current_handoff_id`** always points to the most recent active handoff
+4. **Review rejection** automatically creates a rework Handoff (reviewer → implementer)
+5. **Source and target roles must differ** — no self-handoff
+6. **Both roles must be active** at handoff creation time
+7. **Acceptance criteria are mandatory** — at least one criterion required
+
+### 5.4 Handoff Audit Trail
+
+All Handoff status changes emit `ActivityEvent`:
+- `handoff.created` — when handoff is created
+- `handoff.acknowledged` — when target role accepts
+- `handoff.completed` — when work is finished
+- `handoff.cancelled` — when handoff is cancelled
+
+### 5.5 Handoff Rule
 No role may hand off work without:
 - a target role
 - a clear requested outcome

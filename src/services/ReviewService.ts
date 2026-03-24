@@ -2,8 +2,10 @@
 // UC-07 Resolve Review — Reject (Rework Loop)
 // Hardened with Serializable isolation
 // Extended with RunEvaluation recording (PART 7)
+// Extended with Handoff creation on rejection (PART 9)
 
 import { GuardError } from "@/guards/GuardError";
+import { HandoffService } from "@/services/HandoffService";
 
 interface PrismaTransactionClient {
   [key: string]: {
@@ -12,6 +14,7 @@ interface PrismaTransactionClient {
     findFirst: (args: any) => Promise<any>;
     findMany: (args: any) => Promise<any>;
     update: (args: any) => Promise<any>;
+    updateMany: (args: any) => Promise<{ count: number }>;
     create: (args: any) => Promise<any>;
     count: (args: any) => Promise<number>;
   };
@@ -50,6 +53,7 @@ export class ReviewService {
   private prisma: PrismaLike;
   private orchestration: OrchestrationServiceLike;
   private performanceService: AgentPerformanceServiceLike | null;
+  private handoffService: HandoffService;
 
   constructor(
     prisma: PrismaLike,
@@ -59,6 +63,7 @@ export class ReviewService {
     this.prisma = prisma;
     this.orchestration = orchestrationService;
     this.performanceService = performanceService ?? null;
+    this.handoffService = new HandoffService(prisma);
   }
 
   async approveReview({
@@ -295,6 +300,25 @@ export class ReviewService {
         projectId,
         metadata: { use_case: "UC-07", trigger: "rework required after rejection", review_id: reviewId, reason },
       });
+
+      // PART 9 — Create rework handoff: reviewer → implementer
+      if (task.owner_role_id) {
+        try {
+          await this.handoffService.createHandoff({
+            projectId,
+            taskId: task.id,
+            sourceRoleId: review.reviewer_role_id,
+            targetRoleId: task.owner_role_id,
+            requestedOutcome: "implementation",
+            acceptanceCriteria: blockingIssues ?? [reason],
+            constraints: [{ type: "rework", rejection_reason: reason }],
+            openQuestions: [],
+            createdFromReviewId: reviewId,
+          });
+        } catch {
+          // Best-effort handoff creation — rejection still valid without it
+        }
+      }
     }
 
     // PART 7 — Record RunEvaluation (rejected → quality_score = 0)

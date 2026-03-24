@@ -91,15 +91,16 @@ Events are post-commit: if emission fails, state change is still valid (events r
 ## 5 — Core Workflow Chain
 
 ```
-UC-02 Assign Task
-  → UC-03 Start Run
-    → UC-13 Execute Agent Run (Provider)
-      → UC-04 Complete Run
-        → UC-05 Submit Artifact for Review
-          → UC-06 Resolve Review
-            verdict=approved → Task → validated (UC-11 Complete Task)
-            verdict=rejected → Task → rework_required → UC-02 Reassign
-            verdict=escalated → UC-20 Resolve Escalation
+UC-02 Assign Task (+ create Handoff)
+  → Handoff acknowledged by target role
+    → UC-03 Start Run (validates acknowledged handoff)
+      → UC-13 Execute Agent Run (Provider)
+        → UC-04 Complete Run
+          → UC-05 Submit Artifact for Review
+            → UC-06 Resolve Review
+              verdict=approved → Task → validated (UC-11 Complete Task)
+              verdict=rejected → Task → rework_required + rework Handoff created → UC-02 Reassign
+              verdict=escalated → UC-20 Resolve Escalation
 ```
 
 ---
@@ -121,5 +122,15 @@ UC-02 Assign Task
 3. **UC-11 (Complete Task):** Checks `task.state === 'validated'` (not `approved`)
 4. **Cascade logic** reads `review.verdict` or `approval.decision`, never lifecycle state, for business routing
 5. **Closing:** Review `resolved→closed` and Approval `decided→closed` are separate lifecycle steps
+
+---
+
+## 8 — Handoff Integration Rules
+
+1. **UC-02 (Assign Task):** Creates a Handoff record when `handoffParams` are provided. Sets `task.current_handoff_id`.
+2. **UC-03 (Start Run):** Validates that `task.current_handoff_id` references a handoff with `status = acknowledged`. Run cannot start without this.
+3. **UC-06/07 (Resolve Review — Reject):** Creates a rework Handoff from reviewer role to implementer role with rejection reason + blocking issues as acceptance criteria.
+4. **Handoff acknowledgement** is a prerequisite step between assignment and execution — the target role must explicitly accept work before running.
+5. **All Handoff lifecycle changes** emit `ActivityEvent` records: `handoff.created`, `handoff.acknowledged`, `handoff.completed`, `handoff.cancelled`.
 
 For full use case details, see original `docs/22-orchestration-use-cases-v1.md`.
