@@ -2,6 +2,8 @@
 layer: autonomy
 criticality: optional
 enabled_in_production: yes (lean mode IS the production recommendation)
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 21 — Lean Mode

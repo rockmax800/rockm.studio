@@ -2,6 +2,8 @@
 layer: business
 criticality: informational
 enabled_in_production: no
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # Service Offerings
@@ -18,7 +20,7 @@ Defines the service categories available through the studio.
 
 | Category | Description | Typical Effort Band |
 |----------|-------------|-------------------|
-| Frontend Development | React/Vite/Tailwind applications | small–large |
+| Frontend Development | Next.js/React/Tailwind applications | small–large |
 | Backend Implementation | API design, database schema, edge functions | medium–large |
 | Product Scoping | Blueprint and estimation from brief | small |
 | Code Review | Automated + founder review of existing code | small–medium |

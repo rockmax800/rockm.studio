@@ -2,6 +2,8 @@
 layer: front-office
 criticality: optional
 enabled_in_production: yes
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # Presale Session

@@ -2,6 +2,8 @@
 layer: product
 criticality: informational
 enabled_in_production: yes
+doc_kind: contract
+load_strategy: auto
 ---
 
 # Constraints

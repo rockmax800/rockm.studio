@@ -2,6 +2,8 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes (budget tracking always active)
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 28 — Token Economy & Budgeting

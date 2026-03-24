@@ -1,3 +1,10 @@
+---
+doc_kind: contract
+load_strategy: retrieve
+layer: core
+criticality: critical
+---
+
 # 06 — Orchestration Use Cases
 
 > Layer 1 — Core Engine

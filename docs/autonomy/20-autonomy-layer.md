@@ -2,6 +2,8 @@
 layer: autonomy
 criticality: experimental
 enabled_in_production: no
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 20 — Autonomy Layer

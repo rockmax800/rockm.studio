@@ -1,3 +1,10 @@
+---
+doc_kind: contract
+load_strategy: auto
+layer: cross-cutting
+criticality: critical
+---
+
 # 00 — Project Brief
 
 ## 1 — Project Name

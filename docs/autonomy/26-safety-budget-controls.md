@@ -2,6 +2,8 @@
 layer: autonomy
 criticality: critical
 enabled_in_production: yes (budget controls are always active)
+doc_kind: reference
+load_strategy: retrieve
 ---
 
 # 26 — Safety & Budget Controls

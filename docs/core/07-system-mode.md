@@ -2,6 +2,8 @@
 layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
+doc_kind: contract
+load_strategy: auto
 ---
 
 # 07 — System Mode

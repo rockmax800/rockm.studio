@@ -3,6 +3,8 @@ layer: cross-cutting
 criticality: critical
 enabled_in_production: yes
 version: v4.1
+doc_kind: contract
+load_strategy: auto
 ---
 
 # AI Production Studio — System Overview
@@ -215,8 +217,9 @@ See `core/07-system-mode.md` and `core/08-feature-flags.md`.
 
 ## 9 — Documentation Index
 
-| Folder | Plane | Contents |
-|--------|-------|----------|
+| Document | Plane | Contents |
+|----------|-------|----------|
+| `00-runtime-truth.md` | Cross-cutting | **Canonical runtime stack** — single source of truth |
 | `core/` | Delivery | State machines, guards, data model, orchestration, event log, planes |
 | `front-office/` | Intent | Intake, blueprints, estimates, launch decisions, client portal |
 | `delivery/` | Delivery | Backend architecture, providers, delivery lane, sandbox, diagnostics |
@@ -230,13 +233,18 @@ See `core/07-system-mode.md` and `core/08-feature-flags.md`.
 
 ## 10 — Technology Stack
 
+> **Canonical stack definition lives in `00-runtime-truth.md`.** Summary below for reference.
+
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React + Vite + Tailwind + TypeScript |
-| Backend | Lovable Cloud (PostgreSQL + Edge Functions) |
-| ORM | Supabase client SDK |
+| Frontend | Next.js (App Router) + Tailwind + shadcn/ui + TypeScript |
+| Backend API | Next.js Route Handlers |
+| ORM | Prisma |
+| Database | PostgreSQL 16+ |
 | Validation | Zod |
-| Real-time | Supabase Realtime (WebSocket) |
+| Real-time (UI) | Supabase Realtime (WebSocket) |
+| Worker | Node.js separate process |
+| Execution | Docker sandbox |
 | CI/CD | GitHub Actions → Docker → VPS |
 
 ---
