@@ -779,7 +779,7 @@ function LightMessageBubble({ message }: { message: ChatMessage }) {
       {isLead ? (
         <img src={leadAvatar} alt="Lead" width={36} height={36} className="rounded-xl shrink-0" style={{ imageRendering: "auto" }} />
       ) : (
-        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-status-blue text-white">
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground">
           <span className="text-[13px] font-bold">Y</span>
         </div>
       )}
