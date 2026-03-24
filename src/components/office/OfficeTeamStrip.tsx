@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
+// OfficeTeamStrip component
 
 interface AgentPresence {
   id: string;
