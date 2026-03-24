@@ -17,6 +17,8 @@ import { HRProposalCard } from "@/components/teams/HRProposalCard";
 import { PerformanceProposalCard } from "@/components/teams/PerformanceProposalCard";
 import { TeamBalanceChart } from "@/components/teams/TeamBalanceChart";
 import { toast } from "sonner";
+import { getMBTI } from "@/lib/mbtiData";
+import { getNationality } from "@/lib/nationalityData";
 import {
   generateHRProposals, generatePerformanceProposals, computeTeamDistribution,
   type HRProposal, type HRPerformanceProposal, ROLE_OPTIONS, STATUS_META,
@@ -26,6 +28,7 @@ import {
   ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy, Star,
   Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight, Plus,
   ArrowLeftRight, Trash2, UserMinus, UserPlus, ShieldAlert, BarChart3,
+  Sparkles,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
@@ -120,9 +123,9 @@ export default function TeamsPage() {
                 <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-6">
                   <Zap className="h-10 w-10 text-primary/40" />
                 </div>
-                <h1 className="text-[32px] font-bold text-foreground tracking-tight">Set Up Your AI Team</h1>
+                <h1 className="text-[32px] font-bold text-foreground tracking-tight">Build Your First AI Team</h1>
                 <p className="text-[16px] text-muted-foreground mt-3 leading-relaxed max-w-[460px] mx-auto">
-                  Create your first capability pool and add AI employees to start production.
+                  Create a capability pool and add AI team members to start production.
                 </p>
                 <Button onClick={() => setShowWizard(true)}
                   className="mt-8 h-12 px-8 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
@@ -154,10 +157,13 @@ export default function TeamsPage() {
                 Manage your production capabilities, team members, and learning pipeline.
               </p>
             </div>
-            <Button onClick={() => setShowWizard(true)}
-              className="h-10 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0">
-              <Plus className="h-4 w-4" /> New Capability
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <AddEmployeeDialog teamName="Unassigned" />
+              <Button onClick={() => setShowWizard(true)} variant="outline"
+                className="h-9 gap-2 text-[13px] font-bold rounded-xl shrink-0">
+                <Plus className="h-3.5 w-3.5" /> New Capability
+              </Button>
+            </div>
           </div>
 
           {/* ── Summary strip ── */}
@@ -210,8 +216,6 @@ export default function TeamsPage() {
                     const loadColor = m.loadPct > 85 ? "text-destructive" : m.loadPct < 30 ? "text-status-amber" : "text-status-green";
                     const deptEmployees = activeEmployees.filter((e) => e.team_id === dept.id);
                     const deptRoles = allRoles.filter((r) => r.team_id === dept.id);
-
-                    // Team distribution for balance chart
                     const distMembers = deptEmployees.map((e) => {
                       const role = deptRoles.find((r) => r.id === e.role_id);
                       const sp = role?.skill_profile as any;
@@ -246,7 +250,7 @@ export default function TeamsPage() {
                           <div className="flex items-center gap-3 mt-3">
                             <Progress value={m.loadPct} className="h-1.5 flex-1" />
                             <AddEmployeeDialog teamId={dept.id} teamName={dept.name}
-                              trigger={<Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 px-3 font-bold rounded-lg shrink-0"><Plus className="h-3 w-3" /> Add</Button>}
+                              trigger={<Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 px-3 font-bold rounded-lg shrink-0"><Plus className="h-3 w-3" /> Add Member</Button>}
                             />
                             <Button size="sm" variant="outline" className="h-8 text-[12px] gap-1.5 px-4 font-semibold rounded-lg shrink-0"
                               onClick={() => setExpandedDeptId(isExpanded ? null : dept.id)}>
@@ -262,7 +266,6 @@ export default function TeamsPage() {
 
                         {isExpanded && (
                           <div className="px-5 pb-5 pt-2 border-t border-border/30 space-y-4">
-                            {/* Team Balance Chart */}
                             {deptEmployees.length > 0 && (
                               <div>
                                 <p className="text-[12px] font-bold text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -281,7 +284,7 @@ export default function TeamsPage() {
                                 />
                               </div>
                             ) : (
-                              <EmployeeGrid
+                              <EmployeeTable
                                 employees={deptEmployees}
                                 allRoles={allRoles}
                                 departments={departments}
@@ -299,21 +302,26 @@ export default function TeamsPage() {
             </div>
           </section>
 
-          {/* ═══ SECTION 2 — ALL TEAM MEMBERS ═══ */}
+          {/* ═══ SECTION 2 — ALL TEAM MEMBERS (ROW TABLE) ═══ */}
           <section>
             <div className="flex items-center justify-between">
               <SectionHeader icon={<Users className="h-5 w-5" />} title="All Team Members"
                 subtitle={`${activeEmployees.length} agents across all capabilities`} />
-              <AddEmployeeDialog teamName="Unassigned" />
             </div>
             <div className="mt-4">
               {activeEmployees.length === 0 ? (
                 <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-10 text-center">
                   <Users className="h-10 w-10 text-muted-foreground/15 mx-auto mb-3" />
-                  <p className="text-[16px] font-bold text-foreground">No team members</p>
+                  <p className="text-[18px] font-bold text-foreground">Build Your First AI Team</p>
+                  <p className="text-[14px] text-muted-foreground mt-1.5 max-w-[400px] mx-auto">
+                    Add team members to your capabilities to start production delivery.
+                  </p>
+                  <AddEmployeeDialog teamName="Unassigned"
+                    trigger={<Button className="mt-5 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90"><Plus className="h-4 w-4" /> Add Team Member</Button>}
+                  />
                 </div>
               ) : (
-                <EmployeeGrid
+                <EmployeeTable
                   employees={activeEmployees}
                   allRoles={allRoles}
                   departments={departments}
@@ -408,11 +416,114 @@ export default function TeamsPage() {
    HELPER COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
 
-import { Sparkles } from "lucide-react";
-
 function StatusChip({ status }: { status: string }) {
   const meta = STATUS_META[status] ?? STATUS_META.active;
   return <Badge className={`text-[9px] font-bold border-0 px-1.5 py-0 ${meta.bg} ${meta.color}`}>{meta.label}</Badge>;
+}
+
+/* ═══ ROW-BASED EMPLOYEE TABLE ═══ */
+function EmployeeTable({ employees, allRoles, departments, onRemove, onMove }: {
+  employees: any[]; allRoles: any[]; departments: any[];
+  onRemove?: (id: string) => void;
+  onMove?: (id: string, teamId: string) => void;
+}) {
+  const roleMap = Object.fromEntries(allRoles.map((r) => [r.id, r]));
+
+  if (employees.length === 0) {
+    return <p className="text-[13px] text-muted-foreground/50 py-4">No team members found.</p>;
+  }
+
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      {/* Header row */}
+      <div className="grid grid-cols-[44px_1fr_120px_120px_80px_60px_80px_80px_80px_60px_60px] gap-2 px-4 py-2.5 bg-secondary/30 border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+        <span></span>
+        <span>Name</span>
+        <span>Role</span>
+        <span>Capability</span>
+        <span>Seniority</span>
+        <span>MBTI</span>
+        <span>Origin</span>
+        <span>Stack</span>
+        <span>Status</span>
+        <span className="text-right">Success</span>
+        <span className="text-right">Score</span>
+      </div>
+      {/* Rows */}
+      {employees.map((emp) => {
+        const persona = getPersona(emp.role_code);
+        const stMeta = STATUS_META[emp.status] ?? STATUS_META.active;
+        const role = emp.role_id ? roleMap[emp.role_id] : null;
+        const roleName = ROLE_OPTIONS.find(r => r.code === emp.role_code)?.label ?? emp.role_code;
+        const successPct = Math.round((emp.success_rate ?? 0) * 100);
+        const repScore = Math.round((emp.reputation_score ?? 0) * 100);
+        const perfColor = repScore >= 80 ? "text-status-green" : repScore >= 50 ? "text-status-amber" : "text-destructive";
+        const teamName = departments.find((d: any) => d.id === emp.team_id)?.name ?? "—";
+        const sp = role?.skill_profile as any;
+        const seniority = sp?.seniority ?? "—";
+        const mbtiCode = sp?.mbtiCode;
+        const nationCode = sp?.nationalityCode;
+        const nation = nationCode ? getNationality(nationCode) : null;
+        const primaryStack = sp?.primaryStack as string[] | undefined;
+        const isProbation = emp.status === "probation";
+        const isUnderReview = emp.status === "under_review";
+
+        return (
+          <Link key={emp.id} to={`/employees/${emp.id}`} className="block">
+            <div className={`grid grid-cols-[44px_1fr_120px_120px_80px_60px_80px_80px_80px_60px_60px] gap-2 px-4 py-3 items-center border-b border-border/30 hover:bg-secondary/20 transition-colors group ${
+              isProbation ? "bg-status-amber/[0.02]" : isUnderReview ? "bg-lifecycle-review/[0.02]" : ""
+            }`}>
+              {/* Avatar */}
+              <div className="relative">
+                <img src={persona.avatar} alt={emp.name}
+                  className={`h-9 w-9 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-1 ring-offset-card`}
+                  width={36} height={36} />
+                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${stMeta.dot}`} />
+              </div>
+
+              {/* Name */}
+              <div className="min-w-0">
+                <p className="text-[14px] font-bold text-foreground truncate leading-tight group-hover:text-primary transition-colors">{emp.name}</p>
+              </div>
+
+              {/* Role */}
+              <span className="text-[12px] text-muted-foreground truncate">{roleName}</span>
+
+              {/* Capability */}
+              <span className="text-[12px] text-muted-foreground truncate">{teamName}</span>
+
+              {/* Seniority */}
+              <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0 w-fit">{seniority}</Badge>
+
+              {/* MBTI */}
+              <span className="text-[11px] font-mono font-bold text-foreground/70">{mbtiCode ?? "—"}</span>
+
+              {/* Nationality */}
+              <span className="text-[14px]">{nation ? `${nation.flag} ${nation.code}` : "—"}</span>
+
+              {/* Stack */}
+              <div className="flex gap-0.5 overflow-hidden">
+                {primaryStack?.slice(0, 2).map((s: string) => (
+                  <Badge key={s} variant="secondary" className="text-[9px] font-bold px-1 py-0 shrink-0">{s}</Badge>
+                ))}
+                {(primaryStack?.length ?? 0) > 2 && <span className="text-[9px] text-muted-foreground/50">+{(primaryStack?.length ?? 0) - 2}</span>}
+                {!primaryStack?.length && <span className="text-[10px] text-muted-foreground/30">—</span>}
+              </div>
+
+              {/* Status */}
+              <Badge className={`text-[9px] font-bold border-0 px-1.5 py-0 ${stMeta.bg} ${stMeta.color} w-fit`}>{stMeta.label}</Badge>
+
+              {/* Success */}
+              <span className="text-[12px] font-mono font-bold text-right text-foreground">{successPct}%</span>
+
+              {/* Score */}
+              <span className={`text-[12px] font-mono font-bold text-right ${perfColor}`}>{repScore}</span>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
 }
 
 function HRHiringProposalsSection({ departments, activeEmployees, allRoles }: { departments: any[]; activeEmployees: any[]; allRoles: any[] }) {
@@ -505,20 +616,17 @@ function PerformanceReviewSection({ allEmployees, departments, allRoles }: { all
     const p = proposals.find((x) => x.id === id);
     if (!p) return;
     try {
-      // Apply status change based on proposal type
       let newStatus: string | undefined;
       if (p.type === "probation") newStatus = "probation";
       else if (p.type === "restore_active") newStatus = "active";
       else if (p.type === "remove_from_capability") newStatus = "suspended";
       else if (p.type === "replacement") newStatus = "suspended";
-      // role_adjustment and stack_adjustment don't change status
 
       if (newStatus) {
         const { error } = await supabase.from("ai_employees").update({ status: newStatus }).eq("id", p.employeeId);
         if (error) throw error;
       }
 
-      // If replacement, create new employee
       if (p.type === "replacement" && p.replacementConfig) {
         const rc = p.replacementConfig;
         const label = ROLE_OPTIONS.find(r => r.code === rc.suggestedRole)?.label ?? rc.suggestedRole;
@@ -585,107 +693,6 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
         <h2 className="text-[22px] font-bold text-foreground tracking-tight">{title}</h2>
         {subtitle && <p className="text-[13px] text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>
-    </div>
-  );
-}
-
-function EmployeeGrid({ employees, allRoles, departments, onRemove, onMove }: {
-  employees: any[]; allRoles: any[]; departments: any[];
-  onRemove?: (id: string) => void;
-  onMove?: (id: string, teamId: string) => void;
-}) {
-  const roleMap = Object.fromEntries(allRoles.map((r) => [r.id, r]));
-
-  if (employees.length === 0) {
-    return <p className="text-[13px] text-muted-foreground/50 py-4">No team members found.</p>;
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-      {employees.map((emp) => {
-        const persona = getPersona(emp.role_code);
-        const stMeta = STATUS_META[emp.status] ?? STATUS_META.active;
-        const role = emp.role_id ? roleMap[emp.role_id] : null;
-        const roleName = role?.name ?? emp.role_code;
-        const successPct = Math.round((emp.success_rate ?? 0) * 100);
-        const repScore = emp.reputation_score ?? 0;
-        const perfColor = repScore >= 0.8 ? "text-status-green" : repScore >= 0.5 ? "text-status-amber" : "text-destructive";
-        const perfRing = repScore >= 0.8 ? "border-status-green/30" : repScore >= 0.5 ? "border-status-amber/30" : "border-destructive/30";
-        const teamName = departments.find((d: any) => d.id === emp.team_id)?.name;
-        const sp = role?.skill_profile as any;
-        const seniority = sp?.seniority;
-        const riskTol = sp?.riskTolerance;
-        const riskCls = riskTol === "high" ? "text-destructive" : riskTol === "low" ? "text-status-green" : "text-status-amber";
-        const isProbation = emp.status === "probation";
-        const isUnderReview = emp.status === "under_review";
-
-        return (
-          <div key={emp.id} className={`rounded-xl border bg-card p-4 hover:shadow-md hover:-translate-y-px transition-all group ${
-            isProbation ? "border-status-amber/30" : isUnderReview ? "border-lifecycle-review/30" : "border-border"
-          }`}>
-            <div className="flex items-start gap-3">
-              <div className="relative shrink-0">
-                <div className={`rounded-xl border-[3px] ${perfRing} p-0.5`}>
-                  <img src={persona.avatar} alt={emp.name}
-                    className={`h-14 w-14 rounded-lg object-cover ring-2 ${persona.ringClass} ring-offset-2 ring-offset-card`}
-                    width={56} height={56} />
-                </div>
-                <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${stMeta.dot}`} />
-                {isProbation && (
-                  <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-status-amber/20 flex items-center justify-center">
-                    <ShieldAlert className="h-3 w-3 text-status-amber" />
-                  </span>
-                )}
-                {isUnderReview && (
-                  <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-lifecycle-review/20 flex items-center justify-center">
-                    <AlertTriangle className="h-3 w-3 text-lifecycle-review" />
-                  </span>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <Link to={`/employees/${emp.id}`}>
-                  <p className="text-[15px] font-bold text-foreground truncate leading-tight hover:underline">{emp.name}</p>
-                </Link>
-                <p className="text-[12px] text-muted-foreground truncate mt-0.5">{roleName}{seniority ? ` · ${seniority}` : ""}</p>
-                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                  <Badge className={`text-[10px] font-bold px-2 py-0.5 border-0 ${stMeta.bg} ${stMeta.color}`}>{stMeta.label}</Badge>
-                  <span className="text-[11px] font-mono text-muted-foreground">{successPct}%</span>
-                  <span className={`text-[11px] font-bold font-mono ${perfColor}`}>{Math.round(repScore * 100)}</span>
-                  {riskTol && <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${riskCls}`}>{riskTol} risk</Badge>}
-                  {seniority && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{seniority}</Badge>}
-                  {teamName && <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0">{teamName}</Badge>}
-                </div>
-                {sp?.primaryStack?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {(sp.primaryStack as string[]).slice(0, 4).map((s: string) => (
-                      <Badge key={s} variant="secondary" className="text-[9px] font-bold px-1.5 py-0">{s}</Badge>
-                    ))}
-                    {(sp.primaryStack as string[]).length > 4 && (
-                      <span className="text-[9px] text-muted-foreground/50">+{(sp.primaryStack as string[]).length - 4}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                {onMove && departments.length > 1 && (
-                  <select className="text-[10px] font-bold text-muted-foreground bg-secondary border-0 rounded px-1.5 py-0.5 cursor-pointer w-16"
-                    value="" onChange={(e) => { if (e.target.value) onMove(emp.id, e.target.value); }}>
-                    <option value="">Move</option>
-                    {departments.filter((d: any) => d.id !== emp.team_id).map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
-                )}
-                {onRemove && (
-                  <button onClick={() => onRemove(emp.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors p-0.5" title="Remove">
-                    <UserMinus className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
