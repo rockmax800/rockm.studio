@@ -15,6 +15,9 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 import { Settings2, Cpu, Zap, Bot, Sparkles, Info } from "lucide-react";
+import {
+  ENGINE_EXPLAINER, PROVIDER_EXPLAINER, MODE_EXPLAINER, POLICY_SUMMARY,
+} from "@/components/ui/execution-policy-explainer";
 import type {
   ExecutionEngine,
   ProviderFamily,
