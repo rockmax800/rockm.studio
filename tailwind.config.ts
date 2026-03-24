@@ -2,23 +2,78 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1440px",
       },
+    },
+    /* ── Brockmann spacing: 4px base unit ─────────────────── */
+    spacing: {
+      px: "1px",
+      "0": "0px",
+      "0.5": "2px",
+      "1": "4px",       /* base unit */
+      "1.5": "6px",
+      "2": "8px",        /* 2× */
+      "2.5": "10px",
+      "3": "12px",
+      "3.5": "14px",
+      "4": "16px",       /* 4× */
+      "5": "20px",
+      "6": "24px",       /* 6× */
+      "7": "28px",
+      "8": "32px",       /* 8× */
+      "9": "36px",
+      "10": "40px",
+      "11": "44px",
+      "12": "48px",      /* 12× */
+      "14": "56px",
+      "16": "64px",      /* 16× */
+      "20": "80px",
+      "24": "96px",
+      "28": "112px",
+      "32": "128px",
+      "36": "144px",
+      "40": "160px",
+      "44": "176px",
+      "48": "192px",
+      "52": "208px",
+      "56": "224px",
+      "60": "240px",
+      "64": "256px",
+      "72": "288px",
+      "80": "320px",
+      "96": "384px",
     },
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
+      /* ── Font sizes: intentional hierarchy ─────────────── */
+      fontSize: {
+        "display": ["42px", { lineHeight: "110%", fontWeight: "600", letterSpacing: "-0.02em" }],
+        "page-title": ["28px", { lineHeight: "120%", fontWeight: "600", letterSpacing: "-0.015em" }],
+        "section-title": ["18px", { lineHeight: "120%", fontWeight: "600" }],
+        "card-title": ["15px", { lineHeight: "130%", fontWeight: "600" }],
+        "body": ["14px", { lineHeight: "150%" }],
+        "meta": ["13px", { lineHeight: "150%" }],
+        "label": ["12px", { lineHeight: "130%" }],
+        "micro": ["11px", { lineHeight: "130%" }],
+      },
       colors: {
         border: "hsl(var(--border))",
+        "border-strong": "hsl(var(--border-strong))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -82,17 +137,39 @@ export default {
           ready: "hsl(var(--lifecycle-ready))",
           "in-progress": "hsl(var(--lifecycle-in-progress))",
           review: "hsl(var(--lifecycle-review))",
+          rework: "hsl(var(--lifecycle-rework))",
           blocked: "hsl(var(--lifecycle-blocked))",
           escalated: "hsl(var(--lifecycle-escalated))",
           validated: "hsl(var(--lifecycle-validated))",
           done: "hsl(var(--lifecycle-done))",
+          deploying: "hsl(var(--lifecycle-deploying))",
           running: "hsl(var(--lifecycle-running))",
+          failed: "hsl(var(--lifecycle-failed))",
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        card: "var(--radius-card)",
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        elevated: "var(--shadow-elevated)",
+        glow: "var(--shadow-glow)",
+      },
+      /* ── Grid: 12-column Brockmann ─────────────────────── */
+      gridTemplateColumns: {
+        "12": "repeat(12, minmax(0, 1fr))",
+        "layout": "280px 1fr",
+        "layout-3col": "1fr 1fr 1fr",
+      },
+      maxWidth: {
+        "grid": "1440px",
+        "content": "1280px",
+      },
+      width: {
+        "sidebar": "280px",
       },
       keyframes: {
         "accordion-down": {
@@ -111,7 +188,13 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.25s ease-out forwards",
+        "fade-in": "fade-in 0.22s ease-out forwards",
+      },
+      /* ── Transition durations: 180–250ms ───────────────── */
+      transitionDuration: {
+        "180": "180ms",
+        "220": "220ms",
+        "250": "250ms",
       },
     },
   },
