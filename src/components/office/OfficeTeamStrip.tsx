@@ -83,6 +83,5 @@ export function OfficeTeamStrip({ agents }: OfficeTeamStripProps) {
           ))}
         </div>
       </div>
-    </div>
   );
 }
