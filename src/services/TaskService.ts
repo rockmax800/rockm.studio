@@ -36,7 +36,7 @@ interface OrchestrationServiceLike {
   }) => Promise<any>;
 }
 
-const ASSIGNABLE_STATES = ["ready", "rework_required", "blocked", "escalated", "approved"] as const;
+const ASSIGNABLE_STATES = ["ready", "rework_required", "blocked", "escalated", "validated"] as const;
 
 export class TaskService {
   private prisma: PrismaLike;
