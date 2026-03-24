@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Filter, ShieldCheck, ExternalLink } from "lucide-react";
+import { ProductionFlow } from "@/components/ProductionFlow";
 
 export default function FounderPage() {
   const navigate = useNavigate();
