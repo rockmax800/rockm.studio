@@ -42,11 +42,13 @@ export default function ProjectsPage() {
               )}
             </p>
           </div>
-          <Link to="/presale/new">
-            <Button className="h-10 px-5 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-card">
-              <FileText className="h-3.5 w-3.5" /> Start New Intake
-            </Button>
-          </Link>
+          {projects.length > 0 && (
+            <Link to="/presale/new">
+              <Button className="h-10 px-5 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-card">
+                <FileText className="h-3.5 w-3.5" /> Start New Intake
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* ── Content ──────────────────────────────────────── */}
