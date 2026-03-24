@@ -26,6 +26,7 @@ import ControlTaskDetail from "./pages/control/ControlTaskDetail";
 import ControlApprovalDetail from "./pages/control/ControlApprovalDetail";
 import ControlRunDetail from "./pages/control/ControlRunDetail";
 import ControlProviderDetail from "./pages/control/ControlProviderDetail";
+import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,9 @@ const App = () => (
           <Route path="/approvals" element={<Navigate to="/founder" replace />} />
           <Route path="/agents" element={<Navigate to="/company" replace />} />
           <Route path="/settings" element={<Navigate to="/system" replace />} />
+
+          {/* CLIENT PORTAL (standalone, no layout) */}
+          <Route path="/client/:token" element={<ClientPortal />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
