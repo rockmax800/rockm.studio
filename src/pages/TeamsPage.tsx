@@ -14,11 +14,13 @@ import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TeamSetupWizard } from "@/components/teams/TeamSetupWizard";
 import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import { toast } from "sonner";
+import { HRProposalCard } from "@/components/teams/HRProposalCard";
+import { generateHRProposals, type HRProposal, ROLE_OPTIONS } from "@/lib/employeeConfig";
 import {
   Smartphone, Bot, Globe, Building2, ArrowRight, Users, TrendingUp, Gauge,
   ChevronDown, ChevronRight, AlertTriangle, Lightbulb, Trophy, Star,
   Zap, Activity, GraduationCap, FlaskConical, ArrowUpRight, Plus,
-  ArrowLeftRight, Trash2, UserMinus,
+  ArrowLeftRight, Trash2, UserMinus, UserPlus,
 } from "lucide-react";
 
 const DEPT_ICONS: Record<string, React.ElementType> = { Smartphone, Bot, Globe, Building2 };
