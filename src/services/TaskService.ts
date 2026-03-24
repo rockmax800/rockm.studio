@@ -112,7 +112,7 @@ export class TaskService {
           where: { entity_type: "task", entity_id: taskId, actor_type: "founder", event_type: "task.escalation_resolved" },
         });
         const founderApproval = await tx.approvals.findFirst({
-          where: { target_type: "task", target_id: taskId, state: "approved" },
+          where: { target_type: "task", target_id: taskId, decision: "approved" },
         });
         if (!founderDecision && !founderApproval) {
           throw new GuardError({
