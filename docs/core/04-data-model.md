@@ -495,3 +495,68 @@ Run execution uses a lease-based model to prevent concurrent execution:
 3. If lease is expired (`now > lease_expires_at`) → lease can be reclaimed
 4. Heartbeat extends lease during long-running execution
 5. Stalled detection: `state=running AND heartbeat_at < threshold` → soft flag, no auto-transition
+
+---
+
+## 18 — RoleContract (v3.0)
+
+Enforceable execution boundaries for each agent role.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| role_code | text | yes | Matches AgentRole.code |
+| allowed_repo_paths_json | jsonb | no | Glob patterns for allowed file paths |
+| forbidden_repo_paths_json | jsonb | no | Glob patterns for forbidden file paths |
+| allowed_task_domains_json | jsonb | no | Domains this role may work on |
+| required_artifacts_json | jsonb | no | Artifact categories role must produce |
+| required_verification_steps_json | jsonb | no | Verification steps required |
+| risk_threshold | numeric | yes | Default 0.5 |
+| may_deploy | boolean | yes | Default false |
+| may_merge | boolean | yes | Default false |
+| may_modify_schema | boolean | yes | Default false |
+| created_at | timestamp | yes | |
+
+AgentRole references: `role_contract_id uuid FK nullable`.
+
+See `core/10-role-contracts-and-taskspec.md` for enforcement rules.
+
+---
+
+## 19 — TaskSpec (v3.0)
+
+Structured specification for implementation tasks.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | uuid | yes | PK |
+| task_id | uuid | yes | FK — unique per task |
+| goal | text | yes | What the task must achieve |
+| target_repository | text | no | Which repo to modify |
+| allowed_repo_paths_json | jsonb | no | Task-level path allowlist |
+| forbidden_repo_paths_json | jsonb | no | Task-level path blocklist |
+| acceptance_criteria_json | jsonb | no | Structured criteria |
+| verification_plan_json | jsonb | no | How to verify completion |
+| risk_class | text | yes | low / medium / high |
+| requested_outcome | text | no | Expected output type |
+| required_artifacts_json | jsonb | no | Required artifact categories |
+| definition_of_done_json | jsonb | no | Completion checklist |
+| created_at | timestamp | yes | |
+
+---
+
+## 20 — Artifact Category (v3.0)
+
+Additive classification field on Artifact entity:
+
+| Category | Description |
+|----------|-------------|
+| spec | Specification document |
+| architecture | Architecture decision |
+| implementation | Code output |
+| review | Review feedback |
+| qa_evidence | Test results |
+| release_note | Release documentation |
+| deployment_receipt | Deployment confirmation |
+
+Field: `artifact_category text nullable` — existing `artifact_type` enum preserved.
