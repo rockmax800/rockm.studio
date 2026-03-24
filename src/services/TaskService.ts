@@ -216,7 +216,7 @@ export class TaskService {
           message: `Task has ${pendingApprovals} pending approval(s). All approvals must be resolved before completing task.`,
           entityType: "task",
           entityId: taskId,
-          fromState: "approved",
+          fromState: "validated",
           toState: "done",
         });
       }

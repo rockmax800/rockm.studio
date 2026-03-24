@@ -20,7 +20,7 @@ const ZONES = [
   { key: "rework", label: "Rework", states: ["rework_required"], icon: "/pixel/desk.png", col: 1, row: 2 },
   { key: "escalated", label: "Escalated", states: ["escalated"], icon: "/pixel/qa.png", col: 2, row: 2 },
   { key: "blocked", label: "Blocked", states: ["blocked"], icon: "/pixel/server.png", col: 3, row: 2 },
-  { key: "approved", label: "Approved", states: ["approved"], icon: "/pixel/review.png", col: 1, row: 3 },
+  { key: "validated", label: "Validated", states: ["validated"], icon: "/pixel/review.png", col: 1, row: 3 },
   { key: "done", label: "Done", states: ["done"], icon: "/pixel/release.png", col: 2, row: 3 },
   { key: "qa", label: "QA Lab", states: [], icon: "/pixel/qa.png", col: 3, row: 3 },
   { key: "release", label: "Release Room", states: [], icon: "/pixel/release.png", col: 1, row: 4 },

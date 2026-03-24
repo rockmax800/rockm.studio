@@ -214,7 +214,7 @@ export class ApprovalService {
     const updated = await this.orchestration.transitionEntity({
       entityType: "approval",
       entityId: approvalId,
-      toState: decision,
+      toState: "decided",
       actorType,
       projectId: approval.project_id,
       metadata: {
