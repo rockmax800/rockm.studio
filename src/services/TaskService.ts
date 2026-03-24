@@ -3,8 +3,10 @@
 // Hardened with:
 // - Serializable isolation
 // - Re-check reviews/approvals in complete (PART 6)
+// - Handoff creation on assignment (PART 9)
 
 import { GuardError } from "@/guards/GuardError";
+import { HandoffService, type HandoffOutcome } from "@/services/HandoffService";
 
 interface PrismaTransactionClient {
   [key: string]: {
