@@ -141,7 +141,24 @@ export class DeliverySpineService {
         },
       });
 
-      // Emit activity event
+      // Emit canonical event_log
+      await writeEventLog(tx, {
+        eventType: "pull_request.opened",
+        aggregateType: "pull_request",
+        aggregateId: pr.id,
+        payload: {
+          project_id: params.projectId,
+          task_id: params.taskId,
+          run_id: params.runId,
+          repository_id: params.repositoryId,
+          source_branch: params.sourceBranch,
+          target_branch: params.targetBranch,
+        },
+        actorType: "system",
+        idempotencyKey: `pr:${pr.id}:opened`,
+      });
+
+      // Emit activity event (projection)
       await tx.activity_events.create({
         data: {
           entity_type: "task",
