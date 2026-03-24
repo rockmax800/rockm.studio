@@ -11,6 +11,7 @@ import { FounderStatusStrip } from "@/components/founder/FounderStatusStrip";
 import { DecisionCard, type DecisionItem } from "@/components/founder/DecisionCard";
 import { ContextPreview } from "@/components/founder/ContextPreview";
 import { RiskPanel } from "@/components/founder/RiskPanel";
+import { PipelineBar, resolveStageIndex, PIPELINE_STAGES, STAGE_COLORS } from "@/components/PipelineBar";
 import {
   Select,
   SelectContent,
@@ -18,8 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter, ShieldCheck, ExternalLink } from "lucide-react";
-import { ProductionFlow } from "@/components/ProductionFlow";
+import { cn } from "@/lib/utils";
+import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight } from "lucide-react";
 
 export default function FounderPage() {
   const navigate = useNavigate();
@@ -133,11 +134,56 @@ export default function FounderPage() {
   const projectNames = [...new Set(allItems.map((i) => i.projectName).filter(Boolean))] as string[];
   const categoryTypes = [...new Set(allItems.map((i) => i.category))];
 
+  /* ── Projects grouped by pipeline stage ── */
+  const activeProjects = projects.filter((p) => !["archived", "cancelled"].includes(p.state));
+  const projectsByStage = useMemo(() => {
+    const map: Record<string, typeof activeProjects> = {};
+    for (const stage of PIPELINE_STAGES) {
+      map[stage.key] = [];
+    }
+    for (const p of activeProjects) {
+      const idx = resolveStageIndex(p.state);
+      if (idx >= 0) {
+        map[PIPELINE_STAGES[idx].key].push(p);
+      }
+    }
+    return map;
+  }, [activeProjects]);
+
+  const stagesWithProjects = PIPELINE_STAGES.filter((s) => (projectsByStage[s.key]?.length ?? 0) > 0);
+
   return (
     <AppLayout title="Decision Engine" fullHeight>
       <div className="flex flex-col gap-3 h-full px-6 py-4 overflow-hidden">
-        {/* Production Flow */}
-        <ProductionFlow className="px-1" />
+
+        {/* ═══ PIPELINE STAGE GROUPING — Projects by stage ═══ */}
+        {stagesWithProjects.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <FolderKanban className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+            {stagesWithProjects.map((stage) => {
+              const colors = STAGE_COLORS[stage.key];
+              const count = projectsByStage[stage.key]?.length ?? 0;
+              return (
+                <div key={stage.key} className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-lg border shrink-0",
+                  colors.activeBg, colors.border,
+                )}>
+                  <span className={cn("w-2 h-2 rounded-full shrink-0", colors.dot)} />
+                  <span className={cn("text-[12px] font-bold", colors.active)}>{stage.label}</span>
+                  <span className={cn("text-[11px] font-bold font-mono", colors.active)}>{count}</span>
+                  {projectsByStage[stage.key]?.slice(0, 2).map((p) => (
+                    <Link key={p.id} to={`/projects/${p.id}`}>
+                      <span className="text-[11px] text-foreground/60 hover:text-foreground transition-colors underline-offset-2 hover:underline truncate max-w-[100px] inline-block">
+                        {p.name}
+                      </span>
+                    </Link>
+                  ))}
+                  {count > 2 && <span className="text-[10px] text-muted-foreground">+{count - 2}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Top Strip */}
         <FounderStatusStrip
