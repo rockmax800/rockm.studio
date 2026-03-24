@@ -106,7 +106,8 @@ export function ExecutionOverrideSheet({ override, onChange, triggerLabel = "Ove
 
       <SheetContent className="w-[360px] sm:w-[400px]">
         <SheetHeader>
-          <SheetTitle className="text-[15px]">Session Execution Override</SheetTitle>
+          <SheetTitle className="text-[15px]">How should the team execute?</SheetTitle>
+          <p className="text-[12px] text-muted-foreground mt-1">{POLICY_SUMMARY}</p>
         </SheetHeader>
 
         <div className="mt-4 space-y-5">
