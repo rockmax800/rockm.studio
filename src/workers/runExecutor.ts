@@ -93,19 +93,47 @@ export async function executeRun(
       },
     });
 
-    // PART 11 — Set heartbeat and lease at execution start
+    // PART 12 — Acquire lease and set heartbeat at execution start
     const executionStart = new Date().toISOString();
-    await prisma.$transaction(async (tx) => {
+    const leaseOwner = `executor:${runId.slice(0, 8)}`;
+    const leaseDurationMs = 10 * 60 * 1000; // 10 minutes
+    const leaseExpiresAt = new Date(Date.now() + leaseDurationMs).toISOString();
+
+    const leaseAcquired = await prisma.$transaction(async (tx) => {
+      const current = await tx.runs.findUniqueOrThrow({ where: { id: runId } });
+
+      // Check if lease is already held and not expired
+      if (current.lease_owner && current.lease_expires_at) {
+        const expiresAt = new Date(current.lease_expires_at).getTime();
+        if (expiresAt > Date.now()) {
+          // Lease is active and not expired — abort
+          return false;
+        }
+      }
+
       await tx.runs.update({
         where: { id: runId },
         data: {
           heartbeat_at: executionStart,
-          lease_owner: `executor:${runId.slice(0, 8)}`,
+          lease_owner: leaseOwner,
+          lease_acquired_at: executionStart,
+          lease_expires_at: leaseExpiresAt,
           started_at: executionStart,
           updated_at: executionStart,
         },
       });
+      return true;
     });
+
+    if (!leaseAcquired) {
+      throw new GuardError({
+        message: `Cannot acquire lease for run "${runId}" — lease is held by another executor`,
+        entityType: "run",
+        entityId: runId,
+        fromState: "running",
+        toState: "running",
+      });
+    }
 
     // 4. Call ProviderService (includes dual verification & adaptive routing)
     const providerService = new ProviderService(prisma);

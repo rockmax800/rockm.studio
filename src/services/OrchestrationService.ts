@@ -123,7 +123,38 @@ export class OrchestrationService {
         },
       });
 
-      // 6. Emit OfficeEvent for task transitions (PART 4)
+      // 6. Write outbox event (transactional outbox pattern)
+      const outboxIdempotencyKey = metadata?.idempotency_key
+        ? `${metadata.idempotency_key}:${entityType}.${toState}`
+        : `${entityId}:v${currentVersion + 1}:${toState}`;
+
+      try {
+        await (tx as any).outbox_events.create({
+          data: {
+            aggregate_type: entityType,
+            aggregate_id: entityId,
+            event_type: `${entityType}.${toState}`,
+            payload_json: {
+              ...metadata,
+              from_state: fromState,
+              to_state: toState,
+              project_id: projectId,
+              actor_type: actorType,
+              actor_role_id: actorRoleId,
+              from_version: currentVersion,
+              to_version: currentVersion + 1,
+            },
+            correlation_id: (metadata?.correlation_id as string) ?? null,
+            causation_id: (metadata?.causation_id as string) ?? null,
+            idempotency_key: outboxIdempotencyKey,
+            status: "pending",
+          },
+        });
+      } catch {
+        // Best-effort — outbox_events table may not exist yet
+      }
+
+      // 7. Emit OfficeEvent for task transitions (PART 4)
       if (entityType === "task") {
         const fromZone = taskStateToZone(fromState);
         const toZone = taskStateToZone(toState);
