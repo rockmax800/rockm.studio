@@ -223,9 +223,40 @@ export default function IntakeComposerV2() {
     <AppLayout title="Intake Composer">
       <div className="h-[calc(100vh-4rem)] overflow-y-auto">
 
-        {/* ═══ HERO — Light themed guided section ═══ */}
+        {/* ═══ STEP HEADER ═══ */}
+        <div className="px-6 pt-5 pb-3 max-w-2xl mx-auto text-center">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1">Step 2 — Structured Intake</p>
+          <h1 className="text-[22px] font-bold text-foreground tracking-tight">Turn the consultation into a frozen project brief</h1>
+          <p className="text-[12px] text-muted-foreground/60 mt-1.5 max-w-md mx-auto leading-relaxed">
+            This is the canonical project brief. The conversation fills it; you can refine and freeze it here.
+          </p>
+        </div>
+
+        {/* ═══ JOURNEY STRIP ═══ */}
+        <div className="flex items-center justify-center gap-1.5 px-6 pb-4">
+          {[
+            { label: "Consultation", done: true },
+            { label: "Structured Intake", active: true },
+            { label: "Kickoff", done: false },
+            { label: "Project Setup", done: false },
+            { label: "Delivery", done: false },
+          ].map((step, i, arr) => (
+            <span key={step.label} className="flex items-center gap-1.5">
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+                step.active
+                  ? "bg-foreground text-background"
+                  : step.done
+                    ? "bg-status-green/10 text-status-green"
+                    : "bg-muted/40 text-muted-foreground/40"
+              }`}>{step.label}</span>
+              {i < arr.length - 1 && <span className="text-muted-foreground/20 text-[10px]">→</span>}
+            </span>
+          ))}
+        </div>
+
+        {/* ═══ HERO — guided section ═══ */}
         <div className="intake-hero-root ih-grid-bg">
-          <div className="max-w-2xl mx-auto px-6 pt-10 pb-8 flex flex-col items-center">
+          <div className="max-w-2xl mx-auto px-6 pt-6 pb-6 flex flex-col items-center">
             {/* Speech bubble */}
             <div className="ih-speech-bubble px-6 py-4 max-w-lg text-center mb-5">
               <p className="text-[15px] leading-[160%] text-foreground">
@@ -242,7 +273,7 @@ export default function IntakeComposerV2() {
               <span className="text-[12px] text-muted-foreground">AI Delivery Lead</span>
             </div>
 
-            {/* Guidance chips — shown when early */}
+            {/* Guidance chips */}
             {isEmpty && (
               <div className="flex flex-wrap gap-2.5 justify-center mb-6">
                 {GUIDANCE_CHIPS.map((c) => (
@@ -258,7 +289,7 @@ export default function IntakeComposerV2() {
               </div>
             )}
 
-            {/* Compact input in hero */}
+            {/* Input */}
             <div className="w-full max-w-lg rounded-2xl border border-border bg-card px-4 py-3 flex items-end gap-2">
               <textarea
                 ref={inputRef}
@@ -277,13 +308,13 @@ export default function IntakeComposerV2() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors disabled:opacity-30 bg-status-blue text-white"
+                className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors disabled:opacity-30 bg-foreground text-background"
               >
                 <Send className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Progress + scroll hint */}
+            {/* Progress */}
             <div className="flex items-center gap-3 mt-5">
               <Badge
                 className="text-[11px] font-mono px-2.5 h-6 border border-border"
@@ -291,19 +322,11 @@ export default function IntakeComposerV2() {
               >
                 {filledCount}/8 extracted
               </Badge>
-              <button onClick={scrollToForm} className="flex items-center gap-1 text-[12px] hover:underline text-status-blue">
+              <button onClick={scrollToForm} className="flex items-center gap-1 text-[12px] hover:underline text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowDown className="h-3 w-3" /> View structured brief
               </button>
             </div>
           </div>
-        </div>
-
-        {/* ═══ TRANSITION STRIP ═══ */}
-        <div className="border-t border-b px-6 py-2 flex items-center gap-2 bg-card border-border">
-          <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[12px] text-muted-foreground">
-            Guided conversation → Structured brief below is the canonical source of truth
-          </span>
         </div>
 
         {/* ═══ MAIN BODY — existing dark-themed layout ═══ */}
