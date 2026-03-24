@@ -85,10 +85,10 @@ This is what runs when you check out the repo and start the dev server.
 | Founder | `/founder` | Decision queue (approvals, escalations, risk) |
 | System | `/system` | Health, providers, mode, audit, docs |
 
-### Management
+### Teams & Capabilities
 | Page | Route | Purpose |
 |------|-------|---------|
-| Teams | `/teams` | Capability pools, team members, hiring & performance |
+| Teams | `/teams` | Capability teams, team members, hiring & performance |
 | Evolution | `/evolution` | Gödel proposals, Darwin experiments, feedback triggers |
 | Content | `/smm` | AI-generated content from production events |
 
@@ -159,8 +159,10 @@ All evolution requires evaluation rail pass + founder approval. No silent mutati
 
 ## Teams & Employee Model
 
-### Capability Pools
-Functional groupings organizing AI employees by competency area. Each pool tracks team size, average success rate, and load percentage. High-performing capabilities can be cloned via CapabilityTemplate.
+### Capability Teams
+Functional groupings organizing AI employees by competency area. Each team tracks team size, average success rate, and load percentage. High-performing teams can be cloned via CapabilityTemplate.
+
+> **Terminology note:** The codebase may reference `departments` in database tables and legacy hooks. In all UI and documentation, the canonical term is **Team** or **Capability Team**. "Department" is a legacy data-layer term only.
 
 ### AI Employees
 Each employee has:

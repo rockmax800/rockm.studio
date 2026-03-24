@@ -163,9 +163,9 @@ export default function TeamsPage() {
               <span className="text-muted-foreground">active</span>
             </div>
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-muted-foreground/50" />
+             <Activity className="h-4 w-4 text-muted-foreground/50" />
               <span className="font-bold text-foreground font-mono">{departments.length}</span>
-              <span className="text-muted-foreground">capabilities</span>
+              <span className="text-muted-foreground">teams</span>
             </div>
             {probationCount > 0 && (
               <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export default function TeamsPage() {
 
           {/* ═══ SECTION 1 — CAPABILITY POOLS ═══ */}
           <section>
-            <SectionHeader icon={<Zap className="h-5 w-5" />} title="Capability Pools" />
+            <SectionHeader icon={<Zap className="h-5 w-5" />} title="Capability Teams" />
             <div className="mt-4">
               {deptLoading ? (
                 <p className="text-[13px] text-muted-foreground">Loading…</p>
@@ -295,7 +295,7 @@ export default function TeamsPage() {
           <section>
             <div className="flex items-center justify-between">
               <SectionHeader icon={<Users className="h-5 w-5" />} title="All Team Members"
-                subtitle={`${activeEmployees.length} agents across all capabilities`} />
+                subtitle={`${activeEmployees.length} agents across all teams`} />
             </div>
             <div className="mt-4">
               {activeEmployees.length === 0 ? (
