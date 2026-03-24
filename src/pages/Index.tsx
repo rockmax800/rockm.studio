@@ -159,13 +159,13 @@ export default function CommandCenter() {
             </p>
 
             <div className="flex items-center gap-3 justify-center mt-6">
-              <Link to="/presale/new">
+              <Link to="/lead">
                 <Button
                   size="lg"
                   className="h-14 px-8 gap-3 text-[16px] font-bold bg-foreground text-background hover:bg-foreground/90 rounded-xl shadow-lg"
                 >
                   <FileText className="h-5 w-5" />
-                  Start Structured Intake
+                  Talk to Company Lead
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>

@@ -19,6 +19,7 @@ import TeamsPage from "./pages/TeamsPage";
 import FounderPage from "./pages/FounderPage";
 import SystemPage from "./pages/SystemPage";
 import SMMCapability from "./pages/SMMCapability";
+import CompanyLeadSession from "./pages/CompanyLeadSession";
 
 // Deep-link pages (preserved for backward compat)
 import DocsWorkspace from "./pages/DocsWorkspace";
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/team-room" element={<TeamRoom />} />
           <Route path="/employees/:id" element={<EmployeeProfile />} />
           <Route path="/presale/new" element={<IntakeComposer />} />
+          <Route path="/lead" element={<CompanyLeadSession />} />
           <Route path="/smm" element={<SMMCapability />} />
 
           {/* MANAGEMENT */}
