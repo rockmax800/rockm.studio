@@ -118,6 +118,24 @@ export class RunService {
         });
       }
 
+      // PART 9 — Validate acknowledged handoff exists
+      const activeHandoff = await tx.handoffs?.findFirst({
+        where: {
+          task_id: taskId,
+          status: "acknowledged",
+        },
+        orderBy: { created_at: "desc" },
+      });
+      if (!activeHandoff) {
+        throw new GuardError({
+          message: "Task must have an active acknowledged handoff before starting a run. Target role must acknowledge handoff first.",
+          entityType: "run",
+          entityId: taskId,
+          fromState: "none",
+          toState: "created",
+        });
+      }
+
       const existingRunCount = await tx.runs.count({ where: { task_id: taskId } });
       const now = new Date().toISOString();
 

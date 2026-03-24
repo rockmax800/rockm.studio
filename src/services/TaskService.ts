@@ -161,6 +161,24 @@ export class TaskService {
       return { task, agentRole };
     }, { isolationLevel: "Serializable" });
 
+    // PART 9 — Create Handoff record if params provided
+    if (handoffParams) {
+      await this.handoffService.createHandoff({
+        projectId: validationResult.task.project_id,
+        taskId,
+        sourceRoleId: handoffParams.sourceRoleId,
+        targetRoleId: ownerRoleId,
+        requestedOutcome: handoffParams.requestedOutcome,
+        acceptanceCriteria: handoffParams.acceptanceCriteria,
+        constraints: handoffParams.constraints,
+        openQuestions: handoffParams.openQuestions,
+        contextPackId: handoffParams.contextPackId,
+        sourceArtifactIds: handoffParams.sourceArtifactIds,
+        urgency: handoffParams.urgency,
+        createdFromReviewId: handoffParams.createdFromReviewId,
+      });
+    }
+
     const updated = await this.orchestration.transitionEntity({
       entityType: "task",
       entityId: taskId,
@@ -173,6 +191,7 @@ export class TaskService {
         trigger: "task assigned to role",
         from_state: validationResult.task.state,
         owner_role_name: validationResult.agentRole.name,
+        has_handoff: !!handoffParams,
       },
     });
 
