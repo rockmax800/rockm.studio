@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { useOfficeData, useOfficeRealtime } from "@/hooks/use-office-data";
+import { useOfficeData, useOfficeRealtime, useRefreshOffice } from "@/hooks/use-office-data";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
