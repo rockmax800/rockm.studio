@@ -306,13 +306,20 @@ export default function TeamsPage() {
           </section>
 
           {/* ════════════════════════════════════════════════════════
-              SECTION 3 — HIRING & PERFORMANCE
+              SECTION 3 — HR PROPOSALS
+              ════════════════════════════════════════════════════════ */}
+          <HRProposalsSection
+            departments={departments}
+            activeEmployees={activeEmployees}
+            allRoles={allRoles}
+          />
+
+          {/* ════════════════════════════════════════════════════════
+              SECTION 4 — HIRING & PERFORMANCE
               ════════════════════════════════════════════════════════ */}
           <section>
             <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Hiring & Performance" />
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-              {/* Underperforming */}
               <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-destructive/30">
                 <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-destructive/60" /> At Risk
@@ -327,15 +334,12 @@ export default function TeamsPage() {
                           <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
                           <span className="text-[14px] font-medium text-foreground truncate flex-1">{emp.name}</span>
                           <span className="text-[12px] font-mono text-destructive/70">{Math.round((emp.success_rate ?? 0) * 100)}%</span>
-                          <ArrowUpRight className="h-3 w-3 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors shrink-0" />
                         </div>
                       </Link>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Suggestions */}
               <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-amber/30">
                 <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-status-amber/60" /> Suggestions
@@ -353,8 +357,6 @@ export default function TeamsPage() {
                   </div>
                 )}
               </div>
-
-              {/* Learning proposals */}
               <div className="rounded-2xl border border-border bg-card p-5 border-t-[3px] border-t-status-blue/30">
                 <h3 className="text-[16px] font-bold text-foreground mb-3 flex items-center gap-2">
                   <FlaskConical className="h-4 w-4 text-status-blue/60" /> Learning Pipeline
