@@ -19,27 +19,25 @@ import { formatDistanceToNow } from "date-fns";
 import {
   Users, Zap, Stamp, FolderKanban,
   AlertTriangle, UserPlus, Loader2,
-  MessageSquare, Plus,
+  MessageSquare, Plus, Radio, Activity,
+  TrendingUp, Shield, ChevronRight,
 } from "lucide-react";
 
-/* ═══════════════════════════════════════════════════════════════
-   ROOM TINTS — subtle surface differentiation per room
-   ═══════════════════════════════════════════════════════════════ */
-
+/* ═══ ROOM TINTS ═══ */
 const ROOM_TINTS = [
-  { bg: "bg-blue-50/50",    border: "border-blue-100", labelColor: "text-blue-700/70" },
-  { bg: "bg-violet-50/50",  border: "border-violet-100", labelColor: "text-violet-700/70" },
-  { bg: "bg-amber-50/50",   border: "border-amber-100", labelColor: "text-amber-700/70" },
-  { bg: "bg-emerald-50/50", border: "border-emerald-100", labelColor: "text-emerald-700/70" },
-  { bg: "bg-rose-50/50",    border: "border-rose-100", labelColor: "text-rose-700/70" },
-  { bg: "bg-cyan-50/50",    border: "border-cyan-100", labelColor: "text-cyan-700/70" },
+  { bg: "bg-blue-50/30",    accent: "border-l-blue-400",    headerBg: "bg-blue-50/40",    dot: "bg-blue-400" },
+  { bg: "bg-violet-50/30",  accent: "border-l-violet-400",  headerBg: "bg-violet-50/40",  dot: "bg-violet-400" },
+  { bg: "bg-amber-50/30",   accent: "border-l-amber-400",   headerBg: "bg-amber-50/40",   dot: "bg-amber-400" },
+  { bg: "bg-emerald-50/30", accent: "border-l-emerald-400", headerBg: "bg-emerald-50/40", dot: "bg-emerald-400" },
+  { bg: "bg-rose-50/30",    accent: "border-l-rose-400",    headerBg: "bg-rose-50/40",    dot: "bg-rose-400" },
+  { bg: "bg-cyan-50/30",    accent: "border-l-cyan-400",    headerBg: "bg-cyan-50/40",    dot: "bg-cyan-400" },
 ];
 
 const STATUS_STYLE: Record<string, { dot: string; label: string; glow?: string; chipCls: string }> = {
-  working:   { dot: "bg-status-green",        label: "Working",   glow: "shadow-[0_4px_20px_-4px] shadow-status-green/20", chipCls: "bg-status-green/10 text-status-green" },
+  working:   { dot: "bg-status-green",        label: "Working",   glow: "shadow-[0_0_12px_-2px] shadow-status-green/25", chipCls: "bg-status-green/10 text-status-green" },
   reviewing: { dot: "bg-lifecycle-review",    label: "Reviewing", chipCls: "bg-lifecycle-review/10 text-lifecycle-review" },
-  blocked:   { dot: "bg-destructive",         label: "Blocked",   glow: "shadow-[0_4px_20px_-4px] shadow-destructive/20",  chipCls: "bg-destructive/10 text-destructive" },
-  idle:      { dot: "bg-muted-foreground/20", label: "Idle",      chipCls: "bg-secondary text-muted-foreground" },
+  blocked:   { dot: "bg-destructive",         label: "Blocked",   glow: "shadow-[0_0_12px_-2px] shadow-destructive/25",  chipCls: "bg-destructive/10 text-destructive" },
+  idle:      { dot: "bg-muted-foreground/20", label: "Idle",      chipCls: "bg-muted/60 text-muted-foreground" },
 };
 
 /* ═══ EVENT CONFIG ═══ */
@@ -92,7 +90,7 @@ export default function OfficePage() {
   );
 
   const stats = useMemo(() => {
-    if (!data) return { projects: 0, tasks: 0, runs: 0, approvals: 0, blocked: 0 };
+    if (!data) return { projects: 0, tasks: 0, runs: 0, approvals: 0, blocked: 0, employees: 0 };
     const all = data.allTasks;
     return {
       projects: data.projects.length,
@@ -100,6 +98,7 @@ export default function OfficePage() {
       runs: all.filter((t: any) => t.latest_run_state === "running" || t.latest_run_state === "preparing").length,
       approvals: data.pendingInboxCount,
       blocked: all.filter((t: any) => t.state === "blocked").length,
+      employees: (data.employees ?? []).filter((e: any) => !["terminated", "inactive"].includes(e.status)).length,
     };
   }, [data]);
 
@@ -177,8 +176,9 @@ export default function OfficePage() {
   if (isLoading) {
     return (
       <AppLayout title="Production Floor">
-        <div className="flex items-center justify-center min-h-[60vh] text-[14px] text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading studio…
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
+          <span className="text-[13px] text-muted-foreground">Loading production floor…</span>
         </div>
       </AppLayout>
     );
@@ -193,102 +193,142 @@ export default function OfficePage() {
 
   return (
     <AppLayout title="Production Floor">
-      <div className="grid-content space-y-0 pb-8">
+      <ScrollArea className="h-full">
+        <div className="max-w-[1400px] mx-auto px-6 py-5 space-y-5 pb-10">
 
-        {/* ═══ TOP STRIP ════════════════════════════════════════ */}
-        <div className="flex items-center justify-between py-4 px-1">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-status-green animate-pulse" />
-              <span className="text-[12px] font-bold text-foreground uppercase tracking-[0.15em]">Production Floor</span>
+          {/* ═══ PAGE HEADER ═══ */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-[28px] font-bold text-foreground tracking-tight">Production Floor</h1>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-status-green/10 border border-status-green/20">
+                  <span className="h-2 w-2 rounded-full bg-status-green animate-pulse" />
+                  <span className="text-[11px] font-bold text-status-green uppercase tracking-wider">Live</span>
+                </div>
+              </div>
+              <p className="text-[14px] text-muted-foreground mt-1">Live view of capabilities, employees, and delivery motion</p>
             </div>
-            <div className="h-5 w-px bg-border" />
-            <TopStat icon={FolderKanban} value={stats.projects} label="Projects" />
-            <TopStat icon={Zap} value={stats.runs} label="Runs" accent={stats.runs > 0} />
-            <TopStat icon={Stamp} value={stats.approvals} label="Approvals" accent={stats.approvals > 0} warn />
-            {stats.blocked > 0 && (
-              <TopStat icon={AlertTriangle} value={stats.blocked} label="Blocked" accent danger />
-            )}
+            <Link to="/presale/new">
+              <Button className="h-10 px-5 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-sm">
+                <Plus className="h-3.5 w-3.5" /> Start New Project
+              </Button>
+            </Link>
           </div>
-          {/* Start New Project — top-right */}
-          <Link to="/presale/new">
-            <Button size="sm" className="h-9 gap-2 text-[12px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-              <Plus className="h-3.5 w-3.5" /> Start New Project
-            </Button>
-          </Link>
-        </div>
 
-        {/* ═══ SPATIAL FLOOR MAP ═════════════════════════════════ */}
-        <div className="relative rounded-2xl border border-border overflow-hidden bg-card">
-          <div className="absolute inset-0 bg-gradient-to-br from-secondary/15 via-transparent to-secondary/10 pointer-events-none" />
+          {/* ═══ STATS STRIP ═══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm px-6 py-3.5">
+            <div className="flex items-center gap-6 flex-wrap">
+              <StatChip icon={Users} value={stats.employees} label="Employees" />
+              <span className="h-5 w-px bg-border/30" />
+              <StatChip icon={FolderKanban} value={stats.projects} label="Projects" />
+              <StatChip icon={Zap} value={stats.runs} label="Active Runs" highlight={stats.runs > 0} />
+              <StatChip icon={Stamp} value={stats.approvals} label="Pending" highlight={stats.approvals > 0} warn />
+              {stats.blocked > 0 && (
+                <StatChip icon={AlertTriangle} value={stats.blocked} label="Blocked" highlight danger />
+              )}
+              <div className="flex-1" />
+              <button
+                onClick={() => setChatOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors text-[12px] font-semibold text-muted-foreground hover:text-foreground"
+              >
+                <Activity className="h-3.5 w-3.5" />
+                Event Feed
+                {mergedEvents.length > 0 && (
+                  <span className="h-4 min-w-[16px] px-1 rounded-full bg-status-green/15 text-status-green text-[9px] font-bold flex items-center justify-center">
+                    {Math.min(mergedEvents.length, 99)}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
 
+          {/* ═══ CAPABILITY ROOMS ═══ */}
           {teamData.length === 0 ? (
-            <div className="relative min-h-[420px] flex items-center justify-center px-6">
-              <div className="text-center max-w-[420px] mx-auto">
-                <Users className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
-                <h2 className="text-[22px] font-bold text-foreground tracking-tight">Create your first capability to activate Office.</h2>
-                <p className="text-[14px] text-muted-foreground mt-2">Once a capability exists, its room renders here immediately and stays visible even before members are assigned.</p>
-                <Link to="/teams">
-                  <Button className="mt-5 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                    <Users className="h-4 w-4" /> Go to Teams
-                  </Button>
-                </Link>
+            <div className="rounded-2xl bg-card border border-border/40 overflow-hidden">
+              <div className="relative px-10 py-16 text-center">
+                <div className="absolute inset-0 bg-gradient-to-b from-muted/20 to-transparent pointer-events-none" />
+                <div className="relative">
+                  <div className="h-14 w-14 rounded-2xl bg-muted/30 border border-border/30 flex items-center justify-center mx-auto mb-5">
+                    <Users className="h-7 w-7 text-muted-foreground/20" strokeWidth={1.5} />
+                  </div>
+                  <h2 className="text-[22px] font-bold text-foreground tracking-tight">Create your first capability</h2>
+                  <p className="text-[14px] text-muted-foreground mt-2 max-w-[420px] mx-auto leading-relaxed">
+                    Once a capability exists, its room renders here immediately — even before members are assigned.
+                  </p>
+                  <Link to="/teams">
+                    <Button className="mt-6 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                      <Users className="h-4 w-4" /> Go to Teams
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="relative grid grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {teamData.map((team: any, idx: number) => {
                 const employees = teamEmployees[team.id] ?? [];
                 const tint = ROOM_TINTS[idx % ROOM_TINTS.length];
                 const activeCount = employees.filter((e: any) => e.status !== "idle").length;
-                const maxCap = team.max_capacity ?? Math.max(6, employees.length + 2);
+                const blockedCount = employees.filter((e: any) => e.status === "blocked").length;
 
                 return (
                   <div key={team.id}
                     className={cn(
-                      "relative",
-                      idx % 2 === 1 && "lg:border-l border-border/40",
-                      idx >= 2 && "lg:border-t border-border/40",
-                      idx >= 1 && "border-t lg:border-t-0 border-border/40",
+                      "rounded-2xl border border-border/40 overflow-hidden transition-all hover:shadow-md",
+                      "border-l-[3px]",
+                      tint.accent,
                       tint.bg,
                     )}
-                    style={{ minHeight: 260 }}
                   >
-                    <div className="flex items-center justify-between px-5 pt-4 pb-1">
-                      <div>
-                        <h3 className="text-[18px] font-bold text-foreground tracking-tight leading-tight">{team.name}</h3>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{team.focus_domain || "Production Capability"}</p>
+                    {/* Room header */}
+                    <div className={cn("px-5 py-4", tint.headerBg)}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", activeCount > 0 ? tint.dot : "bg-muted-foreground/15", activeCount > 0 && "animate-pulse")} />
+                          <div className="min-w-0">
+                            <h3 className="text-[16px] font-bold text-foreground tracking-tight leading-tight truncate">{team.name}</h3>
+                            <p className="text-[11px] text-muted-foreground/60 mt-0.5 truncate">{team.focus_domain || "Production Capability"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <span className="text-[12px] font-mono text-muted-foreground">
+                            <strong className="text-foreground">{employees.length}</strong> members
+                          </span>
+                          {activeCount > 0 && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-status-green/10 text-status-green">
+                              {activeCount} active
+                            </span>
+                          )}
+                          {blockedCount > 0 && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-destructive/10 text-destructive">
+                              {blockedCount} blocked
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-[11px] font-mono text-muted-foreground">
-                          <strong className="text-foreground">{employees.length}</strong>
-                          <span className="text-muted-foreground/50"> / {maxCap}</span>
-                        </span>
-                        {activeCount > 0 && (
-                          <Badge className="text-[9px] font-bold px-2 py-0 h-[18px] bg-status-green/10 text-status-green border-status-green/20">
-                            {activeCount} active
-                          </Badge>
-                        )}
-                      </div>
+
+                      <RoomPipelineStrip employees={employees} tasks={data.allTasks} />
                     </div>
 
-                    <RoomPipelineStrip employees={employees} tasks={data.allTasks} />
-
-                    <div className="px-5 pb-5 pt-2">
+                    {/* Room body */}
+                    <div className="px-5 py-4">
                       {employees.length === 0 ? (
-                        <div className="flex flex-col items-center py-10 text-center">
-                          <Users className="h-8 w-8 text-muted-foreground/10 mb-3" />
-                          <p className="text-[15px] font-semibold text-muted-foreground/40">This room has no team members.</p>
+                        <div className="flex flex-col items-center py-8 text-center">
+                          <div className="h-10 w-10 rounded-xl bg-muted/30 flex items-center justify-center mb-3">
+                            <Users className="h-5 w-5 text-muted-foreground/15" />
+                          </div>
+                          <p className="text-[14px] font-semibold text-muted-foreground/40">Waiting for team members</p>
+                          <p className="text-[12px] text-muted-foreground/30 mt-1">Add specialists to activate this room</p>
                           <AddEmployeeDialog teamId={team.id} teamName={team.name}
                             trigger={
-                              <Button variant="outline" className="mt-4 h-10 px-5 gap-2 text-[13px] font-bold rounded-xl">
-                                <UserPlus className="h-4 w-4" /> Add Member
+                              <Button variant="outline" className="mt-4 h-9 px-4 gap-2 text-[12px] font-semibold rounded-xl border-border/50">
+                                <UserPlus className="h-3.5 w-3.5" /> Add Member
                               </Button>
                             }
                           />
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-5">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                           {employees.map((emp: any) => (
                             <FloorEmployee key={emp.id ?? emp.roleId} emp={emp} onClick={() => navigate(`/employees/${emp.id}`)} />
                           ))}
@@ -300,43 +340,43 @@ export default function OfficePage() {
               })}
             </div>
           )}
-        </div>
 
-        {/* ═══ UNASSIGNED EMPLOYEES ═════════════════════════════ */}
-        {unassignedEmployees.length > 0 && (
-          <div className="mt-4 rounded-2xl border border-dashed border-border bg-secondary/20 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-[16px] font-bold text-foreground">Unassigned Members</h3>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
-                  These employees are not assigned to any capability. Assign them in Teams.
-                </p>
+          {/* ═══ UNASSIGNED EMPLOYEES ═══ */}
+          {unassignedEmployees.length > 0 && (
+            <div className="rounded-2xl border border-dashed border-border/50 bg-muted/10 overflow-hidden">
+              <div className="px-5 py-4 flex items-center justify-between border-b border-border/20">
+                <div>
+                  <h3 className="text-[15px] font-bold text-foreground">Unassigned Members</h3>
+                  <p className="text-[12px] text-muted-foreground/50 mt-0.5">
+                    Not assigned to any capability — manage in Teams
+                  </p>
+                </div>
+                <Link to="/teams">
+                  <Button variant="outline" size="sm" className="h-8 text-[12px] font-semibold rounded-lg gap-1.5 border-border/50">
+                    <Users className="h-3.5 w-3.5" /> Manage
+                  </Button>
+                </Link>
               </div>
-              <Link to="/teams">
-                <Button variant="outline" size="sm" className="h-8 text-[12px] font-bold rounded-lg gap-1.5">
-                  <Users className="h-3.5 w-3.5" /> Manage in Teams
-                </Button>
-              </Link>
+              <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {unassignedEmployees.map((emp: any) => (
+                  <FloorEmployee key={emp.id ?? emp.roleId} emp={emp} onClick={() => navigate(`/employees/${emp.id}`)} />
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-5">
-              {unassignedEmployees.map((emp: any) => (
-                <FloorEmployee key={emp.id ?? emp.roleId} emp={emp} onClick={() => navigate(`/employees/${emp.id}`)} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </ScrollArea>
 
       {/* ═══ STUDIO CHAT — floating button + slide-out sheet ═══ */}
       <Sheet open={chatOpen} onOpenChange={setChatOpen}>
         <SheetTrigger asChild>
           <button
-            className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-foreground text-background shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center"
-            title="Open Studio Chat"
+            className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-2xl bg-foreground text-background shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center"
+            title="Open Event Feed"
           >
-            <MessageSquare className="h-5 w-5" />
+            <Radio className="h-5 w-5" />
             {mergedEvents.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-status-green text-[8px] font-bold text-white flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-status-green text-[9px] font-bold text-white flex items-center justify-center shadow-sm">
                 {Math.min(mergedEvents.length, 99)}
               </span>
             )}
@@ -354,15 +394,14 @@ export default function OfficePage() {
    SUB-COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
 
-function TopStat({ icon: Icon, value, label, accent, warn, danger }: {
-  icon: React.ElementType; value: number; label: string; accent?: boolean; warn?: boolean; danger?: boolean;
+function StatChip({ icon: Icon, value, label, highlight, warn, danger }: {
+  icon: React.ElementType; value: number; label: string; highlight?: boolean; warn?: boolean; danger?: boolean;
 }) {
-  const cls = danger ? "text-destructive" : warn && accent ? "text-status-amber" : accent ? "text-status-blue" : "text-muted-foreground";
   return (
-    <div className={`flex items-center gap-1.5 ${cls}`}>
-      <Icon className="h-3.5 w-3.5" />
-      <span className="font-bold font-mono text-foreground tabular-nums text-[13px]">{value}</span>
-      <span className="text-[11px] font-medium">{label}</span>
+    <div className="flex items-center gap-2">
+      <Icon className={cn("h-3.5 w-3.5", danger ? "text-destructive" : warn && highlight ? "text-status-amber" : "text-muted-foreground/40")} />
+      <span className={cn("font-bold font-mono tabular-nums text-[14px]", danger ? "text-destructive" : highlight ? "text-foreground" : "text-foreground")}>{value}</span>
+      <span className="text-[11px] text-muted-foreground/50 font-medium">{label}</span>
     </div>
   );
 }
@@ -382,7 +421,7 @@ function RoomPipelineStrip({ employees, tasks }: { employees: any[]; tasks: any[
   };
 
   return (
-    <div className="flex items-center gap-2 px-5 py-1">
+    <div className="flex items-center gap-2 mt-2.5">
       {counts.intake > 0 && <PipeChip label="Intake" count={counts.intake} cls="text-status-blue bg-status-blue/8" />}
       {counts.delivery > 0 && <PipeChip label="Delivery" count={counts.delivery} cls="text-status-amber bg-status-amber/8" />}
       {counts.review > 0 && <PipeChip label="Review" count={counts.review} cls="text-lifecycle-review bg-lifecycle-review/8" />}
@@ -393,7 +432,7 @@ function RoomPipelineStrip({ employees, tasks }: { employees: any[]; tasks: any[
 
 function PipeChip({ label, count, cls }: { label: string; count: number; cls: string }) {
   return (
-    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
+    <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", cls)}>
       {label} · {count}
     </span>
   );
@@ -408,7 +447,7 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
   const roleName = ROLE_OPTIONS.find(r => r.code === emp.code)?.label ?? emp.code;
   const mbti = emp.mbtiCode ? getMBTI(emp.mbtiCode) : null;
   const nation = emp.nationalityCode ? getNationality(emp.nationalityCode) : null;
-  const perfRing = repScore >= 80 ? "border-status-green/50" : repScore >= 50 ? "border-status-amber/50" : "border-destructive/50";
+  const perfColor = repScore >= 80 ? "text-status-green" : repScore >= 50 ? "text-status-amber" : "text-destructive";
 
   const STATE_LABEL: Record<string, string> = {
     in_progress: "In Progress", waiting_review: "In Review", blocked: "Blocked",
@@ -420,45 +459,47 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
         <TooltipTrigger asChild>
           <div onClick={onClick}
             className={cn(
-              "group flex flex-col items-center text-center cursor-pointer transition-all duration-200 hover:-translate-y-1 rounded-xl p-2",
+              "group rounded-xl bg-card border border-border/30 p-3 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-border/60",
               st.glow,
             )}
           >
-            {/* Circular avatar with performance ring */}
-            <div className="relative mb-2">
-              <div className={cn("rounded-full border-[3px] p-0.5 transition-all", perfRing)}>
+            <div className="flex items-start gap-3">
+              {/* Avatar */}
+              <div className="relative shrink-0">
                 <img src={persona.avatar} alt={emp.name}
-                  className={cn("h-[56px] w-[56px] rounded-full object-cover ring-2 ring-offset-1 ring-offset-card", persona.ringClass)}
-                  width={56} height={56} loading="lazy" />
+                  className={cn("h-11 w-11 rounded-lg object-cover ring-1 ring-offset-1 ring-offset-card", persona.ringClass)}
+                  width={44} height={44} loading="lazy" />
+                <span className={cn(
+                  "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card",
+                  st.dot, emp.status === "working" && "animate-pulse",
+                )} />
               </div>
-              {/* Status dot */}
-              <span className={cn(
-                "absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card",
-                st.dot, emp.status === "working" && "animate-pulse",
-              )} />
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-bold text-foreground leading-tight truncate group-hover:text-primary transition-colors">{emp.name}</p>
+                <p className="text-[10px] text-muted-foreground/50 truncate mt-0.5">{roleName}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-md", st.chipCls)}>
+                    {st.label}
+                  </span>
+                  <span className={cn("text-[10px] font-bold font-mono", perfColor)}>{repScore}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Name + role */}
-            <p className="text-[11px] font-bold text-foreground leading-tight truncate max-w-[90px] group-hover:text-primary transition-colors">{emp.name}</p>
-            <p className="text-[9px] text-muted-foreground truncate max-w-[90px] mt-0.5">{roleName}</p>
-
-            {/* Status chip */}
-            <span className={cn("text-[8px] font-bold px-2 py-0.5 rounded-full mt-1", st.chipCls)}>
-              {st.label}
-            </span>
-
-            {/* Task card */}
+            {/* Active task */}
             {emp.taskTitle && (
-              <div className="mt-1.5 w-full px-1.5 py-1 rounded-md bg-card border border-border text-left">
-                <p className="text-[8px] text-muted-foreground line-clamp-1">{emp.taskTitle}</p>
+              <div className="mt-2 px-2 py-1.5 rounded-lg bg-muted/30 border border-border/20">
+                <p className="text-[10px] text-muted-foreground line-clamp-1 leading-relaxed">{emp.taskTitle}</p>
                 {emp.taskState && (
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <div className={cn("h-1 w-1 rounded-full",
+                  <div className="flex items-center gap-1 mt-1">
+                    <div className={cn("h-1.5 w-1.5 rounded-full",
                       emp.taskState === "in_progress" && "bg-status-amber",
                       emp.taskState === "waiting_review" && "bg-lifecycle-review",
                       emp.taskState === "blocked" && "bg-destructive",
                     )} />
-                    <span className="text-[7px] text-muted-foreground/60 font-medium">{STATE_LABEL[emp.taskState] ?? emp.taskState}</span>
+                    <span className="text-[9px] text-muted-foreground/50 font-medium">{STATE_LABEL[emp.taskState] ?? emp.taskState}</span>
                   </div>
                 )}
               </div>
@@ -467,9 +508,9 @@ function FloorEmployee({ emp, onClick }: { emp: any; onClick: () => void }) {
         </TooltipTrigger>
 
         {/* ═══ HOVER TOOLTIP ═══ */}
-        <TooltipContent side="right" sideOffset={12} className="max-w-[300px] p-4 space-y-2.5 shadow-xl">
+        <TooltipContent side="right" sideOffset={12} className="max-w-[300px] p-4 space-y-2.5 shadow-xl rounded-xl">
           <div className="flex items-center gap-3">
-            <img src={persona.avatar} alt={emp.name} className="h-10 w-10 rounded-full object-cover" width={40} height={40} />
+            <img src={persona.avatar} alt={emp.name} className="h-10 w-10 rounded-lg object-cover" width={40} height={40} />
             <div>
               <p className="text-[14px] font-bold text-foreground">{emp.name}</p>
               <p className="text-[11px] text-muted-foreground">{roleName}{emp.seniority ? ` · ${emp.seniority}` : ""}</p>
@@ -523,51 +564,54 @@ function HStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-/* ═══ STUDIO CHAT PANEL — Internal AI Discussion ═══ */
+/* ═══ STUDIO CHAT PANEL ═══ */
 function StudioChatPanel({ events }: { events: { id: string; type: string; time: string; meta?: string }[] }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-[15px] font-bold text-foreground tracking-tight">Studio Chat</h3>
-          <div className="ml-auto flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-status-green animate-pulse" />
+      <div className="px-5 py-4 border-b border-border/30">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-foreground/5 flex items-center justify-center">
+            <Radio className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-[15px] font-bold text-foreground tracking-tight">Event Feed</h3>
+            <p className="text-[11px] text-muted-foreground/50">Internal production events</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-status-green/10">
+            <span className="h-2 w-2 rounded-full bg-status-green animate-pulse" />
             <span className="text-[10px] font-bold text-status-green">LIVE</span>
           </div>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1">Internal AI team discussion</p>
       </div>
 
-      {/* Chat-style event stream */}
+      {/* Event stream */}
       <ScrollArea className="flex-1">
-        <div className="px-4 py-3 space-y-1">
+        <div className="px-4 py-3 space-y-0.5">
           {events.length === 0 ? (
-            <div className="flex items-center gap-2 py-8 text-[12px] text-muted-foreground justify-center">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Waiting for activity…
+            <div className="flex flex-col items-center py-12 text-center">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30 mb-3" />
+              <span className="text-[12px] text-muted-foreground/40">Waiting for activity…</span>
             </div>
           ) : (
             events.map((evt, i) => {
               const cfg = EVT[evt.type] ?? DEFAULT_EVT;
               return (
                 <div key={evt.id}
-                  className="flex items-start gap-2.5 py-2 px-2 rounded-lg hover:bg-secondary/30 transition-colors animate-fade-in"
+                  className="flex items-start gap-3 py-2.5 px-2.5 rounded-lg hover:bg-muted/30 transition-colors animate-fade-in"
                   style={{ animationDelay: `${Math.min(i * 12, 120)}ms` }}
                 >
-                  {/* Color dot */}
-                  <div className={`h-2.5 w-2.5 rounded-full ${cfg.dot} shrink-0 mt-1.5`} />
+                  <div className={cn("h-2.5 w-2.5 rounded-full shrink-0 mt-1.5", cfg.dot)} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-[11px] font-bold text-foreground">{cfg.actor ?? "System"}</span>
-                      <span className="text-[10px] text-muted-foreground/50">·</span>
-                      <span className="text-[10px] text-muted-foreground truncate">{cfg.label}</span>
+                      <span className="text-[10px] text-muted-foreground/30">·</span>
+                      <span className="text-[10px] text-muted-foreground/60 truncate">{cfg.label}</span>
                     </div>
                     {evt.meta && (
-                      <p className="text-[10px] text-muted-foreground/60 truncate mt-0.5">{evt.meta}</p>
+                      <p className="text-[10px] text-muted-foreground/40 truncate mt-0.5">{evt.meta}</p>
                     )}
-                    <p className="text-[9px] font-mono text-muted-foreground/40 mt-0.5">
+                    <p className="text-[9px] font-mono text-muted-foreground/30 mt-0.5">
                       {formatDistanceToNow(new Date(evt.time), { addSuffix: true })}
                     </p>
                   </div>
