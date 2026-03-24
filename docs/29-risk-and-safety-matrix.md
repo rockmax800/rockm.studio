@@ -102,6 +102,28 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 
 ---
 
+### 2.9 Stalled Execution
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | Runs, CI, or deployments stall silently |
+| Likelihood | Medium |
+| Impact | Medium (delayed delivery, resource waste) |
+| Mitigation | Stalled detection dashboard (`/api/system/stalled`), lease expiration, heartbeat monitoring |
+| Detection | Automatic via `33-operational-diagnostics.md` — stalled runs, stuck CI, stuck deploys |
+
+### 2.10 Resource Exhaustion
+
+| Aspect | Detail |
+|--------|--------|
+| Risk | Worker CPU, memory, or disk reaches critical levels |
+| Likelihood | Low |
+| Impact | High (system degradation, run failures) |
+| Mitigation | Resource monitoring (`/api/system/resources`), pressure level warnings |
+| Detection | CPU > 80%, Memory > 85%, Disk > 90% thresholds |
+
+---
+
 ## 3 — Risk by Operating Mode
 
 | Risk | Minimal Stable | Lean | Company | Experimental |
@@ -112,3 +134,5 @@ Categorizes all identified risks with likelihood, impact, and mitigation strateg
 | Budget exhaustion | Low | Low | Medium | **High** |
 | Real-time overload | None | None | Low | Low |
 | Prompt regression | None | None | None | Medium |
+| Stalled execution | Low | Low | Medium | Medium |
+| Resource exhaustion | Low | Low | Medium | Medium |

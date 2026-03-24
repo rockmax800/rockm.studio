@@ -119,6 +119,8 @@ Controlled self-improvement and experimental features.
 | 29 | Risk & Safety Matrix | Risk categorization and mitigation |
 | 30 | Delivery Lane | Deterministic release pipeline: PR → CI → Staging → Production |
 | 31 | Sandbox & Execution Isolation | Docker-based run isolation with resource limits and security |
+| 32 | Failure Classification | Standardized error_class values for run failure categorization |
+| 33 | Operational Diagnostics | Read-only observability layer with diagnostic endpoints |
 
 ---
 
