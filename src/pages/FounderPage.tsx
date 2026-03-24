@@ -136,6 +136,9 @@ export default function FounderPage() {
   return (
     <AppLayout title="Decision Engine" fullHeight>
       <div className="flex flex-col gap-3 h-full px-6 py-4 overflow-hidden">
+        {/* Production Flow */}
+        <ProductionFlow className="px-1" />
+
         {/* Top Strip */}
         <FounderStatusStrip
           systemMode={modeData?.mode ?? "production"}

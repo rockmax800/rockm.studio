@@ -89,6 +89,9 @@ export default function CommandCenter() {
   return (
     <AppLayout title="Nerve Center">
       <div className="grid-content space-y-4 pb-8">
+        {/* PRODUCTION FLOW — global pipeline indicator */}
+        <ProductionFlow className="px-1" />
+
         {/* STATUS STRIP */}
         <StatusStrip
           systemMode={modeData?.mode ?? "production"}
