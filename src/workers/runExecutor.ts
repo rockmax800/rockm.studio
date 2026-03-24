@@ -11,6 +11,7 @@ import { ContextCompressionService } from "@/services/ContextCompressionService"
 import { RetryPolicyService } from "@/services/RetryPolicyService";
 import { OfficeEventEmitter } from "@/services/OfficeEventEmitter";
 import { SandboxExecutorService } from "@/services/SandboxExecutorService";
+import { RoleContractEnforcementService } from "@/services/RoleContractEnforcementService";
 import { logInfo } from "@/lib/logger";
 
 interface PrismaTransactionClient {
