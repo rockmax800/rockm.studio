@@ -32,10 +32,11 @@ AI Production Studio is an agent-first development workspace for a solo product 
 └─────────────────────────────────────────────────────────────┘
 
          ┌──────────────────────────────────┐
-         │      CORE ENGINE (Foundation)    │
-         │  Projects, Tasks, Runs, Reviews  │
-         │  State Machine, Guards, Events   │
-         └──────────────────────────────────┘
+          │      CORE ENGINE (Foundation)    │
+          │  Projects, Tasks, Runs, Reviews  │
+          │  State Machine, Guards, Events   │
+          │  Event Log (canonical truth)     │
+          └──────────────────────────────────┘
 ```
 
 **Dependency rule:** Lower planes never depend on upper planes. Core Engine is the shared foundation.
