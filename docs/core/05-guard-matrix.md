@@ -64,7 +64,7 @@ Guards DO: validate current state, check preconditions, return explicit reasons.
 | T4 | in_progress → waiting_review | Artifact submitted | No output |
 | T5 | in_progress → blocked | Blocker reason recorded | Reason null |
 | T6 | in_progress → escalated | Escalation reason recorded | Reason null |
-| T7 | waiting_review → **validated** | Review verdict = approved | No review; verdict ≠ approved |
+| T7 | waiting_review → **validated** | Review verdict ∈ {approved, approved_with_notes} | No review; verdict ≠ approved/approved_with_notes |
 | T8 | waiting_review → rework_required | Review verdict = rejected | Verdict ≠ rejected |
 | T9 | rework_required → assigned | Rework notes exist | Notes missing |
 | T10 | blocked → assigned | Blocker cleared | Blocker active |
