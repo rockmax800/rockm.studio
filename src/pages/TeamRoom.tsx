@@ -10,13 +10,14 @@ import { useDepartments } from "@/hooks/use-department-data";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPersona, getStatusMeta } from "@/lib/personas";
+import { AddEmployeeDialog } from "@/components/teams/AddEmployeeDialog";
 import {
   ArrowLeft, Users, MessageSquare, Send, SkipForward,
   Snowflake, Square, Coins, ChevronDown, ChevronUp,
   Target, Layers, ListChecks, HelpCircle, BarChart3,
   Brain, BookOpen, ShieldAlert, Lightbulb, XCircle,
-  AlertTriangle, ArrowUpRight, Play, User, Zap,
-} from "lucide-react";
+  AlertTriangle, ArrowUpRight, Play, User, Zap, UserPlus,
+}from "lucide-react";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
@@ -147,15 +148,26 @@ export default function TeamRoom() {
           {displayEmployees.length === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/10 p-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground/15 mx-auto mb-4" />
-              <p className="text-[20px] font-bold text-foreground">Add team members first</p>
+              <p className="text-[20px] font-bold text-foreground">This capability has no team members yet</p>
               <p className="text-[14px] text-muted-foreground mt-2 max-w-[400px] mx-auto">
-                This capability has no active employees. Set up your team to start working sessions.
+                Add AI employees to start working sessions and generate blueprints.
               </p>
-              <Link to="/teams">
-                <Button className="mt-5 h-11 px-6 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                  <Users className="h-4 w-4" /> Go to Teams Setup
-                </Button>
-              </Link>
+              <div className="flex items-center justify-center gap-3 mt-5">
+                <AddEmployeeDialog
+                  teamId={selectedDept?.id ?? urlDept ?? undefined}
+                  teamName={deptName}
+                  trigger={
+                    <Button className="h-11 px-6 gap-2 text-[13px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                      <UserPlus className="h-4 w-4" /> Add Team Member
+                    </Button>
+                  }
+                />
+                <Link to="/teams">
+                  <Button variant="outline" className="h-11 px-6 gap-2 text-[13px] font-bold rounded-xl">
+                    <Users className="h-4 w-4" /> Go to Teams Setup
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
