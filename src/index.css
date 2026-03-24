@@ -12,7 +12,8 @@
 
 @layer base {
 
-  :root {
+  :root,
+  .dark {
     /* ── Backgrounds — Level 1 (page shell) ────────────── */
     --background: 228 18% 6%;             /* #0C0E14 — deep graphite-blue */
     --foreground: 220 20% 93%;            /* #ECF0F5 — bright, high-contrast */
