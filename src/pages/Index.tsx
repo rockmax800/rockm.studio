@@ -11,6 +11,7 @@ import { RiskHealth } from "@/components/command-center/RiskHealth";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWorkerNodes, fetchStalledEntities } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductionFlow } from "@/components/ProductionFlow";
 
 export default function CommandCenter() {
   const { data: projects = [] } = useProjects();
@@ -88,6 +89,9 @@ export default function CommandCenter() {
   return (
     <AppLayout title="Nerve Center">
       <div className="grid-content space-y-4 pb-8">
+        {/* PRODUCTION FLOW — global pipeline indicator */}
+        <ProductionFlow className="px-1" />
+
         {/* STATUS STRIP */}
         <StatusStrip
           systemMode={modeData?.mode ?? "production"}

@@ -10,6 +10,7 @@ import { EvidencePanel } from "@/components/project-cockpit/EvidencePanel";
 import { ReleaseReadiness } from "@/components/project-cockpit/ReleaseReadiness";
 import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline";
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
+import { ProductionFlow } from "@/components/ProductionFlow";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -130,6 +131,9 @@ export default function ProjectDetail() {
   return (
     <AppLayout title={project.name} fullHeight>
       <div className="grid-content px-6 py-4 space-y-3 h-full overflow-auto">
+        {/* ── PRODUCTION FLOW ── */}
+        <ProductionFlow projectState={project.state} className="px-1" />
+
         {/* ── TOP HEADER ──────────────────────────────── */}
         <ProjectTopBar
           project={project}
