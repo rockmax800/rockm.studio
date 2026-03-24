@@ -12,7 +12,7 @@ enabled_in_production: yes
 
 ## 1 — Purpose
 
-Defines the single delivery pipeline that enforces a deterministic, auditable path from code change to production deployment. Every code change must flow through this pipeline — no shortcuts.
+Defines the single delivery pipeline that enforces a deterministic, auditable path from code change to production deployment. Every code change must flow through this pipeline — no shortcuts. All delivery events are recorded in the canonical `event_log` (see `core/12-event-log-architecture.md`).
 
 ---
 

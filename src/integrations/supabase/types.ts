@@ -1282,6 +1282,48 @@ export type Database = {
           },
         ]
       }
+      event_log: {
+        Row: {
+          actor_ref: string | null
+          actor_type: string
+          aggregate_id: string
+          aggregate_type: string
+          causation_id: string | null
+          correlation_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          payload_json: Json
+        }
+        Insert: {
+          actor_ref?: string | null
+          actor_type?: string
+          aggregate_id: string
+          aggregate_type: string
+          causation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key?: string | null
+          payload_json?: Json
+        }
+        Update: {
+          actor_ref?: string | null
+          actor_type?: string
+          aggregate_id?: string
+          aggregate_type?: string
+          causation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string | null
+          payload_json?: Json
+        }
+        Relationships: []
+      }
       handoffs: {
         Row: {
           acceptance_criteria_json: Json

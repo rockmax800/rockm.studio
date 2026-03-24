@@ -110,7 +110,38 @@ export class OrchestrationService {
         where: { id: entityId },
       });
 
-      // 5. Emit activity event
+      // 5. Write canonical event_log (append-only, authoritative)
+      const eventIdempotencyKey = metadata?.idempotency_key
+        ? `${metadata.idempotency_key}:${entityType}.${toState}`
+        : `${entityId}:v${currentVersion + 1}:${toState}`;
+
+      const eventPayload = {
+        ...metadata,
+        from_state: fromState,
+        to_state: toState,
+        from_version: currentVersion,
+        to_version: currentVersion + 1,
+      };
+
+      try {
+        await (tx as any).event_log.create({
+          data: {
+            event_type: `${entityType}.${toState}`,
+            aggregate_type: entityType,
+            aggregate_id: entityId,
+            payload_json: eventPayload,
+            correlation_id: (metadata?.correlation_id as string) ?? null,
+            causation_id: (metadata?.causation_id as string) ?? null,
+            actor_type: actorType,
+            actor_ref: actorRoleId ?? null,
+            idempotency_key: eventIdempotencyKey,
+          },
+        });
+      } catch {
+        // Best-effort — event_log table may not exist yet
+      }
+
+      // 6. Emit activity event (projection — kept for backward-compatible reads)
       await (tx as any).activity_events.create({
         data: {
           entity_type: entityType,
@@ -123,11 +154,7 @@ export class OrchestrationService {
         },
       });
 
-      // 6. Write outbox event (transactional outbox pattern)
-      const outboxIdempotencyKey = metadata?.idempotency_key
-        ? `${metadata.idempotency_key}:${entityType}.${toState}`
-        : `${entityId}:v${currentVersion + 1}:${toState}`;
-
+      // 7. Write outbox event (delivery channel — NOT authoritative)
       try {
         await (tx as any).outbox_events.create({
           data: {
@@ -135,18 +162,14 @@ export class OrchestrationService {
             aggregate_id: entityId,
             event_type: `${entityType}.${toState}`,
             payload_json: {
-              ...metadata,
-              from_state: fromState,
-              to_state: toState,
+              ...eventPayload,
               project_id: projectId,
               actor_type: actorType,
               actor_role_id: actorRoleId,
-              from_version: currentVersion,
-              to_version: currentVersion + 1,
             },
             correlation_id: (metadata?.correlation_id as string) ?? null,
             causation_id: (metadata?.causation_id as string) ?? null,
-            idempotency_key: outboxIdempotencyKey,
+            idempotency_key: eventIdempotencyKey,
             status: "pending",
           },
         });
@@ -154,7 +177,7 @@ export class OrchestrationService {
         // Best-effort — outbox_events table may not exist yet
       }
 
-      // 7. Emit OfficeEvent for task transitions (PART 4)
+      // 8. Emit OfficeEvent for task transitions (PART 4)
       if (entityType === "task") {
         const fromZone = taskStateToZone(fromState);
         const toZone = taskStateToZone(toState);
