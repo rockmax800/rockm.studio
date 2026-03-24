@@ -56,6 +56,7 @@ export class ReviewService {
   private orchestration: OrchestrationServiceLike;
   private performanceService: AgentPerformanceServiceLike | null;
   private handoffService: HandoffService;
+  private deliverySpine: DeliverySpineService;
 
   constructor(
     prisma: PrismaLike,
@@ -66,6 +67,7 @@ export class ReviewService {
     this.orchestration = orchestrationService;
     this.performanceService = performanceService ?? null;
     this.handoffService = new HandoffService(prisma);
+    this.deliverySpine = new DeliverySpineService(prisma);
   }
 
   async approveReview({
