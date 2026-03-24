@@ -15,7 +15,7 @@ export function AppLayout({ children, title, fullHeight }: AppLayoutProps) {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar title={title} />
-          <main className={`flex-1 overflow-auto ${fullHeight ? "" : "p-4"}`}>
+          <main className={`flex-1 overflow-auto ${fullHeight ? "" : "px-8 py-6"}`}>
             {children}
           </main>
         </div>
