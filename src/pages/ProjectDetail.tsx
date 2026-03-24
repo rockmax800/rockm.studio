@@ -107,7 +107,7 @@ export default function ProjectDetail() {
   const { data: repositories = [] } = useQuery({
     queryKey: ["project-repos", id],
     queryFn: async () => {
-      const { data } = await supabase.from("repositories").select("id, name, provider, clone_url, status")
+      const { data } = await supabase.from("repositories").select("id, repo_name, repo_owner, provider, status")
         .eq("project_id", id!).limit(5);
       return data ?? [];
     },
