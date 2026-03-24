@@ -28,6 +28,7 @@ function PressureBadge({ level }: { level: string }) {
 }
 
 export default function SystemPage() {
+  const [searchParams] = useSearchParams();
   const { data: providers = [] } = useProviderList();
   const { data: modeData } = useSystemMode();
   const { data: workers = [] } = useWorkerNodes();
@@ -36,6 +37,21 @@ export default function SystemPage() {
 
   const onlineWorkers = workers.filter((w: any) => w.derived_status === "online").length;
   const stalledCount = stalled?.total_issues ?? 0;
+
+  // Read query params for trace pre-filtering
+  const urlTab = searchParams.get("tab");
+  const defaultTab = urlTab === "audit" ? "audit" : "health";
+  const traceInitialFilters = useMemo(() => {
+    const f: Record<string, string> = {};
+    const p = searchParams.get("project");
+    const e = searchParams.get("entity");
+    const et = searchParams.get("entityType");
+    if (p) f.projectId = p;
+    if (et) f.entityType = et;
+    // If a specific entity ID is passed, set it as search text via entityId
+    if (e) (f as any).entityId = e;
+    return Object.keys(f).length > 0 ? f : undefined;
+  }, [searchParams]);
 
   return (
     <AppLayout title="System">
