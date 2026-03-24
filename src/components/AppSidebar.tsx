@@ -4,9 +4,7 @@ import {
   Monitor,
   Crown,
   Settings,
-  Building2,
   Users,
-  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -24,18 +22,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const primaryNav = [
+const operationsNav = [
   { title: "Command Center", url: "/", icon: Crosshair },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Office", url: "/office", icon: Monitor },
-  { title: "Team Room", url: "/team-room", icon: MessageSquare },
   { title: "Founder", url: "/founder", icon: Crown },
   { title: "System", url: "/system", icon: Settings },
 ];
 
-const secondaryNav = [
-  { title: "Departments", url: "/departments", icon: Building2 },
-  { title: "Company", url: "/company", icon: Users },
+const managementNav = [
+  { title: "Teams", url: "/teams", icon: Users },
 ];
 
 export function AppSidebar() {
@@ -62,14 +58,14 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* ── Primary nav ─────────────────────────────────── */}
+        {/* ── Operations ─────────────────────────────────── */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-[12px] font-medium text-muted-foreground px-3 mb-1">
             Operations
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {primaryNav.map((item) => (
+              {operationsNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -88,14 +84,14 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* ── Secondary nav ───────────────────────────────── */}
+        {/* ── Management ───────────────────────────────── */}
         <SidebarGroup className="mt-2">
           <SidebarGroupLabel className="text-[12px] font-medium text-muted-foreground px-3 mb-1">
             Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {secondaryNav.map((item) => (
+              {managementNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
