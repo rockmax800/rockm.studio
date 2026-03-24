@@ -19,6 +19,7 @@ import {
 import { MBTI_TYPES, getMBTI, type MBTIType } from "@/lib/mbtiData";
 import { NATIONALITIES, getNationality } from "@/lib/nationalityData";
 import { getPersona } from "@/lib/personas";
+import { assignEmployeeToCapability, refreshTeamViews } from "@/lib/teamSync";
 
 interface Props {
   teamId?: string;
@@ -43,13 +44,14 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
   const [tab, setTab] = useState<"manual" | "ai">("manual");
   const [nameIdx, setNameIdx] = useState(0);
   const [aiGenerated, setAiGenerated] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState(teamId ?? "");
 
   // Fetch all employees for assignment
   const { data: allEmployeesForAssign = [] } = useQuery({
     queryKey: ["employees-for-assign"],
     queryFn: async () => {
       const { data } = await supabase.from("ai_employees")
-        .select("id, name, role_code, team_id, status, reputation_score, success_rate")
+        .select("id, name, role_code, role_id, team_id, status, reputation_score, success_rate")
         .not("status", "eq", "terminated")
         .order("name");
       return data ?? [];
@@ -69,9 +71,16 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
 
   // Employees that can be assigned to this team (not already in it)
   const assignableEmployees = useMemo(() => {
-    if (!teamId) return allEmployeesForAssign;
-    return allEmployeesForAssign.filter(e => e.team_id !== teamId);
-  }, [allEmployeesForAssign, teamId]);
+    const capabilityId = teamId ?? selectedTeamId;
+    if (!capabilityId) return [];
+    return allEmployeesForAssign.filter(e => e.team_id !== capabilityId);
+  }, [allEmployeesForAssign, selectedTeamId, teamId]);
+
+  const activeTeamId = teamId ?? selectedTeamId;
+  const activeTeam = activeTeamId
+    ? allDepartments.find((department) => department.id === activeTeamId) ?? null
+    : null;
+  const activeTeamName = teamId ? teamName ?? activeTeam?.name ?? "capability" : activeTeam?.name ?? null;
 
   const [config, setConfig] = useState<ExtendedConfig>({
     name: "", roleCode: "frontend_builder", seniority: "Middle",
@@ -84,18 +93,6 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
   });
 
   const patch = (p: Partial<ExtendedConfig>) => setConfig((c) => ({ ...c, ...p }));
-
-  const invalidateAll = () => {
-    qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-    qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
-    qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
-    qc.invalidateQueries({ queryKey: ["team-room-employees"] });
-    qc.invalidateQueries({ queryKey: ["office"] });
-    qc.invalidateQueries({ queryKey: ["office-roles-profile"] });
-    qc.invalidateQueries({ queryKey: ["employees-for-assign"] });
-    qc.invalidateQueries({ queryKey: ["departments"] });
-    console.log("[AddEmployee] All queries invalidated");
-  };
 
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) {
@@ -116,24 +113,30 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
         mayDeploy: false, mbtiCode: "", nationalityCode: "",
         devopsKnowledge: "medium", securityAwareness: "medium", skillLevels: {},
       });
-      setMode("assign");
+      setMode(teamId ? "assign" : "create");
       setTab("manual");
       setAiGenerated(false);
+      setSelectedTeamId(teamId ?? "");
     }
     setOpen(isOpen);
   };
 
-  const handleAssign = async (empId: string, empName: string) => {
-    if (!teamId) return;
+  const handleAssign = async (empId: string, empName: string, roleCode: string, roleId?: string | null) => {
+    if (!activeTeamId) {
+      toast.error("Capability must be selected");
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase.from("ai_employees")
-        .update({ team_id: teamId })
-        .eq("id", empId);
-      if (error) throw error;
-      console.log("[AddEmployee] Employee assigned:", empId, "→ team:", teamId);
-      invalidateAll();
-      toast.success(`${empName} assigned to ${teamName ?? "team"}`);
+      await assignEmployeeToCapability({
+        employeeId: empId,
+        teamId: activeTeamId,
+        roleCode,
+        sourceRoleId: roleId,
+      });
+      console.log("[AddEmployee] Employee assigned to capability", { employeeId: empId, capabilityId: activeTeamId });
+      await refreshTeamViews(qc, "Employee assigned");
+      toast.success(`${empName} assigned to ${activeTeamName ?? "capability"}`);
       setOpen(false);
       onCreated?.();
     } catch (e: any) {
@@ -198,8 +201,12 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
 
   const handleSave = async () => {
     if (!config.name.trim()) return;
-    if (!teamId) {
+    if (!activeTeamId) {
       toast.error("Capability must be selected");
+      return;
+    }
+    if (!allDepartments.some((department) => department.id === activeTeamId)) {
+      toast.error("Selected capability no longer exists");
       return;
     }
     setSaving(true);
@@ -207,12 +214,12 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
       let roleId: string | null = null;
       const { data: existingRole } = await supabase
         .from("agent_roles").select("id")
-        .eq("code", config.roleCode).eq("team_id", teamId).maybeSingle();
+        .eq("code", config.roleCode).eq("team_id", activeTeamId).maybeSingle();
       roleId = existingRole?.id ?? null;
       if (!roleId) {
         const label = ROLE_OPTIONS.find((r) => r.code === config.roleCode)?.label ?? config.roleCode;
         const { data: newRole } = await supabase.from("agent_roles").insert({
-          code: config.roleCode, name: label, description: label, team_id: teamId,
+          code: config.roleCode, name: label, description: label, team_id: activeTeamId,
           skill_profile: {
             primaryStack: config.primaryStack, secondaryStack: config.secondaryStack,
             seniority: config.seniority, riskTolerance: config.riskTolerance,
@@ -230,14 +237,14 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
 
       const { error } = await supabase.from("ai_employees").insert({
         name: config.name.trim(), role_code: config.roleCode,
-        role_id: roleId, team_id: teamId,
+        role_id: roleId, team_id: activeTeamId,
         status: "onboarding", model_name: "gpt-4o", provider: "openai",
       });
       if (error) throw error;
 
-      console.log("[AddEmployee] Employee created:", config.name, "team:", teamId, "role:", roleId);
-      invalidateAll();
-      toast.success(`${config.name} added to ${teamName ?? "team"} — status: Onboarding`);
+      console.log("[AddEmployee] Employee created with capability", { name: config.name, capabilityId: activeTeamId, roleId });
+      await refreshTeamViews(qc, "Employee created with capability");
+      toast.success(`${config.name} added to ${activeTeamName ?? "capability"} — status: Onboarding`);
       setOpen(false);
       onCreated?.();
     } catch (e: any) {
@@ -263,25 +270,50 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
       <DialogContent className="max-w-[680px] max-h-[92vh] rounded-2xl p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="text-[22px] font-bold tracking-tight">Add Team Member</DialogTitle>
-          {teamName && <p className="text-[13px] text-muted-foreground mt-0.5">Adding to <strong>{teamName}</strong></p>}
-          {!teamId && <p className="text-[12px] text-destructive mt-0.5 font-bold">⚠ No capability selected — employee will be unassigned</p>}
+          {activeTeamName && <p className="text-[13px] text-muted-foreground mt-0.5">Adding to <strong>{activeTeamName}</strong></p>}
         </DialogHeader>
 
         {/* Mode selector — assign existing vs create new */}
-        {teamId && (
+        {allDepartments.length > 0 && (
           <div className="px-6 pt-3 flex gap-1">
-            <TabBtn active={mode === "assign"} onClick={() => setMode("assign")} icon={<UserPlus className="h-3.5 w-3.5" />} label="Assign Existing" />
+            <TabBtn active={mode === "assign"} onClick={() => setMode("assign")} icon={<UserPlus className="h-3.5 w-3.5" />} label="Assign Existing" disabled={!activeTeamId} />
             <TabBtn active={mode === "create"} onClick={() => setMode("create")} icon={<Plus className="h-3.5 w-3.5" />} label="Create New" />
           </div>
         )}
 
         <ScrollArea className="max-h-[72vh]">
           <div className="px-6 pt-4 pb-6 space-y-6">
+            {!teamId && (
+              <div className="rounded-xl border border-border/50 bg-secondary/20 p-4 space-y-2">
+                <label className="text-[13px] font-bold text-foreground block">Capability *</label>
+                <select
+                  value={selectedTeamId}
+                  onChange={(event) => setSelectedTeamId(event.target.value)}
+                  className="w-full h-11 rounded-xl border border-border bg-background px-3 text-[13px] font-medium text-foreground outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Select capability</option>
+                  {allDepartments.map((department) => (
+                    <option key={department.id} value={department.id}>{department.name}</option>
+                  ))}
+                </select>
+                {allDepartments.length === 0 ? (
+                  <p className="text-[12px] font-bold text-destructive">Create a capability first before adding team members.</p>
+                ) : (
+                  <p className="text-[12px] text-muted-foreground">Capability assignment is required and saved immediately.</p>
+                )}
+              </div>
+            )}
 
             {/* ═══ ASSIGN EXISTING MODE ═══ */}
-            {mode === "assign" && teamId && (
+            {mode === "assign" && (
               <div className="space-y-3">
-                {assignableEmployees.length === 0 ? (
+                {!activeTeamId ? (
+                  <div className="text-center py-8">
+                    <User className="h-8 w-8 text-muted-foreground/15 mx-auto mb-3" />
+                    <p className="text-[15px] font-bold text-foreground">Select a capability first</p>
+                    <p className="text-[13px] text-muted-foreground mt-1">Choose where this employee should be assigned.</p>
+                  </div>
+                ) : assignableEmployees.length === 0 ? (
                   <div className="text-center py-8">
                     <User className="h-8 w-8 text-muted-foreground/15 mx-auto mb-3" />
                     <p className="text-[15px] font-bold text-foreground">No employees available to assign</p>
@@ -292,7 +324,7 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
                   </div>
                 ) : (
                   <>
-                    <p className="text-[13px] text-muted-foreground">Select an employee to assign to <strong className="text-foreground">{teamName}</strong>:</p>
+                    <p className="text-[13px] text-muted-foreground">Select an employee to assign to <strong className="text-foreground">{activeTeamName}</strong>:</p>
                     <div className="rounded-xl border border-border overflow-hidden">
                       {assignableEmployees.map((emp) => {
                         const persona = getPersona(emp.role_code);
@@ -311,7 +343,7 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
                             </div>
                             <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0 shrink-0">{emp.status}</Badge>
                             <span className="text-[12px] font-mono font-bold text-foreground shrink-0">{successPct}%</span>
-                            <Button size="sm" onClick={() => handleAssign(emp.id, emp.name)} disabled={saving}
+                            <Button size="sm" onClick={() => handleAssign(emp.id, emp.name, emp.role_code, emp.role_id)} disabled={saving}
                               className="h-8 px-3 gap-1.5 text-[12px] font-bold rounded-lg bg-foreground text-background hover:bg-foreground/90 shrink-0">
                               <ArrowRight className="h-3 w-3" /> Assign
                             </Button>
@@ -582,11 +614,11 @@ export function AddEmployeeDialog({ teamId, teamName, trigger, onCreated }: Prop
 
 /* ═══ Sub-components ═══ */
 
-function TabBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+function TabBtn({ active, onClick, icon, label, disabled }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; disabled?: boolean }) {
   return (
-    <button onClick={onClick}
+    <button onClick={onClick} disabled={disabled}
       className={`flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold rounded-xl transition-all ${
-        active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary"
+        active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary disabled:hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
       }`}>
       {icon} {label}
     </button>

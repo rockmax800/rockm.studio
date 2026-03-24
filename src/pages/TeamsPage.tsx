@@ -15,6 +15,7 @@ import { TeamBalanceChart } from "@/components/teams/TeamBalanceChart";
 import { toast } from "sonner";
 import { getMBTI } from "@/lib/mbtiData";
 import { getNationality } from "@/lib/nationalityData";
+import { assignEmployeeToCapability, refreshTeamViews } from "@/lib/teamSync";
 import {
   computeTeamDistribution,
   ROLE_OPTIONS, STATUS_META,
@@ -58,25 +59,27 @@ export default function TeamsPage() {
       const { error } = await supabase.from("ai_employees").update({ status: "terminated" }).eq("id", empId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-      qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
-      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
-      qc.invalidateQueries({ queryKey: ["office"] });
+    onSuccess: async () => {
+      await refreshTeamViews(qc, "Employee removed");
       toast.success("Employee removed");
     },
   });
 
   const moveEmployee = useMutation({
     mutationFn: async ({ empId, newTeamId }: { empId: string; newTeamId: string }) => {
-      const { error } = await supabase.from("ai_employees").update({ team_id: newTeamId }).eq("id", empId);
-      if (error) throw error;
+      const employee = allEmployees.find((item) => item.id === empId);
+      if (!employee) throw new Error("Employee not found");
+
+      await assignEmployeeToCapability({
+        employeeId: empId,
+        teamId: newTeamId,
+        roleCode: employee.role_code,
+        sourceRoleId: employee.role_id,
+      });
+      console.log("[Teams] Employee assigned to capability", { employeeId: empId, capabilityId: newTeamId });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-      qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
-      qc.invalidateQueries({ queryKey: ["office"] });
-      qc.invalidateQueries({ queryKey: ["office-roles-profile"] });
+    onSuccess: async () => {
+      await refreshTeamViews(qc, "Employee moved between capabilities");
       toast.success("Employee moved");
     },
   });

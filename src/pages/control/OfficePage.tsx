@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useOfficeData, useOfficeRealtime } from "@/hooks/use-office-data";
@@ -162,6 +162,18 @@ export default function OfficePage() {
     return [...o, ...a].sort((x, y) => new Date(y.time).getTime() - new Date(x.time).getTime()).slice(0, 60);
   }, [data]);
 
+  const teamData = data?.teams ?? [];
+  const allEmployeeCount = Object.values(teamEmployees).flat().length + unassignedEmployees.length;
+
+  useEffect(() => {
+    console.log("[Office] Office re-render triggered", {
+      rooms: teamData.length,
+      employees: allEmployeeCount,
+      unassigned: unassignedEmployees.length,
+    });
+    console.log("[Office] Capability rooms updated", teamData.map((team: any) => ({ id: team.id, name: team.name, members: (teamEmployees[team.id] ?? []).length })));
+  }, [allEmployeeCount, teamData, teamEmployees, unassignedEmployees.length]);
+
   if (isLoading) {
     return (
       <AppLayout title="Production Floor">
@@ -178,11 +190,6 @@ export default function OfficePage() {
       </AppLayout>
     );
   }
-
-  const teamData = data.teams ?? [];
-  const allEmployeeCount = Object.values(teamEmployees).flat().length + unassignedEmployees.length;
-  const hasNoCapabilities = teamData.length === 0;
-  const hasNoAnything = hasNoCapabilities && allEmployeeCount === 0;
 
   return (
     <AppLayout title="Production Floor">
@@ -211,49 +218,24 @@ export default function OfficePage() {
           </Link>
         </div>
 
-        {/* ═══ NO CAPABILITIES — CENTRAL CTA ════════════════════ */}
-        {hasNoAnything && (
-          <div className="flex items-center justify-center min-h-[55vh]">
-            <div className="text-center max-w-[480px] mx-auto">
-              <div className="h-20 w-20 rounded-2xl bg-secondary/60 border border-border flex items-center justify-center mx-auto mb-6">
-                <Users className="h-10 w-10 text-muted-foreground/20" />
-              </div>
-              <h1 className="text-[28px] font-bold text-foreground tracking-tight">Create your first Capability to activate Office.</h1>
-              <p className="text-[15px] text-muted-foreground mt-3 leading-relaxed max-w-[400px] mx-auto">
-                Capabilities define your AI studio rooms. Add team members to see them working here.
-              </p>
-              <Link to="/teams">
-                <Button className="mt-7 h-12 px-7 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                  <Zap className="h-4 w-4" /> Go to Teams
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Has capabilities but no employees (or employees without teams) */}
-        {hasNoCapabilities && !hasNoAnything && (
-          <div className="flex items-center justify-center min-h-[40vh]">
-            <div className="text-center max-w-[480px] mx-auto">
-              <h2 className="text-[22px] font-bold text-foreground tracking-tight">Create capabilities to organize your team</h2>
-              <p className="text-[14px] text-muted-foreground mt-2">
-                You have {allEmployeeCount} team member{allEmployeeCount > 1 ? "s" : ""} — assign them to capability pools to see them on the floor.
-              </p>
-              <Link to="/teams">
-                <Button className="mt-5 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                  <Users className="h-4 w-4" /> Go to Teams Setup
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
-
         {/* ═══ SPATIAL FLOOR MAP ═════════════════════════════════ */}
-        {!hasNoCapabilities && (
-          <div className="relative rounded-2xl border border-border overflow-hidden bg-card">
-            {/* Subtle floor gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-secondary/15 via-transparent to-secondary/10 pointer-events-none" />
+        <div className="relative rounded-2xl border border-border overflow-hidden bg-card">
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary/15 via-transparent to-secondary/10 pointer-events-none" />
 
+          {teamData.length === 0 ? (
+            <div className="relative min-h-[420px] flex items-center justify-center px-6">
+              <div className="text-center max-w-[420px] mx-auto">
+                <Users className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
+                <h2 className="text-[22px] font-bold text-foreground tracking-tight">Create your first capability to activate Office.</h2>
+                <p className="text-[14px] text-muted-foreground mt-2">Once a capability exists, its room renders here immediately and stays visible even before members are assigned.</p>
+                <Link to="/teams">
+                  <Button className="mt-5 h-11 px-6 gap-2 text-[14px] font-bold rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                    <Users className="h-4 w-4" /> Go to Teams
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ) : (
             <div className="relative grid grid-cols-1 lg:grid-cols-2">
               {teamData.map((team: any, idx: number) => {
                 const employees = teamEmployees[team.id] ?? [];
@@ -265,16 +247,13 @@ export default function OfficePage() {
                   <div key={team.id}
                     className={cn(
                       "relative",
-                      // Borders between rooms
                       idx % 2 === 1 && "lg:border-l border-border/40",
                       idx >= 2 && "lg:border-t border-border/40",
-                      // All rooms except first pair get top border on mobile
                       idx >= 1 && "border-t lg:border-t-0 border-border/40",
                       tint.bg,
                     )}
                     style={{ minHeight: 260 }}
                   >
-                    {/* ── Room Header ── */}
                     <div className="flex items-center justify-between px-5 pt-4 pb-1">
                       <div>
                         <h3 className="text-[18px] font-bold text-foreground tracking-tight leading-tight">{team.name}</h3>
@@ -293,15 +272,13 @@ export default function OfficePage() {
                       </div>
                     </div>
 
-                    {/* ── Pipeline micro-strip ── */}
                     <RoomPipelineStrip employees={employees} tasks={data.allTasks} />
 
-                    {/* ── Spatial Employee Area ── */}
                     <div className="px-5 pb-5 pt-2">
                       {employees.length === 0 ? (
                         <div className="flex flex-col items-center py-10 text-center">
                           <Users className="h-8 w-8 text-muted-foreground/10 mb-3" />
-                          <p className="text-[15px] font-semibold text-muted-foreground/40">No team members in this capability.</p>
+                          <p className="text-[15px] font-semibold text-muted-foreground/40">This room has no team members.</p>
                           <AddEmployeeDialog teamId={team.id} teamName={team.name}
                             trigger={
                               <Button variant="outline" className="mt-4 h-10 px-5 gap-2 text-[13px] font-bold rounded-xl">
@@ -322,8 +299,8 @@ export default function OfficePage() {
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ═══ UNASSIGNED EMPLOYEES ═════════════════════════════ */}
         {unassignedEmployees.length > 0 && (

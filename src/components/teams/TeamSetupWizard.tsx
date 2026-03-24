@@ -18,6 +18,7 @@ import {
   getDefaultConfig, validateTeamBalance, riskColor,
   type EmployeeConfig, type RiskTolerance, type Seniority, type BiasLevel,
 } from "@/lib/employeeConfig";
+import { refreshTeamViews } from "@/lib/teamSync";
 
 const STEPS = [
   { label: "Create Capability", icon: Building2 },
@@ -143,12 +144,7 @@ export function TeamSetupWizard({ onComplete, onCancel }: Props) {
         });
       }
 
-      qc.invalidateQueries({ queryKey: ["departments"] });
-      qc.invalidateQueries({ queryKey: ["all-employees-full"] });
-      qc.invalidateQueries({ queryKey: ["all-roles-teams"] });
-      qc.invalidateQueries({ queryKey: ["hr-dashboard"] });
-      qc.invalidateQueries({ queryKey: ["office"] });
-      qc.invalidateQueries({ queryKey: ["office-roles-profile"] });
+      await refreshTeamViews(qc, "Capability created with initial members");
       toast.success(`${capName} activated with ${members.length} members`);
       onComplete();
     } catch (e: any) {
