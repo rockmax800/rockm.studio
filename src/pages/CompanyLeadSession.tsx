@@ -524,7 +524,7 @@ export default function CompanyLeadSession() {
                   <ExtRow label="Modules">
                     <div className="flex flex-wrap gap-1">
                       {scope.modules.map((m) => (
-                        <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ background: "hsl(220 20% 96%)", border: "1px solid hsl(220 14% 90%)", color: "hsl(222 32% 24%)" }}>{m}</span>
+                        <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-muted border border-border text-foreground">{m}</span>
                       ))}
                     </div>
                   </ExtRow>
