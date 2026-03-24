@@ -9,6 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge } from "lucide-react";
 import { Link } from "react-router-dom";
+import { lazy, Suspense } from "react";
+
+const TraceExplorer = lazy(() => import("@/components/system/TraceExplorer"));
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
@@ -290,19 +293,11 @@ export default function SystemPage() {
             </Card>
           </TabsContent>
 
-          {/* AUDIT */}
+          {/* AUDIT — Operational Trace Explorer */}
           <TabsContent value="audit">
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-8 text-center">
-                <Shield className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-3">
-                  Export audit logs for compliance and review.
-                </p>
-                <Button size="sm" variant="outline" className="text-xs">
-                  Export Audit Log
-                </Button>
-              </CardContent>
-            </Card>
+            <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading trace explorer…</div>}>
+              <TraceExplorer />
+            </Suspense>
           </TabsContent>
 
           {/* DOCS */}
