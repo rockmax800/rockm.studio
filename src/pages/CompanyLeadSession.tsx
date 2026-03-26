@@ -598,7 +598,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             </span>
           )}
 
-
+          {embedded && (
             <button
               onClick={() => { onClose?.(); navigate("/lead"); }}
               className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
