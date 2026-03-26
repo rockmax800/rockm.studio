@@ -194,6 +194,7 @@ export function EngineeringSlicesPanel({ slices, onSlicesChange, locked }: Engin
                     <DetailList label="Data Contracts" items={slice.dataContracts} />
                     <DetailList label="Performance Constraints" items={slice.performanceConstraints} />
                     <DetailList label="Test Scope" items={slice.testScope} />
+                    <DetailList label="Forbidden Shortcuts" items={slice.forbiddenShortcuts} />
 
                     {/* Founder controls */}
                     {!locked && (
