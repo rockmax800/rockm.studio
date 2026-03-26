@@ -33,6 +33,7 @@ import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/fro
 import { validatePlanningGate } from "@/lib/planning-gates";
 import { useCompanyLeadPlanning } from "@/hooks/use-company-lead-planning";
 import { estimateFromNames } from "@/lib/module-estimation";
+import { validateCtoReadiness } from "@/lib/cto-readiness";
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -646,6 +647,34 @@ export default function IntakeComposerV2() {
                       </div>
                     );
                     return null;
+                  })()}
+
+                  {/* CTO Readiness Gate — inline after freeze */}
+                  {phase !== "drafting" && (() => {
+                    const scopeSection = sections.find(s => s.key === "in_scope");
+                    const scopeItems = (scopeSection?.content ?? "").split(/[,;.\n]+/).map(s => s.trim()).filter(Boolean);
+                    const readiness = validateCtoReadiness({
+                      clarificationComplete: true,
+                      moduleCount: scopeItems.length,
+                      dependencyEdgeCount: 0,
+                      deliveryMode: null,
+                      blueprintApproved: false,
+                      mvpReductionComplete: true,
+                      isMvpProject: false,
+                    });
+                    return (
+                      <div className={cn(
+                        "flex items-center gap-2 rounded-lg px-3 py-2 border",
+                        readiness.status === "ready"
+                          ? "border-status-green/20 bg-status-green/[0.04]"
+                          : "border-muted bg-muted/30",
+                      )}>
+                        <Cpu className={cn("h-3.5 w-3.5 shrink-0", readiness.status === "ready" ? "text-status-green" : "text-muted-foreground/40")} />
+                        <span className={cn("text-[10px] font-semibold", readiness.status === "ready" ? "text-status-green" : "text-muted-foreground/60")}>
+                          CTO Readiness: {readiness.passedCount}/{readiness.totalCount} — {readiness.status === "ready" ? "Engineering ready" : "Requires Company Lead session"}
+                        </span>
+                      </div>
+                    );
                   })()}
 
                   {/* Frozen success state */}
