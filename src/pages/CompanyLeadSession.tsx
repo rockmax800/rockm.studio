@@ -37,6 +37,7 @@ import type { SystemModule, DependencyEdge } from "@/types/front-office-planning
 import { decomposeSystem } from "@/lib/system-decomposition";
 import type { MvpReductionEntry, MvpReductionResult } from "@/lib/mvp-reduction";
 import { generateInitialReduction, computeReductionResult, getMvpScopeModules } from "@/lib/mvp-reduction";
+import { validatePlanningGate, type PlanningGateResult } from "@/lib/planning-gates";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -461,6 +462,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const showMvpReduction = decompositionLocked;
   const showConsultation = mvpReductionLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
   const showEstimate = mvpReductionLocked && (phase === "estimate" || phase === "decision");
+
+  // ── Planning Gate — blocks estimate if prerequisites are missing ──
+  const planningGate: PlanningGateResult = useMemo(() => validatePlanningGate({
+    clarificationComplete: clarificationLocked,
+    modules: decompositionModules,
+    dependencyEdges: decompositionEdges,
+    mvpReductionComplete: mvpReductionLocked,
+    isMvpProject: isMvpProject,
+  }), [clarificationLocked, decompositionModules, decompositionEdges, mvpReductionLocked, isMvpProject]);
+  const estimateBlocked = showEstimate && !planningGate.passed;
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
