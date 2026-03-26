@@ -614,6 +614,37 @@ export default function IntakeComposerV2() {
                     ) : null;
                   })()}
 
+                  {/* Planning gate warning — after freeze, check if structured planning is missing */}
+                  {phase !== "drafting" && (() => {
+                    const scopeSection = sections.find(s => s.key === "in_scope");
+                    const scopeItems = (scopeSection?.content ?? "").split(/[,;.\n]+/).map(s => s.trim()).filter(Boolean);
+                    const modules: SystemModule[] = scopeItems.map(item => ({
+                      name: item.length > 40 ? item.slice(0, 40) : item,
+                      purpose: item, coreFeatures: [item], dependencies: [],
+                      riskLevel: "medium" as const, complexityEstimate: "medium" as const, mvpOptional: false,
+                    }));
+                    const gate = validatePlanningGate({
+                      clarificationComplete: phase !== "drafting",
+                      modules,
+                      dependencyEdges: [],
+                      mvpReductionComplete: true,
+                      isMvpProject: false,
+                    });
+                    if (!gate.passed) return (
+                      <div className="rounded-lg border border-status-amber/20 bg-status-amber/[0.04] px-3 py-2 space-y-1">
+                        <p className="text-[10px] font-bold text-status-amber">Planning prerequisites for estimation:</p>
+                        {gate.failures.map(f => (
+                          <div key={f.key} className="flex items-start gap-1.5">
+                            <AlertTriangle className="h-3 w-3 text-status-amber shrink-0 mt-0.5" />
+                            <span className="text-[10px] text-muted-foreground">{f.label}: {f.detail}</span>
+                          </div>
+                        ))}
+                        <p className="text-[9px] text-muted-foreground/50 italic">Use the Company Lead Session for structured planning before estimate generation.</p>
+                      </div>
+                    );
+                    return null;
+                  })()}
+
                   {/* Frozen success state */}
                   {phase !== "drafting" && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/[0.06] border border-status-green/20">
