@@ -33,7 +33,9 @@ import {
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
+import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
+import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { useState, useMemo } from "react";
 
