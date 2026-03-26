@@ -627,6 +627,9 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                 </div>
               </div>
 
+              {/* ── Project Guidance Preview ── */}
+              <GuidancePreview guidancePack={projectGuidance} />
+
               {/* ── Active Guidance ── */}
               <div className="mx-4 mb-3 rounded-lg border border-border/20 bg-card/60 overflow-hidden">
                 <div className="px-3 py-2 border-b border-border/10">
