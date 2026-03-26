@@ -11,6 +11,7 @@ import { ActivityTimeline } from "@/components/project-cockpit/ActivityTimeline"
 import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
 import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
 import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPanel";
+import { VerificationRail } from "@/components/project-cockpit/VerificationRail";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
   AlertTriangle, CheckCircle2, FileText, ChevronRight,
-  Layers, Activity, Package, History, Columns3, Settings2,
+  Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck,
 } from "lucide-react";
 
 const RISK_COLORS = {
@@ -395,6 +396,23 @@ export default function ProjectDetail() {
                 owner_role_code: (t as any).agent_roles?.code,
               }))}
               projectId={id!}
+            />
+          </div>
+
+          {/* ══ VERIFICATION RAIL ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={ShieldCheck} title="Verification Rail" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Evidence-based verification — only what the system can actually observe. No silent pass.
+            </p>
+            <VerificationRail
+              tasks={tasks}
+              artifacts={artifacts}
+              approvals={approvals}
+              deployments={deployments}
+              checkSuites={checkSuites}
+              failedRuns={failedRuns}
+              domainBindings={domainBindings}
             />
           </div>
 
