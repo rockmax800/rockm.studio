@@ -241,6 +241,11 @@ export default function ProjectDetail() {
             <PipelineBar currentStageIndex={stageIdx} blockedStageIndex={blockedStageIdx} projectId={id} />
           </div>
 
+          {/* ══ EVIDENCE READINESS ══ */}
+          {projectResearchPhase !== "ready-to-execute" && (
+            <ResearchModeBadge phase={projectResearchPhase} detail={evidenceDetail} />
+          )}
+
           {/* ══ TOP HEADER ══ */}
           <div className="rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden">
             <div className="px-6 py-5">
