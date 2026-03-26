@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
 import { ClarificationChecklist } from "@/components/intake/ClarificationChecklist";
+import { SystemDecompositionPanel } from "@/components/intake/SystemDecompositionPanel";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -26,6 +27,8 @@ import {
   getClarificationStatus,
   inferClarificationFromText,
 } from "@/lib/company-lead-clarification";
+import type { SystemModule, DependencyEdge } from "@/types/front-office-planning";
+import { decomposeSystem } from "@/lib/system-decomposition";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -81,14 +84,15 @@ const LEAD_QUESTIONS: string[] = [
   "What does success look like? Define measurable outcomes you expect at launch.",
 ];
 
-const PHASE_LABELS = {
+const PHASE_LABELS: Record<string, string> = {
   discovery: "Discovery",
+  decomposition: "Decomposition",
   consultation: "Team Review",
   estimate: "Estimate",
   decision: "Decision",
 };
 
-const PHASE_ORDER = ["discovery", "consultation", "estimate", "decision"] as const;
+const PHASE_ORDER = ["discovery", "decomposition", "consultation", "estimate", "decision"] as const;
 
 const COMPLEXITY_CONFIG = {
   low: { label: "Low", color: "hsl(152 60% 42%)", bg: "hsl(152 60% 42% / 0.08)" },
@@ -234,7 +238,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   ]);
   const [inputValue, setInputValue] = useState("");
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [phase, setPhase] = useState<"discovery" | "consultation" | "estimate" | "decision">("discovery");
+  const [phase, setPhase] = useState<"discovery" | "decomposition" | "consultation" | "estimate" | "decision">("discovery");
   const [isThinking, setIsThinking] = useState(false);
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
@@ -252,8 +256,36 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const handleMarkClarificationComplete = () => {
     if (!clarificationStatus.isComplete) return;
     setClarificationLocked(true);
-    toast.success("Clarification complete — planning outputs unlocked.");
-    addLeadMessage("Clarification Loop is complete. All required fields are confirmed.\n\nI will now proceed with team consultation and estimate generation.");
+    toast.success("Clarification complete — system decomposition unlocked.");
+    addLeadMessage("Clarification Loop is complete. All required fields are confirmed.\n\nI am now generating a system decomposition from the scope. Review the module map in the right panel — you can add, merge, or adjust modules before proceeding.");
+    // Auto-generate decomposition from extracted scope
+    const { modules: autoModules, dependencyGraph: autoGraph } = decomposeSystem(scope.modules);
+    setDecompositionModules(autoModules);
+    setDecompositionGraph(autoGraph);
+    setPhase("decomposition");
+  };
+
+  // ── System Decomposition state (local draft — not persisted) ──
+  const [decompositionModules, setDecompositionModules] = useState<SystemModule[]>([]);
+  const [decompositionGraph, setDecompositionGraph] = useState<DependencyEdge[]>([]);
+  const [decompositionLocked, setDecompositionLocked] = useState(false);
+
+  const handleDecompositionChange = (modules: SystemModule[], graph: DependencyEdge[]) => {
+    if (decompositionLocked) return;
+    setDecompositionModules(modules);
+    setDecompositionGraph(graph);
+  };
+
+  const handleDecompositionConfirm = () => {
+    if (decompositionModules.length === 0) return;
+    setDecompositionLocked(true);
+    toast.success("Decomposition confirmed — team consultation unlocked.");
+    addLeadMessage("System decomposition is confirmed. I am now consulting with the internal team — Architect, QA, and Reviewer — to assess feasibility based on the module map.\n\nPlease review the Internal Consultation panel.");
+    setPhase("consultation");
+    setTimeout(() => {
+      addLeadMessage("Internal consultation is complete. The team has reviewed the decomposition.\n\nI have prepared the Estimate Panel with module-level breakdown, token budget, cost projection, and timeline.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel.");
+      setPhase("estimate");
+    }, 1500);
   };
 
   useQuery({
@@ -322,15 +354,11 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
         setQuestionIndex(nextIdx);
       } else if (phase === "discovery") {
         addLeadMessage(
-          "Thank you. I have sufficient context to proceed.\n\nI am now consulting with the internal team — Architect, QA, and Reviewer — to assess feasibility, risks, and resource requirements.\n\nPlease review the Internal Consultation panel on the right."
+          "Thank you. I have sufficient context to proceed.\n\nPlease complete the Clarification Checklist in the right panel, then confirm to unlock System Decomposition."
         );
-        setPhase("consultation");
-        setTimeout(() => {
-          addLeadMessage(
-            "Internal consultation is complete. The team has provided their assessment.\n\nI have prepared the Estimate Panel with module-level breakdown, token budget, cost projection, and timeline.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel."
-          );
-          setPhase("estimate");
-        }, 1500);
+        // Don't auto-advance — clarification gate controls progression
+      } else if (phase === "decomposition") {
+        addLeadMessage("Review the System Decomposition panel. Add, merge, or adjust modules, then confirm to proceed to team consultation.");
       } else {
         addLeadMessage("The estimate is ready for your review. Use the decision buttons below the estimate panel to proceed.");
       }
@@ -362,9 +390,10 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const showExtraction = userMessageCount >= 1;
-  // Planning outputs gated behind clarification completion
-  const showConsultation = clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
-  const showEstimate = clarificationLocked && (phase === "estimate" || phase === "decision");
+  // Planning outputs gated behind clarification + decomposition completion
+  const showDecomposition = clarificationLocked;
+  const showConsultation = decompositionLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
+  const showEstimate = decompositionLocked && (phase === "estimate" || phase === "decision");
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
@@ -373,12 +402,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const researchPhase: ResearchPhase =
     phase === "discovery" && userMessageCount <= 2 ? "researching"
     : phase === "discovery" ? "evidence-gathering"
+    : phase === "decomposition" ? "evidence-gathering"
     : phase === "consultation" ? "evidence-gathering"
     : phase === "estimate" || phase === "decision" ? "ready-to-execute"
     : "unknown";
 
   const researchDetail =
     researchPhase === "researching" ? `Discovery in progress — ${LEAD_QUESTIONS.length - questionIndex} question(s) remaining.`
+    : phase === "decomposition" ? "System decomposition in progress — modules not yet frozen."
     : researchPhase === "evidence-gathering" ? "Team is reviewing feasibility — scope not yet frozen."
     : researchPhase === "ready-to-execute" ? "Scope defined. Estimate ready — founder can approve or revise."
     : undefined;
@@ -684,14 +715,38 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             />
 
             {/* Gate notice when clarification incomplete */}
-            {!clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision") && (
+            {!clarificationLocked && userMessageCount >= LEAD_QUESTIONS.length && (
               <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
                 <div className="flex items-center gap-2 mb-1">
                   <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
                   <span className="text-[11px] font-bold text-status-amber">Planning Outputs Blocked</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground">
-                  Complete the Clarification Loop above to unlock consultation, estimates, and blueprint creation.
+                  Complete the Clarification Loop above to unlock System Decomposition and downstream planning.
+                </p>
+              </div>
+            )}
+
+            {/* System Decomposition panel — after clarification */}
+            {showDecomposition && (
+              <SystemDecompositionPanel
+                modules={decompositionModules}
+                dependencyGraph={decompositionGraph}
+                onModulesChange={handleDecompositionChange}
+                locked={decompositionLocked}
+                onConfirm={handleDecompositionConfirm}
+              />
+            )}
+
+            {/* Gate notice when decomposition incomplete */}
+            {clarificationLocked && !decompositionLocked && (phase === "decomposition") && (
+              <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Estimate Blocked</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Confirm the System Decomposition above to unlock team consultation and estimates.
                 </p>
               </div>
             )}
