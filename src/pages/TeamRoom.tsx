@@ -24,6 +24,8 @@ import {
   Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
   GraduationCap, Eye,
 } from "lucide-react";
+import { GuidancePreview } from "@/components/team-room/GuidancePreview";
+import { deriveGuidancePack } from "@/types/project-guidance";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
@@ -353,6 +355,17 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
   const [empStatus] = useState<"listening" | "thinking" | "responding" | "idle">("listening");
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
+
+  // ── Derive project guidance from session context (seed data)
+  const projectGuidance = useMemo(() => deriveGuidancePack({
+    id: "session",
+    name: deptName,
+    purpose: extraction.scope[0]?.text ?? undefined,
+    state: "active",
+  }, {
+    taskCount: extraction.taskBreakdown.length,
+    riskLevel: extraction.risks.length > 0 ? "medium" : "low",
+  }), [deptName, extraction]);
 
   // ── Published training prompt query
   const { data: activeGuidance } = useQuery({
