@@ -4,7 +4,7 @@ import { useProjects } from "@/hooks/use-data";
 import { Button } from "@/components/ui/button";
 import {
   FolderKanban, FileText, ArrowRight, MessageSquare,
-  ChevronRight, Calendar,
+  ChevronRight, Calendar, Columns3,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
