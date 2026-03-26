@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { loadFrozenBrief, type FrozenBrief } from "@/lib/intake-brief-transfer";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
