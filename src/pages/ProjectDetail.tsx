@@ -543,14 +543,18 @@ export default function ProjectDetail() {
             </div>
           )}
 
-          {/* ══ CTO CONFORMANCE — Post-Run Engineering Guardrail ══ */}
+          {/* ══ MATERIALIZE DELIVERY TASKS — Founder-Only Launch Action ══ */}
           {taskSpecDrafts.length > 0 && (
             <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
-              <SectionHeader icon={ShieldCheck} title="CTO Conformance" count={conformanceSummary.totalDrafts} />
+              <SectionHeader icon={Rocket} title="Materialize Delivery Tasks" count={taskSpecDrafts.length} />
               <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
-                Post-run conformance evaluation — engineering guardrail, does not replace Review/QA.
+                Controlled transition from planning drafts to live Delivery Plane tasks — founder confirmation required.
               </p>
-              <CtoConformancePanel summary={conformanceSummary} />
+              <MaterializeTasksPanel
+                gate={materializationGate}
+                draftsCount={taskSpecDrafts.length}
+                onMaterialize={handleMaterialize}
+              />
             </div>
           )}
 
