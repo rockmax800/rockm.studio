@@ -238,7 +238,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   ]);
   const [inputValue, setInputValue] = useState("");
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [phase, setPhase] = useState<"discovery" | "consultation" | "estimate" | "decision">("discovery");
+  const [phase, setPhase] = useState<"discovery" | "decomposition" | "consultation" | "estimate" | "decision">("discovery");
   const [isThinking, setIsThinking] = useState(false);
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
@@ -256,8 +256,36 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const handleMarkClarificationComplete = () => {
     if (!clarificationStatus.isComplete) return;
     setClarificationLocked(true);
-    toast.success("Clarification complete — planning outputs unlocked.");
-    addLeadMessage("Clarification Loop is complete. All required fields are confirmed.\n\nI will now proceed with team consultation and estimate generation.");
+    toast.success("Clarification complete — system decomposition unlocked.");
+    addLeadMessage("Clarification Loop is complete. All required fields are confirmed.\n\nI am now generating a system decomposition from the scope. Review the module map in the right panel — you can add, merge, or adjust modules before proceeding.");
+    // Auto-generate decomposition from extracted scope
+    const { modules: autoModules, dependencyGraph: autoGraph } = decomposeSystem(scope.modules);
+    setDecompositionModules(autoModules);
+    setDecompositionGraph(autoGraph);
+    setPhase("decomposition");
+  };
+
+  // ── System Decomposition state (local draft — not persisted) ──
+  const [decompositionModules, setDecompositionModules] = useState<SystemModule[]>([]);
+  const [decompositionGraph, setDecompositionGraph] = useState<DependencyEdge[]>([]);
+  const [decompositionLocked, setDecompositionLocked] = useState(false);
+
+  const handleDecompositionChange = (modules: SystemModule[], graph: DependencyEdge[]) => {
+    if (decompositionLocked) return;
+    setDecompositionModules(modules);
+    setDecompositionGraph(graph);
+  };
+
+  const handleDecompositionConfirm = () => {
+    if (decompositionModules.length === 0) return;
+    setDecompositionLocked(true);
+    toast.success("Decomposition confirmed — team consultation unlocked.");
+    addLeadMessage("System decomposition is confirmed. I am now consulting with the internal team — Architect, QA, and Reviewer — to assess feasibility based on the module map.\n\nPlease review the Internal Consultation panel.");
+    setPhase("consultation");
+    setTimeout(() => {
+      addLeadMessage("Internal consultation is complete. The team has reviewed the decomposition.\n\nI have prepared the Estimate Panel with module-level breakdown, token budget, cost projection, and timeline.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel.");
+      setPhase("estimate");
+    }, 1500);
   };
 
   useQuery({
