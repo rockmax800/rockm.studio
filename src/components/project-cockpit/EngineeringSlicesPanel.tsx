@@ -191,6 +191,7 @@ export function EngineeringSlicesPanel({ slices, onSlicesChange, locked }: Engin
                     <DetailList label="Allowed Repo Areas" items={slice.allowedRepoAreas} />
                     <DetailList label="Expected Touch Points" items={slice.expectedTouchPoints} />
                     <DetailList label="Expected Interfaces" items={slice.expectedInterfaces} />
+                    <DetailList label="Data Contracts" items={slice.dataContracts} />
                     <DetailList label="Performance Constraints" items={slice.performanceConstraints} />
                     <DetailList label="Test Scope" items={slice.testScope} />
 
