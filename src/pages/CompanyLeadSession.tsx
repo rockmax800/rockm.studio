@@ -271,6 +271,28 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const totalCost = moduleEstimates.reduce((s, m) => s + m.cost, 0);
   const totalDays = Math.max(...moduleEstimates.map((m) => m.days), 0);
 
+  // Auto-infer clarification fields from conversation (founder can override)
+  useEffect(() => {
+    if (clarificationLocked) return;
+    const allUserText = messages.filter((m) => m.role === "user").map((m) => m.content).join(" ");
+    if (!allUserText) return;
+    const inferred = inferClarificationFromText(allUserText, clarification);
+    if (Object.keys(inferred).length > 0) {
+      setClarification((prev) => ({ ...prev, ...inferred }));
+    }
+    // Infer projectGoal from first user message
+    if (!clarification.projectGoal) {
+      const firstMsg = messages.find((m) => m.role === "user");
+      if (firstMsg) {
+        setClarification((prev) => ({
+          ...prev,
+          projectGoal: prev.projectGoal || firstMsg.content.slice(0, 200),
+        }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, clarificationLocked]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
