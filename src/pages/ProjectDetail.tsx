@@ -419,11 +419,19 @@ export default function ProjectDetail() {
           </div>
 
           {/* ══ DELIVERY BOARD ══ */}
-          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
-            <SectionHeader icon={Columns3} title="Delivery Board" count={tasks.length} />
-            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
-              Task movement across delivery states — the canonical view of what's moving, stuck, or done.
-            </p>
+          <div id="delivery-board" className="rounded-2xl bg-card border-2 border-primary/20 shadow-sm p-5 scroll-mt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Columns3 className="h-5 w-5 text-primary" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-[16px] font-bold text-foreground tracking-tight">Delivery Board</h2>
+                <p className="text-[11px] text-muted-foreground/50 mt-0.5">
+                  Task movement across delivery states — the canonical view of what's moving, stuck, or done.
+                </p>
+              </div>
+              <span className="text-[12px] font-mono text-muted-foreground/40 shrink-0">{tasks.length} tasks</span>
+            </div>
             <DeliveryBoard
               tasks={tasks.map((t) => ({
                 id: t.id,

@@ -13,7 +13,7 @@ import { fetchWorkerNodes, fetchStalledEntities } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
-  Layers, Activity, Clock, AlertTriangle, Shield,
+  Layers, Activity, Clock, AlertTriangle, Shield, Columns3,
 } from "lucide-react";
 
 export default function CommandCenter() {
@@ -141,12 +141,15 @@ export default function CommandCenter() {
                 const idx = resolveStageIndex(p.state);
                 const isBlocked = p.state === "blocked";
                 return (
-                  <Link key={p.id} to={`/projects/${p.id}`} className="block">
+                  <Link key={p.id} to={`/projects/${p.id}#delivery-board`} className="block">
                     <div className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-surface-glass transition-all duration-180 group">
                       <span className="text-[14px] font-semibold text-foreground w-[180px] truncate shrink-0 group-hover:text-primary transition-colors">
                         {p.name}
                       </span>
                       <MiniPipeline currentStageIndex={idx} blocked={isBlocked} className="flex-1" />
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground/30 group-hover:text-foreground/60 transition-colors font-semibold shrink-0">
+                        <Columns3 className="h-3 w-3" /> Board
+                      </span>
                     </div>
                   </Link>
                 );
