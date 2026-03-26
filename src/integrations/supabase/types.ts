@@ -278,6 +278,56 @@ export type Database = {
           },
         ]
       }
+      ai_task_drafts: {
+        Row: {
+          allowed_area: string
+          backlog_card_id: string
+          complexity_score: number
+          created_at: string
+          definition_of_done: string
+          forbidden_area: string
+          id: string
+          layer_type: string
+          owner_role: string
+          status: string
+          title: string
+        }
+        Insert: {
+          allowed_area?: string
+          backlog_card_id: string
+          complexity_score?: number
+          created_at?: string
+          definition_of_done?: string
+          forbidden_area?: string
+          id?: string
+          layer_type?: string
+          owner_role?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          allowed_area?: string
+          backlog_card_id?: string
+          complexity_score?: number
+          created_at?: string
+          definition_of_done?: string
+          forbidden_area?: string
+          id?: string
+          layer_type?: string
+          owner_role?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_task_drafts_backlog_card_id_fkey"
+            columns: ["backlog_card_id"]
+            isOneToOne: false
+            referencedRelation: "cto_backlog_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           approval_type: Database["public"]["Enums"]["approval_type"]
@@ -630,6 +680,123 @@ export type Database = {
           },
         ]
       }
+      blueprint_dependency_edges: {
+        Row: {
+          blueprint_contract_id: string
+          created_at: string
+          from_module: string
+          id: string
+          reason: string
+          to_module: string
+        }
+        Insert: {
+          blueprint_contract_id: string
+          created_at?: string
+          from_module: string
+          id?: string
+          reason?: string
+          to_module: string
+        }
+        Update: {
+          blueprint_contract_id?: string
+          created_at?: string
+          from_module?: string
+          id?: string
+          reason?: string
+          to_module?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blueprint_dependency_edges_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blueprint_modules: {
+        Row: {
+          blueprint_contract_id: string
+          complexity_estimate: string
+          core_features_json: Json
+          created_at: string
+          dependencies_json: Json
+          id: string
+          mvp_optional: boolean
+          name: string
+          purpose: string
+          retained_in_mvp: boolean
+          risk_level: string
+        }
+        Insert: {
+          blueprint_contract_id: string
+          complexity_estimate?: string
+          core_features_json?: Json
+          created_at?: string
+          dependencies_json?: Json
+          id?: string
+          mvp_optional?: boolean
+          name: string
+          purpose?: string
+          retained_in_mvp?: boolean
+          risk_level?: string
+        }
+        Update: {
+          blueprint_contract_id?: string
+          complexity_estimate?: string
+          core_features_json?: Json
+          created_at?: string
+          dependencies_json?: Json
+          id?: string
+          mvp_optional?: boolean
+          name?: string
+          purpose?: string
+          retained_in_mvp?: boolean
+          risk_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blueprint_modules_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blueprint_optimization_notes: {
+        Row: {
+          blueprint_contract_id: string
+          content: string
+          created_at: string
+          id: string
+          note_type: string
+        }
+        Insert: {
+          blueprint_contract_id: string
+          content?: string
+          created_at?: string
+          id?: string
+          note_type?: string
+        }
+        Update: {
+          blueprint_contract_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          note_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blueprint_optimization_notes_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bottleneck_predictions: {
         Row: {
           confidence_score: number
@@ -848,6 +1015,53 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clarification_snapshots: {
+        Row: {
+          completed: boolean
+          constraints_json: Json
+          created_at: string
+          id: string
+          intake_request_id: string
+          integrations_json: Json
+          priority_axis: string
+          project_type: string
+          scope_optimization_preference: string
+          timeline_notes: string
+        }
+        Insert: {
+          completed?: boolean
+          constraints_json?: Json
+          created_at?: string
+          id?: string
+          intake_request_id: string
+          integrations_json?: Json
+          priority_axis?: string
+          project_type?: string
+          scope_optimization_preference?: string
+          timeline_notes?: string
+        }
+        Update: {
+          completed?: boolean
+          constraints_json?: Json
+          created_at?: string
+          id?: string
+          intake_request_id?: string
+          integrations_json?: Json
+          priority_axis?: string
+          project_type?: string
+          scope_optimization_preference?: string
+          timeline_notes?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clarification_snapshots_intake_request_id_fkey"
+            columns: ["intake_request_id"]
+            isOneToOne: false
+            referencedRelation: "intake_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -1118,6 +1332,59 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cto_backlog_cards: {
+        Row: {
+          blueprint_contract_id: string
+          constraints_json: Json
+          created_at: string
+          definition_of_done: string
+          feature_slice: string
+          forbidden_shortcuts_json: Json
+          id: string
+          module_name: string
+          performance_constraints_json: Json
+          status: string
+          technical_spec: string
+          test_requirements_json: Json
+        }
+        Insert: {
+          blueprint_contract_id: string
+          constraints_json?: Json
+          created_at?: string
+          definition_of_done?: string
+          feature_slice?: string
+          forbidden_shortcuts_json?: Json
+          id?: string
+          module_name: string
+          performance_constraints_json?: Json
+          status?: string
+          technical_spec?: string
+          test_requirements_json?: Json
+        }
+        Update: {
+          blueprint_contract_id?: string
+          constraints_json?: Json
+          created_at?: string
+          definition_of_done?: string
+          feature_slice?: string
+          forbidden_shortcuts_json?: Json
+          id?: string
+          module_name?: string
+          performance_constraints_json?: Json
+          status?: string
+          technical_spec?: string
+          test_requirements_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cto_backlog_cards_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
             referencedColumns: ["id"]
           },
         ]
