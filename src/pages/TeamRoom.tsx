@@ -565,8 +565,8 @@ function SessionWorkspace({ emp, roles, deptName, onBack, briefContext }: {
                     ))}
                   </div>
                 )}
-
-            {/* ── Hero message — current speaker ── */}
+              </div>
+            )}
             {lastEntry && (
               <div className="px-6 py-5 border-b border-border/10 bg-card/20">
                 <div className="flex items-start gap-4">
