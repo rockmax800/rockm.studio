@@ -7,7 +7,7 @@ import { useSystemMode } from "@/hooks/use-system-mode";
 import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/use-diagnostics-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette, Blocks } from "lucide-react";
+import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette, Blocks, Cable } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { lazy, Suspense, useMemo } from "react";
 
@@ -17,6 +17,8 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import { VerificationStatusPanel } from "@/components/system/VerificationStatusPanel";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LOCAL_RULES } from "@/config/harness-rules";
+import { ENGINE_PRESETS } from "@/config/execution-engines";
+import { HARNESS_TARGETS } from "@/types/execution";
 import { LOCAL_COMMANDS } from "@/config/harness-commands";
 import { LOCAL_HOOKS } from "@/config/harness-hooks";
 
@@ -87,6 +89,9 @@ export default function SystemPage() {
             </TabsTrigger>
             <TabsTrigger value="harness" className="gap-1.5">
               <Blocks className="h-3.5 w-3.5" /> Harness
+            </TabsTrigger>
+            <TabsTrigger value="interop" className="gap-1.5">
+              <Cable className="h-3.5 w-3.5" /> Interop
             </TabsTrigger>
             <TabsTrigger value="docs" className="gap-1.5">
               <BookOpen className="h-3.5 w-3.5" /> Documentation
@@ -466,6 +471,104 @@ export default function SystemPage() {
 
             <p className="text-[10px] text-muted-foreground text-center">
               Read-only registry · Manifests are not wired into runtime automation yet
+            </p>
+          </TabsContent>
+
+          {/* INTEROP — Harness Interoperability */}
+          <TabsContent value="interop" className="space-y-4">
+            {/* Control plane statement */}
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-3">
+                  <Cable className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">Harness Interoperability</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      This app is the <span className="font-semibold text-foreground">canonical control plane</span>. External harnesses are optional execution environments that receive context packs and return artifacts. They never own project state.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Registered Engines */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Cpu className="h-4 w-4" /> Registered Execution Engines
+                  <Badge variant="outline" className="ml-auto text-[10px]">{ENGINE_PRESETS.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Preset</TableHead>
+                      <TableHead className="text-xs">Engine</TableHead>
+                      <TableHead className="text-xs">Provider</TableHead>
+                      <TableHead className="text-xs">Model</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ENGINE_PRESETS.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="text-xs font-medium">{p.label}</TableCell>
+                        <TableCell><Badge variant={p.policy.executionEngine === "native" ? "default" : "secondary"} className="text-[10px]">{p.policy.executionEngine}</Badge></TableCell>
+                        <TableCell className="text-xs font-mono">{p.policy.providerFamily}</TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">{p.policy.modelName}</TableCell>
+                        <TableCell>
+                          <Badge variant={p.implemented ? "default" : "outline"} className="text-[10px]">
+                            {p.implemented ? "Implemented" : p.policy.experimental ? "Experimental" : "Planned"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Compatibility Targets */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Blocks className="h-4 w-4" /> Compatibility Targets
+                  <Badge variant="outline" className="ml-auto text-[10px]">{HARNESS_TARGETS.length} planned</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {HARNESS_TARGETS.map((t) => (
+                  <div key={t.id} className="rounded-lg border border-border/30 p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-foreground">{t.label}</span>
+                      <Badge variant="outline" className="text-[9px] text-muted-foreground">{t.status}</Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{t.pattern}</p>
+                    <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono">{t.mappingSummary}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Invariants */}
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-5">
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground/50" /> Interop Invariants
+                </h3>
+                <ul className="space-y-1.5 text-xs text-muted-foreground">
+                  <li className="flex items-start gap-2"><span className="text-foreground font-mono text-[10px] mt-0.5">1.</span> This app remains the single source of truth for all entity state.</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground font-mono text-[10px] mt-0.5">2.</span> External harnesses receive context packs — they do not query the database.</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground font-mono text-[10px] mt-0.5">3.</span> All artifacts from external harnesses enter the standard review pipeline.</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground font-mono text-[10px] mt-0.5">4.</span> No harness may modify agent memory or guidance without founder approval.</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground font-mono text-[10px] mt-0.5">5.</span> Local manifest registry always takes precedence over harness-native equivalents.</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <p className="text-[10px] text-muted-foreground text-center">
+              Read-only · No live external harness connections on this branch
             </p>
           </TabsContent>
 

@@ -13,6 +13,8 @@ export interface EnginePreset {
   label: string;
   description: string;
   policy: ExecutionPolicy;
+  /** Whether this is currently implemented and usable */
+  implemented: boolean;
 }
 
 /** Safe production default — native engine, Anthropic Claude */
@@ -31,6 +33,7 @@ export const ENGINE_PRESETS: EnginePreset[] = [
     id: "native-claude",
     label: "Native — Claude Sonnet",
     description: "Default production preset. Single-agent, Anthropic Claude.",
+    implemented: true,
     policy: {
       executionEngine: "native",
       providerFamily: "anthropic",
@@ -45,6 +48,7 @@ export const ENGINE_PRESETS: EnginePreset[] = [
     id: "native-gpt",
     label: "Native — GPT-4o",
     description: "Native engine with OpenAI GPT-4o.",
+    implemented: true,
     policy: {
       executionEngine: "native",
       providerFamily: "openai",
@@ -59,6 +63,7 @@ export const ENGINE_PRESETS: EnginePreset[] = [
     id: "ruflo-claude",
     label: "Ruflo — Claude",
     description: "Experimental. External Ruflo engine with Anthropic Claude.",
+    implemented: false,
     policy: {
       executionEngine: "ruflo",
       providerFamily: "anthropic",
@@ -73,6 +78,7 @@ export const ENGINE_PRESETS: EnginePreset[] = [
     id: "ruflo-gpt",
     label: "Ruflo — GPT-4o",
     description: "Experimental. External Ruflo engine with OpenAI GPT-4o.",
+    implemented: false,
     policy: {
       executionEngine: "ruflo",
       providerFamily: "openai",
