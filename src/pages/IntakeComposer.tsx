@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -589,15 +589,12 @@ export default function IntakeComposerV2() {
                   })()}
 
                   {/* CTO Backlog Draft — after freeze */}
-                  {phase !== "drafting" && (() => {
-                    generateBacklogFromBrief();
-                    return ctoBacklogCards.length > 0 ? (
-                      <CtoBacklogDraftPanel
-                        cards={ctoBacklogCards}
-                        onCardsChange={setCtoBacklogCards}
-                      />
-                    ) : null;
-                  })()}
+                  {phase !== "drafting" && ctoBacklogCards.length > 0 && (
+                    <CtoBacklogDraftPanel
+                      cards={ctoBacklogCards}
+                      onCardsChange={setCtoBacklogCards}
+                    />
+                  )}
 
                   {/* Frozen success state */}
                   {phase !== "drafting" && (
