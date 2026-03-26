@@ -2142,6 +2142,110 @@ export type Database = {
         }
         Relationships: []
       }
+      market_benchmark_role_lines: {
+        Row: {
+          allocation_pct: number
+          country_code: string
+          created_at: string
+          effort_months: number
+          human_equivalent_cost_usd: number
+          id: string
+          monthly_salary_usd: number
+          overhead_multiplier: number
+          role_code: string
+          role_label: string
+          snapshot_id: string
+          velocity_index: number
+        }
+        Insert: {
+          allocation_pct?: number
+          country_code: string
+          created_at?: string
+          effort_months?: number
+          human_equivalent_cost_usd?: number
+          id?: string
+          monthly_salary_usd?: number
+          overhead_multiplier?: number
+          role_code: string
+          role_label: string
+          snapshot_id: string
+          velocity_index?: number
+        }
+        Update: {
+          allocation_pct?: number
+          country_code?: string
+          created_at?: string
+          effort_months?: number
+          human_equivalent_cost_usd?: number
+          id?: string
+          monthly_salary_usd?: number
+          overhead_multiplier?: number
+          role_code?: string
+          role_label?: string
+          snapshot_id?: string
+          velocity_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_benchmark_role_lines_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "market_benchmark_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_benchmark_snapshots: {
+        Row: {
+          advantage_ratio: number | null
+          ai_efficiency_spread: number | null
+          ai_internal_cost_usd: number
+          assumptions_version: string
+          country_code: string
+          created_at: string
+          gross_ai_margin_usd: number
+          human_equivalent_cost_usd: number
+          id: string
+          payload_json: Json
+          source_id: string
+          source_type: string
+          studio_offer_price_usd: number
+          value_capture: number | null
+        }
+        Insert: {
+          advantage_ratio?: number | null
+          ai_efficiency_spread?: number | null
+          ai_internal_cost_usd?: number
+          assumptions_version: string
+          country_code: string
+          created_at?: string
+          gross_ai_margin_usd?: number
+          human_equivalent_cost_usd?: number
+          id?: string
+          payload_json?: Json
+          source_id: string
+          source_type: string
+          studio_offer_price_usd?: number
+          value_capture?: number | null
+        }
+        Update: {
+          advantage_ratio?: number | null
+          ai_efficiency_spread?: number | null
+          ai_internal_cost_usd?: number
+          assumptions_version?: string
+          country_code?: string
+          created_at?: string
+          gross_ai_margin_usd?: number
+          human_equivalent_cost_usd?: number
+          id?: string
+          payload_json?: Json
+          source_id?: string
+          source_type?: string
+          studio_offer_price_usd?: number
+          value_capture?: number | null
+        }
+        Relationships: []
+      }
       model_benchmarks: {
         Row: {
           avg_cost: number
