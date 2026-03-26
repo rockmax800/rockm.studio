@@ -421,6 +421,35 @@ export default function EmployeeProfile() {
             </div>
           </Section>
 
+          {/* ═══ SKILL PACKS & GUIDANCE ═══ */}
+          <Section icon={<Package className="h-4 w-4" />} title="Skill Packs & Guidance"
+            subtitle="Reusable capability bundles and active behavior configuration">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12 lg:col-span-7 rounded-xl border border-border/40 bg-card p-4">
+                <SkillPackPanel
+                  employeeName={employee.name}
+                  attachedIds={attachedSkillPacks}
+                  onToggle={(id) => setAttachedSkillPacks((prev) =>
+                    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+                  )}
+                />
+              </div>
+              <div className="col-span-12 lg:col-span-5 rounded-xl border border-border/40 bg-card p-4">
+                <GuidancePackPanel
+                  employeeName={employee.name}
+                  dimensions={guidanceDimensions}
+                  onDimensionChange={(key, value) =>
+                    setGuidanceDimensions((prev) =>
+                      prev.map((d) => d.key === key ? { ...d, value } : d)
+                    )
+                  }
+                  attachedSkillPackIds={attachedSkillPacks}
+                  hasPublishedPrompt={false}
+                />
+              </div>
+            </div>
+          </Section>
+
           {/* ═══ TRAINING LAB ═══ */}
           <Section icon={<GraduationCap className="h-4 w-4" />} title="Training Lab"
             subtitle="Conversation, notes, and structured prompt drafting">
@@ -437,7 +466,13 @@ export default function EmployeeProfile() {
                 </Button>
               </div>
             ) : (
-              <TrainingLab employeeId={id} employeeName={employee.name} roleName={roleName} />
+              <TrainingLab
+                employeeId={id}
+                employeeName={employee.name}
+                roleName={roleName}
+                attachedSkillPackIds={attachedSkillPacks}
+                guidanceDimensions={guidanceDimensions}
+              />
             )}
           </Section>
 
