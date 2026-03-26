@@ -26,7 +26,7 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
-  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList, Cpu,
+  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList, Cpu, Target,
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
