@@ -715,14 +715,38 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             />
 
             {/* Gate notice when clarification incomplete */}
-            {!clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision") && (
+            {!clarificationLocked && userMessageCount >= LEAD_QUESTIONS.length && (
               <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
                 <div className="flex items-center gap-2 mb-1">
                   <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
                   <span className="text-[11px] font-bold text-status-amber">Planning Outputs Blocked</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground">
-                  Complete the Clarification Loop above to unlock consultation, estimates, and blueprint creation.
+                  Complete the Clarification Loop above to unlock System Decomposition and downstream planning.
+                </p>
+              </div>
+            )}
+
+            {/* System Decomposition panel — after clarification */}
+            {showDecomposition && (
+              <SystemDecompositionPanel
+                modules={decompositionModules}
+                dependencyGraph={decompositionGraph}
+                onModulesChange={handleDecompositionChange}
+                locked={decompositionLocked}
+                onConfirm={handleDecompositionConfirm}
+              />
+            )}
+
+            {/* Gate notice when decomposition incomplete */}
+            {clarificationLocked && !decompositionLocked && (phase === "decomposition") && (
+              <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Estimate Blocked</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Confirm the System Decomposition above to unlock team consultation and estimates.
                 </p>
               </div>
             )}
