@@ -896,15 +896,15 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </RailCard>
             )}
 
-            {/* Human Equivalent Team */}
-            {showEstimate && scope && (
+            {/* Human Equivalent Team — uses post-reduction scope */}
+            {showEstimate && effectiveScope && (
               <HumanTeamSuggestionPanel
                 signals={{
-                  scopeKeywords: [...scope.modules, ...scope.constraints].map(s => s.toLowerCase()),
-                  complexity: scope.complexity,
-                  hasFrontend: scope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
-                  hasBackend: scope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
-                  moduleCount: scope.modules.length,
+                  scopeKeywords: [...effectiveScope.modules, ...effectiveScope.constraints].map(s => s.toLowerCase()),
+                  complexity: effectiveScope.complexity,
+                  hasFrontend: effectiveScope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: effectiveScope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: effectiveScope.modules.length,
                 }}
               />
             )}
