@@ -7,12 +7,13 @@ import {
   Send, Plus, RotateCcw, Save, Clock, FileText,
   MessageSquare, BookOpen, Shield, Brain, Zap, AlertTriangle,
   Ban, Sparkles, ChevronDown, ChevronRight, Download, Copy, Check,
-  BadgeCheck, History, Loader2,
+  BadgeCheck, History, Loader2, Package, Sliders,
 } from "lucide-react";
 import {
   useTrainingLab, EMPTY_SECTIONS,
   type PromptSections,
 } from "@/hooks/use-training-lab";
+import { DEFAULT_SKILL_PACKS, SKILL_CATEGORY_CONFIG, type GuidanceDimension } from "@/types/skill-pack";
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
@@ -45,9 +46,11 @@ interface TrainingLabProps {
   employeeId: string;
   employeeName: string;
   roleName: string;
+  attachedSkillPackIds?: string[];
+  guidanceDimensions?: GuidanceDimension[];
 }
 
-export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabProps) {
+export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillPackIds = [], guidanceDimensions = [] }: TrainingLabProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const {
     messages, materials, drafts, events, sections, loading,
@@ -163,6 +166,39 @@ export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabP
           Your notes and corrections shape this agent's guidance over time. Only published prompts become active in delivery sessions.
         </p>
       </div>
+
+      {/* Attached skill packs + guidance summary */}
+      {(attachedSkillPackIds.length > 0 || guidanceDimensions.length > 0) && (
+        <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg bg-card border border-border/30 flex-wrap">
+          {attachedSkillPackIds.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Package className="h-3 w-3 text-muted-foreground/40" />
+              <span className="text-[10px] text-muted-foreground/50">Attached:</span>
+              {attachedSkillPackIds.slice(0, 4).map((id) => {
+                const pack = DEFAULT_SKILL_PACKS.find((sp) => sp.id === id);
+                if (!pack) return null;
+                const cat = SKILL_CATEGORY_CONFIG[pack.category];
+                return (
+                  <span key={id} className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded", cat.color)}>
+                    {pack.name}
+                  </span>
+                );
+              })}
+              {attachedSkillPackIds.length > 4 && (
+                <span className="text-[9px] text-muted-foreground/40">+{attachedSkillPackIds.length - 4}</span>
+              )}
+            </div>
+          )}
+          {guidanceDimensions.length > 0 && (
+            <div className="flex items-center gap-1.5 ml-auto">
+              <Sliders className="h-3 w-3 text-muted-foreground/40" />
+              <span className="text-[10px] text-muted-foreground/50">
+                {guidanceDimensions.filter((d) => d.value !== 3).length} dimension(s) calibrated
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Status bar */}
       <div className="flex items-center justify-between px-1">
