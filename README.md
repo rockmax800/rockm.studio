@@ -213,6 +213,10 @@ docs/
 ├── company/          Organizational model
 ├── autonomy/         Evolution & experimental features (gated)
 ├── business/         Commercial model
+│   ├── market-benchmarking-engine.md  Founder-only: AI cost vs human cost vs offer price
+│   ├── pricing-strategy.md            Client-facing pricing model
+│   ├── token-economy-and-budgeting.md Internal cost tracking and budgets
+│   └── ...
 ├── product/          Product direction
 └── archive/          Superseded documents
 ```

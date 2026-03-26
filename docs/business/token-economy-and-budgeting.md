@@ -73,3 +73,9 @@ Recommended thresholds:
 - 80% of project budget: warning
 - 95% of project budget: pause autonomy
 - 100% of project budget: halt all non-essential runs
+
+---
+
+## 7 — Relationship to Market Benchmarking
+
+Token economy tracks **actual AI costs** (AIC). The Market Benchmarking Engine (`market-benchmarking-engine.md`) consumes AIC as a **read-only input** to compare against human-equivalent costs and founder offer price. Token budgeting does not depend on benchmarking, and benchmarking never modifies budget limits or cost ceilings. They are independent modules with a one-directional data flow: Token Economy → Benchmarking (read-only).

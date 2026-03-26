@@ -46,6 +46,7 @@ The founder operates as:
 - Budget controller (token and cost limits)
 - Release authority (deployment promotion)
 - Learning arbiter (approves/rejects improvement proposals)
+- Strategic analyst (market benchmarking — comparing AI cost vs human-equivalent cost vs offer price; see `market-benchmarking-engine.md`)
 
 The founder does NOT:
 - Write code

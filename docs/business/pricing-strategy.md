@@ -39,8 +39,15 @@ See `token-economy-and-budgeting.md` for detailed cost analysis.
 
 ---
 
-## 4 — Guardrails
+## 4 — Relationship to Market Benchmarking
+
+Pricing strategy defines what the **client sees**. The Market Benchmarking Engine (`market-benchmarking-engine.md`) is a **founder-only** internal tool that compares AI internal cost vs human-equivalent cost vs studio offer price. Benchmarking data informs the founder's pricing decisions but is never exposed to clients or used to auto-adjust prices.
+
+---
+
+## 5 — Guardrails
 
 - No project exceeds its approved budget without founder re-approval.
 - Estimates include worst-case projections.
 - Client sees estimated range, not internal token costs.
+- Benchmark metrics (HEC, AIC, Advantage Ratio) are never included in client-facing estimates or portal.
