@@ -9,13 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TrainingLab } from "@/components/employees/TrainingLab";
+import { SkillPackPanel } from "@/components/employees/SkillPackPanel";
+import { GuidancePackPanel } from "@/components/employees/GuidancePackPanel";
+import { DEFAULT_GUIDANCE_DIMENSIONS, type GuidanceDimension } from "@/types/skill-pack";
 
 import {
   TrendingUp, Shield, Brain, GraduationCap, Wrench, AlertTriangle,
   CheckCircle2, XCircle, Clock, FileCode, Lock, Unlock, Plus, Pencil,
   ChevronDown, ChevronRight, Zap, Rocket, RotateCcw, FlaskConical,
   ArrowUpRight, GitPullRequest, Server, FolderX, FolderCheck as FolderCheckIcon,
-  BookOpen, Lightbulb, Activity, Eye, Layers, ArrowLeft,
+  BookOpen, Lightbulb, Activity, Eye, Layers, ArrowLeft, Package, Sliders,
 } from "lucide-react";
 
 export default function EmployeeProfile() {
@@ -25,6 +28,10 @@ export default function EmployeeProfile() {
   const [pendingUpdates, setPendingUpdates] = useState<string[]>([]);
   const [newRuleText, setNewRuleText] = useState("");
   const [newRuleCategory, setNewRuleCategory] = useState("domain_principles");
+  const [attachedSkillPacks, setAttachedSkillPacks] = useState<string[]>([]);
+  const [guidanceDimensions, setGuidanceDimensions] = useState<GuidanceDimension[]>(
+    () => DEFAULT_GUIDANCE_DIMENSIONS.map((d) => ({ ...d }))
+  );
   const toggleMemory = (key: string) => setExpandedMemory((prev) => ({ ...prev, [key]: !prev[key] }));
 
   /* ── Data Queries ──────────────────────────────────────── */
