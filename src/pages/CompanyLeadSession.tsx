@@ -798,6 +798,31 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </div>
             )}
 
+            {/* MVP Reduction panel — after decomposition */}
+            {showMvpReduction && (
+              <MvpReductionPanel
+                modules={decompositionModules}
+                entries={mvpReductionEntries}
+                onEntriesChange={setMvpReductionEntries}
+                locked={mvpReductionLocked}
+                onConfirm={handleMvpReductionConfirm}
+                isMandatory={isMvpProject}
+              />
+            )}
+
+            {/* Gate notice when mvp reduction incomplete */}
+            {decompositionLocked && !mvpReductionLocked && phase === "mvp_reduction" && (
+              <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Estimate Blocked</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Confirm MVP scope to unlock team consultation and estimates.
+                </p>
+              </div>
+            )}
+
             {/* Scope */}
             {showExtraction ? (
               <RailCard title="Scope" icon={Target}>
