@@ -62,6 +62,7 @@ function MetricChip({ label, value, alert }: { label: string; value: string | nu
 
 export default function ProjectDetail() {
   const { id } = useParams();
+  const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks = [] } = useTasks(id);
   const { data: approvals = [] } = useApprovals(id);
