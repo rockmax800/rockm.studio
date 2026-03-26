@@ -24,6 +24,7 @@ import { useIntakeBriefDraft } from "@/hooks/use-intake-brief-draft";
 import type { BriefSectionData } from "@/lib/intake-brief-transfer";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import type { BriefSignals } from "@/lib/business/market-benchmarking";
+import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -553,7 +554,12 @@ export default function IntakeComposerV2() {
                       hasBackend: allText.includes("backend") || allText.includes("api") || allText.includes("database"),
                       hasDesignSystem: allText.includes("design system") || allText.includes("design-system"),
                     };
-                    return <HumanTeamSuggestionPanel signals={briefSignals} />;
+                    return (
+                      <>
+                        <HumanTeamSuggestionPanel signals={briefSignals} />
+                        <MarketBenchmarkPanel signals={briefSignals} />
+                      </>
+                    );
                   })()}
 
                   {/* Frozen success state */}
