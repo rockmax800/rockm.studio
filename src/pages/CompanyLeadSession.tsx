@@ -1142,6 +1142,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </RailCard>
             )}
 
+            {/* TaskSpec Drafts — compiled from engineering slices */}
+            {taskSpecDrafts.length > 0 && showEstimate && (
+              <RailCard title="TaskSpec Drafts" icon={FileText}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Pre-delivery engineering planning — canonical TaskSpec format. No live tasks created.
+                </p>
+                <TaskSpecDraftsPanel drafts={taskSpecDrafts} />
+              </RailCard>
+            )}
+
             {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
