@@ -203,18 +203,19 @@ export default function ProjectDetail() {
   // Auto-persist sanity report when it changes
   const lastSanityRef = useRef<string>("");
   useEffect(() => {
-    if (!id || taskSpecDrafts.length === 0) return;
-    const key = JSON.stringify({ s: sanityReport.overallStatus, t: sanityReport.totalDrafts });
+    if (!id || sanityReport.results.length === 0) return;
+    const totalDrafts = sanityReport.results.length;
+    const key = JSON.stringify({ s: sanityReport.overallStatus, t: totalDrafts });
     if (key === lastSanityRef.current) return;
     lastSanityRef.current = key;
     saveSanityReport.mutate({
       blueprintContractId,
       overallStatus: sanityReport.overallStatus,
-      totalDrafts: sanityReport.totalDrafts,
+      totalDrafts,
       validCount: sanityReport.validCount,
       warningCount: sanityReport.warningCount,
       blockedCount: sanityReport.blockedCount,
-      issues: sanityReport.issues,
+      issues: sanityReport.results.filter(r => r.status !== "valid").map(r => ({ draftId: r.draftId, status: r.status, reasons: r.reasons })),
       materializationAllowed: sanityReport.overallStatus !== "blocked",
     });
   }, [sanityReport, id, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
