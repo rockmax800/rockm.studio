@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, ChevronDown, ChevronRight, TrendingUp, AlertTriangle, DollarSign, Save, History, Clock } from "lucide-react";
+import { ShieldAlert, ChevronDown, ChevronRight, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Save, History, Clock, Lightbulb, Zap, Info } from "lucide-react";
 import {
   suggestRoleMixFromBlueprint,
   buildRoleBenchmarkLines,
@@ -348,8 +348,8 @@ function SnapshotRow({ snapshot }: { snapshot: BenchmarkSnapshot }) {
   );
 }
 
-function MetricCard({ label, value, sub, positive, negative }: {
-  label: string; value: string; sub: string; positive?: boolean; negative?: boolean;
+function MetricCard({ label, value, sub, hint, positive, negative }: {
+  label: string; value: string; sub: string; hint?: string; positive?: boolean; negative?: boolean;
 }) {
   return (
     <div className={`rounded-lg border px-3 py-2 ${
@@ -362,6 +362,94 @@ function MetricCard({ label, value, sub, positive, negative }: {
       }`}>{value}</span>
       <span className="text-[9px] font-semibold text-muted-foreground block">{label}</span>
       <span className="text-[8px] text-muted-foreground/30 font-mono">{sub}</span>
+      {hint && (
+        <p className="text-[8px] text-muted-foreground/50 mt-1 leading-relaxed border-t border-border/10 pt-1">{hint}</p>
+      )}
+    </div>
+  );
+}
+
+function FounderGuidance({ result }: { result: import("@/types/market-benchmark").MarketBenchmarkResult }) {
+  const signals: { icon: React.ElementType; color: string; bg: string; border: string; title: string; body: string }[] = [];
+
+  // Underpricing signal
+  if (result.valueCapture !== null && result.valueCapture < 0.3 && result.grossAiMarginUsd > 0) {
+    signals.push({
+      icon: TrendingDown,
+      color: "text-status-amber",
+      bg: "bg-status-amber/[0.04]",
+      border: "border-status-amber/15",
+      title: "Potential underpricing",
+      body: `You're capturing only ${(result.valueCapture * 100).toFixed(0)}% of the human-equivalent market value. A human team would charge significantly more for this scope. Consider whether a higher offer price is justified.`,
+    });
+  }
+
+  // Overpricing signal
+  if (result.valueCapture !== null && result.valueCapture > 0.9 && result.grossAiMarginUsd > 0) {
+    signals.push({
+      icon: TrendingUp,
+      color: "text-status-amber",
+      bg: "bg-status-amber/[0.04]",
+      border: "border-status-amber/15",
+      title: "Potential overpricing",
+      body: `Your offer price is at ${(result.valueCapture * 100).toFixed(0)}% of what a human team would charge. Clients comparing options may find human teams a competitive alternative at this price point.`,
+    });
+  }
+
+  // Thin margin
+  if (result.grossAiMarginUsd > 0 && result.grossAiMarginUsd < 200) {
+    signals.push({
+      icon: AlertTriangle,
+      color: "text-status-amber",
+      bg: "bg-status-amber/[0.04]",
+      border: "border-status-amber/15",
+      title: "Thin margin warning",
+      body: `Gross margin of ${fmt(result.grossAiMarginUsd)} barely covers operational overhead, retries, and risk. Any scope creep or model cost variance could eliminate profit.`,
+    });
+  }
+
+  // Negative margin
+  if (result.grossAiMarginUsd < 0) {
+    signals.push({
+      icon: AlertTriangle,
+      color: "text-destructive",
+      bg: "bg-destructive/[0.04]",
+      border: "border-destructive/15",
+      title: "Negative margin — loss-making project",
+      body: `The studio offer price is below AI internal cost. This project would lose ${fmt(Math.abs(result.grossAiMarginUsd))}. Raise the offer price or reduce scope.`,
+    });
+  }
+
+  // High efficiency advantage
+  if (result.aiEfficiencySpread !== null && result.aiEfficiencySpread > 0.7 && result.grossAiMarginUsd > 0) {
+    signals.push({
+      icon: Zap,
+      color: "text-status-green",
+      bg: "bg-status-green/[0.04]",
+      border: "border-status-green/15",
+      title: "High efficiency advantage",
+      body: `AI delivery is ${(result.aiEfficiencySpread * 100).toFixed(0)}% more cost-efficient than a human team. This gives significant pricing flexibility — you can compete aggressively while maintaining healthy margins.`,
+    });
+  }
+
+  if (signals.length === 0) return null;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <Lightbulb className="h-3 w-3 text-muted-foreground/30" />
+        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">Founder guidance</span>
+        <span className="text-[8px] text-muted-foreground/20 ml-auto">Advisory only — does not affect delivery</span>
+      </div>
+      {signals.map((s, i) => (
+        <div key={i} className={`flex items-start gap-2 rounded-lg ${s.bg} border ${s.border} px-3 py-2`}>
+          <s.icon className={`h-3 w-3 ${s.color} mt-0.5 shrink-0`} />
+          <div>
+            <p className={`text-[10px] font-bold ${s.color}`}>{s.title}</p>
+            <p className="text-[9px] text-muted-foreground/60 leading-relaxed mt-0.5">{s.body}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
