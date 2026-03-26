@@ -31,7 +31,6 @@ import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { ClarificationRequest } from "@/types/clarification-request";
-import { usePersistedClarifications } from "@/hooks/use-ai-cto-planning";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
