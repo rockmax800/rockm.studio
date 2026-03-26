@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useApprovals, useProjects } from "@/hooks/use-data";
+import { useApprovals, useProjects, useTasks } from "@/hooks/use-data";
 import { useFounderInbox, useRiskAnalytics, useBottlenecks } from "@/hooks/use-founder-data";
 import { useSystemMode } from "@/hooks/use-system-mode";
 import { FounderStatusStrip } from "@/components/founder/FounderStatusStrip";
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight, History, GraduationCap } from "lucide-react";
+import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
+import { evaluateConformance } from "@/lib/cto-conformance";
 
 export default function FounderPage() {
   const navigate = useNavigate();

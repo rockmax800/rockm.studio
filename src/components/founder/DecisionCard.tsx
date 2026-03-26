@@ -38,6 +38,7 @@ const CATEGORY_CONFIG: Record<string, { icon: typeof Stamp; label: string; color
   approval: { icon: Stamp, label: "Approval", color: "text-status-amber" },
   escalation: { icon: AlertTriangle, label: "Escalation", color: "text-status-red" },
   risk: { icon: ShieldAlert, label: "Risk", color: "text-status-red" },
+  conformance_violation: { icon: ShieldAlert, label: "Conformance", color: "text-destructive" },
 };
 
 const SEVERITY_STRIP: Record<string, string> = {
