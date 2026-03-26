@@ -439,7 +439,8 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   };
 
   const handleApprove = async () => {
-    toast.success("Blueprint approved. Proceeding to team session.");
+    // Draft approval — canonical Approval entity is created during blueprint persistence
+    toast.success("Blueprint draft approved. Proceeding to formal intake — Approval entity will be created on persist.");
     navigate("/presale/new");
   };
 
@@ -461,6 +462,9 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const showConsultation = mvpReductionLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
   const showEstimate = mvpReductionLocked && (phase === "estimate" || phase === "decision");
 
+  // ── Independence acknowledgment for dependency-less multi-module projects ──
+  const [independenceAcknowledged, setIndependenceAcknowledged] = useState(false);
+
   // ── Planning Gate — blocks estimate if prerequisites are missing ──
   const planningGate: PlanningGateResult = useMemo(() => validatePlanningGate({
     clarificationComplete: clarificationLocked,
@@ -468,7 +472,8 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
     dependencyEdges: decompositionGraph,
     mvpReductionComplete: mvpReductionLocked,
     isMvpProject: isMvpProject,
-  }), [clarificationLocked, decompositionModules, decompositionGraph, mvpReductionLocked, isMvpProject]);
+    independenceAcknowledged,
+  }), [clarificationLocked, decompositionModules, decompositionGraph, mvpReductionLocked, isMvpProject, independenceAcknowledged]);
   const estimateBlocked = showEstimate && !planningGate.passed;
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
