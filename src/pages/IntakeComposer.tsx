@@ -32,6 +32,7 @@ import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/front-office-planning";
 import { validatePlanningGate } from "@/lib/planning-gates";
 import { useCompanyLeadPlanning } from "@/hooks/use-company-lead-planning";
+import { estimateFromNames } from "@/lib/module-estimation";
 
 /* ── Types ───────────────────────────────────────────────── */
 
