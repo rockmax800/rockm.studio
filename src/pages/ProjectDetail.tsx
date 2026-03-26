@@ -28,6 +28,7 @@ import {
   AlertTriangle, CheckCircle2, FileText, ChevronRight,
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
+import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
@@ -162,6 +163,19 @@ export default function ProjectDetail() {
   const doneCount = tasks.filter((t) => t.state === "done").length;
   const progress = tasks.length > 0 ? Math.round((doneCount / tasks.length) * 100) : 0;
 
+  // Evidence gap detection — project-level research readiness
+  const hasOpenApprovals = pendingApprovals.length > 0;
+  const hasFailures = failedRuns.length > 0;
+  const isEarlyProject = progress < 20 && tasks.length > 0;
+  const hasEvidenceGaps = hasOpenApprovals || hasFailures || (isEarlyProject && blockedCount > 0);
+  const projectResearchPhase = hasEvidenceGaps ? "evidence-gathering" as const
+    : isEarlyProject ? "researching" as const
+    : "ready-to-execute" as const;
+  const evidenceDetail = hasEvidenceGaps
+    ? `${pendingApprovals.length > 0 ? `${pendingApprovals.length} pending approval(s)` : ""}${hasFailures ? `${pendingApprovals.length > 0 ? ", " : ""}${failedRuns.length} failed run(s) need investigation` : ""}${isEarlyProject && blockedCount > 0 ? ` · ${blockedCount} blocked task(s)` : ""}`
+    : isEarlyProject ? "Project is early — verify assumptions before scaling execution."
+    : undefined;
+
   const riskLevel: "low" | "medium" | "high" =
     blockedCount > 0 || escalatedCount > 0 || failedRuns.length >= 3 ? "high"
       : pendingApprovals.length > 0 || failedRuns.length > 0 ? "medium" : "low";
@@ -226,6 +240,11 @@ export default function ProjectDetail() {
           <div className="rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden px-6 py-4">
             <PipelineBar currentStageIndex={stageIdx} blockedStageIndex={blockedStageIdx} projectId={id} />
           </div>
+
+          {/* ══ EVIDENCE READINESS ══ */}
+          {projectResearchPhase !== "ready-to-execute" && (
+            <ResearchModeBadge phase={projectResearchPhase} detail={evidenceDetail} />
+          )}
 
           {/* ══ TOP HEADER ══ */}
           <div className="rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden">

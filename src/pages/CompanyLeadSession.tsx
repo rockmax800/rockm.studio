@@ -15,6 +15,7 @@ import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
+import { ResearchModeBadge, type ResearchPhase } from "@/components/ui/research-mode-badge";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -318,6 +319,20 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
 
+  // Research readiness — derived from phase and user input
+  const researchPhase: ResearchPhase =
+    phase === "discovery" && userMessageCount <= 2 ? "researching"
+    : phase === "discovery" ? "evidence-gathering"
+    : phase === "consultation" ? "evidence-gathering"
+    : phase === "estimate" || phase === "decision" ? "ready-to-execute"
+    : "unknown";
+
+  const researchDetail =
+    researchPhase === "researching" ? `Discovery in progress — ${LEAD_QUESTIONS.length - questionIndex} question(s) remaining.`
+    : researchPhase === "evidence-gathering" ? "Team is reviewing feasibility — scope not yet frozen."
+    : researchPhase === "ready-to-execute" ? "Scope defined. Estimate ready — founder can approve or revise."
+    : undefined;
+
   return (
     <div className={cn(
       "lead-session-root ls-grid-bg flex flex-col",
@@ -373,6 +388,9 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             </div>
           ))}
         </div>
+
+        {/* Research readiness indicator */}
+        <ResearchModeBadge phase={researchPhase} detail={researchDetail} compact />
 
         {/* Right side: profile + training + execution badge + expand */}
         <div className="flex items-center gap-2">

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { GuidancePreview } from "@/components/team-room/GuidancePreview";
 import { deriveGuidancePack } from "@/types/project-guidance";
+import { ResearchModeBadge, type ResearchPhase } from "@/components/ui/research-mode-badge";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
@@ -502,16 +503,18 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
           {/* ── LEFT 8 cols — Working Session ── */}
           <div className="col-span-8 border-r border-border/15 flex flex-col min-h-0 bg-background">
 
-            {/* Founder helper note */}
+            {/* Founder helper note + research indicator */}
             <div className="px-6 py-2 border-b border-border/10 bg-secondary/20 shrink-0 flex items-center justify-between">
-              <p className="text-[11px] text-muted-foreground/50 flex items-center gap-2">
-                <Eye className="h-3 w-3 shrink-0" />
-                Observe discussion, clarify direction, freeze when ready.
-                <span className="text-muted-foreground/25">·</span>
-                <span className="text-[10px] text-muted-foreground/30 flex items-center gap-1">
-                  <GraduationCap className="h-2.5 w-2.5" /> This session can produce training guidance
-                </span>
-              </p>
+              <div className="flex items-center gap-3">
+                <p className="text-[11px] text-muted-foreground/50 flex items-center gap-2">
+                  <Eye className="h-3 w-3 shrink-0" />
+                  Observe discussion, clarify direction, freeze when ready.
+                </p>
+                <ResearchModeBadge
+                  phase={extraction.openQuestions.length > 0 ? "evidence-gathering" : "ready-to-execute"}
+                  compact
+                />
+              </div>
               <div className="flex items-center gap-1">
                 <Link to={`/employees/${emp.id}`}>
                   <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground/40 hover:text-foreground">
