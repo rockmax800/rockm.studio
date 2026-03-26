@@ -29,6 +29,9 @@ import {
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
+import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
+import type { CTOBacklogCardDraft } from "@/types/front-office-planning";
+import { useState } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
