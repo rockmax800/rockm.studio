@@ -52,8 +52,8 @@ export function suggestRoleMixFromBlueprint(
   const kw = new Set((signals.scopeKeywords ?? []).map((k) => k.toLowerCase()));
   const cx = signals.complexity ?? "medium";
   const baseEffort = EFFORT_BY_COMPLEXITY[cx] ?? 2;
-  const hasFE = signals.hasFrontend ?? kw.has("frontend") || kw.has("ui") || kw.has("design-system");
-  const hasBE = signals.hasBackend ?? kw.has("api") || kw.has("backend") || kw.has("database");
+  const hasFE = signals.hasFrontend ?? (kw.has("frontend") || kw.has("ui") || kw.has("design-system"));
+  const hasBE = signals.hasBackend ?? (kw.has("api") || kw.has("backend") || kw.has("database"));
   const hasDS = signals.hasDesignSystem ?? kw.has("design-system");
   const mods = signals.moduleCount ?? 0;
 
