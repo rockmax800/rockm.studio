@@ -13,6 +13,7 @@ import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
 import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPanel";
 import { VerificationRail } from "@/components/project-cockpit/VerificationRail";
 import { ProjectGuidancePack } from "@/components/project-cockpit/ProjectGuidancePack";
+import { PlanningPackageSummary } from "@/components/project-cockpit/PlanningPackageSummary";
 import { deriveGuidancePack } from "@/types/project-guidance";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
@@ -25,7 +26,7 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
-  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList, Cpu,
+  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList, Cpu, Target,
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
@@ -427,6 +428,18 @@ export default function ProjectDetail() {
                 hasDomain: domainBindings.length > 0,
                 riskLevel: riskLevel,
               })}
+            />
+          </div>
+
+          {/* ══ PLANNING PACKAGE SUMMARY — Upstream Quality Audit ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Target} title="Planning Package" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Upstream planning quality audit — clarification, decomposition, backlog, and task drafts.
+            </p>
+            <PlanningPackageSummary
+              blueprintContractId={(project as any).blueprint_contract_id ?? null}
+              intakeRequestId={(project as any).intake_request_id ?? null}
             />
           </div>
 
