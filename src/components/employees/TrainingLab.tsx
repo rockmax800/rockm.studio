@@ -14,6 +14,8 @@ import {
   type PromptSections,
 } from "@/hooks/use-training-lab";
 import { DEFAULT_SKILL_PACKS, SKILL_CATEGORY_CONFIG, type GuidanceDimension } from "@/types/skill-pack";
+import type { InstinctSetting } from "@/types/instinct-settings";
+import { synthesizeInstinctGuidance } from "@/types/instinct-settings";
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
@@ -48,9 +50,10 @@ interface TrainingLabProps {
   roleName: string;
   attachedSkillPackIds?: string[];
   guidanceDimensions?: GuidanceDimension[];
+  instinctSettings?: InstinctSetting[];
 }
 
-export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillPackIds = [], guidanceDimensions = [] }: TrainingLabProps) {
+export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillPackIds = [], guidanceDimensions = [], instinctSettings = [] }: TrainingLabProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const {
     messages, materials, drafts, events, sections, loading,
