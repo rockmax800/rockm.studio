@@ -37,6 +37,7 @@ import type { SystemModule, DependencyEdge } from "@/types/front-office-planning
 import { decomposeSystem } from "@/lib/system-decomposition";
 import type { MvpReductionEntry, MvpReductionResult } from "@/lib/mvp-reduction";
 import { generateInitialReduction, computeReductionResult, getMvpScopeModules } from "@/lib/mvp-reduction";
+import { validatePlanningGate, type PlanningGateResult } from "@/lib/planning-gates";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -461,6 +462,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const showMvpReduction = decompositionLocked;
   const showConsultation = mvpReductionLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
   const showEstimate = mvpReductionLocked && (phase === "estimate" || phase === "decision");
+
+  // ── Planning Gate — blocks estimate if prerequisites are missing ──
+  const planningGate: PlanningGateResult = useMemo(() => validatePlanningGate({
+    clarificationComplete: clarificationLocked,
+    modules: decompositionModules,
+    dependencyEdges: decompositionGraph,
+    mvpReductionComplete: mvpReductionLocked,
+    isMvpProject: isMvpProject,
+  }), [clarificationLocked, decompositionModules, decompositionGraph, mvpReductionLocked, isMvpProject]);
+  const estimateBlocked = showEstimate && !planningGate.passed;
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
@@ -931,9 +942,36 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               />
             )}
 
-            {/* Estimate */}
-            {showEstimate && (
+            {/* Planning Gate Blocker */}
+            {showEstimate && estimateBlocked && (
+              <RailCard title="Estimate Blocked" icon={AlertTriangle}>
+                <div className="space-y-2">
+                  <p className="text-[11px] text-destructive font-semibold">
+                    Estimation cannot proceed — planning prerequisites are incomplete:
+                  </p>
+                  {planningGate.failures.map((f) => (
+                    <div key={f.key} className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/[0.04] px-3 py-2">
+                      <XCircle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[11px] font-bold text-destructive">{f.label}</span>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{f.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-[10px] text-muted-foreground/50 italic pt-1">
+                    Complete all prerequisites above, then the estimate will generate automatically.
+                  </p>
+                </div>
+              </RailCard>
+            )}
+
+            {/* Estimate — only when planning gate passes */}
+            {showEstimate && !estimateBlocked && (
               <RailCard title="Resource Estimate" icon={Coins}>
+                <div className="flex items-center gap-1.5 mb-2 px-1">
+                  <ShieldCheck className="h-3 w-3 text-status-green" />
+                  <span className="text-[9px] font-semibold text-status-green">All planning prerequisites met</span>
+                </div>
                 {/* Summary stats */}
                 <div className="grid grid-cols-3 gap-2">
                   {[
