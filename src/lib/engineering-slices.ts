@@ -177,6 +177,36 @@ function inferInterfaces(mod: SystemModule, layer: EngineeringLayer, allModules:
   return interfaces;
 }
 
+// ── Data contract inference ──
+
+function inferDataContracts(mod: SystemModule, layer: EngineeringLayer): string[] {
+  const contracts: string[] = [];
+  if (layer === "dto_or_contract" || layer === "api_handler") {
+    contracts.push(`${mod.name}Input / ${mod.name}Output — request/response shapes`);
+  }
+  if (layer === "domain_model") {
+    contracts.push(`${mod.name}Entity — canonical domain shape`);
+  }
+  return contracts;
+}
+
+// ── Forbidden shortcuts inference ──
+
+function inferForbiddenShortcuts(mod: SystemModule, layer: EngineeringLayer): string[] {
+  const shortcuts: string[] = [];
+  shortcuts.push("No direct DB access from UI layer");
+  if (layer === "application_service") {
+    shortcuts.push("No raw SQL — use typed queries");
+  }
+  if (layer === "api_handler") {
+    shortcuts.push("No business logic in route handlers");
+  }
+  if (mod.riskLevel === "high" || mod.riskLevel === "critical") {
+    shortcuts.push("No skipping validation or error handling");
+  }
+  return shortcuts;
+}
+
 // ── Public API ──
 
 export interface GenerateSlicesInput {
@@ -337,8 +367,10 @@ export function mergeSlices(a: EngineeringSliceDraft, b: EngineeringSliceDraft):
     allowedRepoAreas: [...new Set([...a.allowedRepoAreas, ...b.allowedRepoAreas])],
     expectedTouchPoints: [...new Set([...a.expectedTouchPoints, ...b.expectedTouchPoints])],
     expectedInterfaces: [...new Set([...a.expectedInterfaces, ...b.expectedInterfaces])],
+    dataContracts: [...new Set([...a.dataContracts, ...b.dataContracts])],
     performanceConstraints: [...new Set([...a.performanceConstraints, ...b.performanceConstraints])],
     testScope: [...new Set([...a.testScope, ...b.testScope])],
+    forbiddenShortcuts: [...new Set([...a.forbiddenShortcuts, ...b.forbiddenShortcuts])],
     maxComplexityScore: Math.max(a.maxComplexityScore, b.maxComplexityScore),
     executionBatch: Math.min(a.executionBatch ?? 999, b.executionBatch ?? 999),
   };
