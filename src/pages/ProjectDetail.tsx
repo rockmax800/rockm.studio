@@ -97,6 +97,22 @@ export default function ProjectDetail() {
   const { data: artifacts = [] } = useArtifacts(id);
   const { data: events = [] } = useActivityEvents(id, 30);
 
+  const planningApproved = approvals.some(
+    (a) => a.approval_type === "blueprint_approval" && a.state === "decided" && (a as any).decision === "approved"
+  );
+  const materializationGate = useMemo(() => checkMaterializationGate({
+    projectExists: !!project,
+    projectState: project?.state ?? "draft",
+    planningApproved,
+    sanityReport,
+    draftsCount: taskSpecDrafts.length,
+  }), [project, planningApproved, sanityReport, taskSpecDrafts]);
+
+  const handleMaterialize = useCallback(
+    () => materializeDeliveryTasks(id!, taskSpecDrafts),
+    [id, taskSpecDrafts],
+  );
+
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
     queryFn: async () => {
