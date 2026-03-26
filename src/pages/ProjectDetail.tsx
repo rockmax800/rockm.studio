@@ -30,8 +30,10 @@ import {
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
-import type { CTOBacklogCardDraft } from "@/types/front-office-planning";
-import { useState } from "react";
+import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
+import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
+import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import { useState, useMemo } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",

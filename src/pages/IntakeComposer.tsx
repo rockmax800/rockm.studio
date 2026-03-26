@@ -26,8 +26,10 @@ import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestio
 import type { BriefSignals } from "@/lib/business/market-benchmarking";
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
+import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
-import type { CTOBacklogCardDraft, SystemModule } from "@/types/front-office-planning";
+import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/front-office-planning";
 
 /* ── Types ───────────────────────────────────────────────── */
 

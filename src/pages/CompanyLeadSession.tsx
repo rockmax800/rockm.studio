@@ -17,8 +17,10 @@ import { ClarificationChecklist } from "@/components/intake/ClarificationCheckli
 import { SystemDecompositionPanel } from "@/components/intake/SystemDecompositionPanel";
 import { MvpReductionPanel } from "@/components/intake/MvpReductionPanel";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
+import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
-import type { CTOBacklogCardDraft } from "@/types/front-office-planning";
+import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -334,6 +336,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
   // ── CTO Backlog Draft state (local draft — not persisted) ──
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
+
+  // ── AI Task Drafts — decomposed from backlog (local draft) ──
+  const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
+  const cardTitles = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
+    return map;
+  }, [ctoBacklogCards]);
 
   useQuery({
     queryKey: ["departments"],
@@ -997,6 +1007,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               <CtoBacklogDraftPanel
                 cards={ctoBacklogCards}
                 onCardsChange={setCtoBacklogCards}
+              />
+            )}
+
+            {/* AI Task Drafts — decomposed from backlog */}
+            {aiTaskDrafts.length > 0 && showEstimate && (
+              <AiTaskDraftPanel
+                drafts={aiTaskDrafts}
+                cardTitles={cardTitles}
               />
             )}
 
