@@ -51,3 +51,16 @@ draft → discussed → blueprint_created
 - Every project must originate from an IntakeRequest.
 - IntakeRequests are never deleted — they form the audit trail of client intent.
 - Status transitions are forward-only.
+
+---
+
+## 5 — Planning Package Integration (v2.1)
+
+The IntakeRequest is the entry point for the **Company Lead Planning Package v2.1**. Before a BlueprintContract can be created:
+
+1. A **Clarification Loop** must complete on this IntakeRequest (founder marks complete).
+2. The IntakeRequest must reach `discussed` status.
+
+**Hard invariant:** No BlueprintContract without clarification complete.
+
+See `company-lead-planning-package.md` for the full phase sequence.

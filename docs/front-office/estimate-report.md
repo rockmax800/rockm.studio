@@ -55,3 +55,17 @@ A LaunchDecision can only be created when an Approval record with `decision = ap
 - Requires an approved BlueprintContract (via Approval entity).
 - Founder must approve estimate (via Approval entity) before a LaunchDecision can be made.
 - Estimates are informational — actual costs may vary.
+
+---
+
+## 5 — Planning Package Integration (v2.1)
+
+Under the **Company Lead Planning Package v2.1**, an EstimateReport has additional prerequisites:
+
+- The source BlueprintContract must contain modular decomposition (`modules_json` + `dependency_graph_json`).
+- Estimation is informed by the MVP Reduction Pass output — only MVP-scoped modules contribute to the estimate baseline.
+- A CTO Backlog Draft and Atomic AI Task Drafts may exist alongside the estimate as Intent Plane artifacts, but they do **not** create live Delivery tasks until the LaunchDecision gate is passed.
+
+**Hard invariant:** No EstimateReport without `modules_json` + `dependency_graph_json`.
+
+See `company-lead-planning-package.md` for the full phase sequence.

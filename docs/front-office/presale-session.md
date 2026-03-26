@@ -46,3 +46,11 @@ A simplified intake flow for quick client conversations before formal IntakeRequ
 - Presale sessions are optional — not all projects go through presale.
 - Conversion to project follows the standard LaunchDecision gate.
 - Presale data is preserved for audit even after conversion.
+
+---
+
+## 4 — Planning Package Integration (v2.1)
+
+When a presale session converts to a full IntakeRequest, the **Company Lead Planning Package v2.1** applies. The presale brief feeds into the Clarification Loop as initial input, but does not bypass any planning phase.
+
+See `company-lead-planning-package.md` for the mandatory phase sequence.
