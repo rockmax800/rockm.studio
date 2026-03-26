@@ -34,9 +34,12 @@ import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
+import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDraftsPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
+import type { TaskSpecDraft } from "@/types/taskspec-draft";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { useState, useMemo } from "react";
 
 const RISK_COLORS = {
@@ -71,6 +74,7 @@ export default function ProjectDetail() {
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
+  const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const cardTitles = useMemo(() => {
     const map: Record<string, string> = {};
     for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
