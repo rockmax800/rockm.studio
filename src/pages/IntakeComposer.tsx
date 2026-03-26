@@ -31,6 +31,7 @@ import { generateBacklogCards } from "@/lib/cto-backlog";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/front-office-planning";
 import { validatePlanningGate } from "@/lib/planning-gates";
+import { useCompanyLeadPlanning } from "@/hooks/use-company-lead-planning";
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -168,6 +169,7 @@ export default function IntakeComposerV2() {
 
   const { frozenBrief, phase, freeze, startKickoff, reset } = useIntakeBriefDraft();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
+  const planning = useCompanyLeadPlanning(null);
 
   const filledCount = sections.filter((s) => s.content.length > 0).length;
   const tokenEstimate = messages.reduce((acc, m) => acc + Math.round(m.content.length / 4), 0);
