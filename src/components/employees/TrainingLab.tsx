@@ -14,6 +14,8 @@ import {
   type PromptSections,
 } from "@/hooks/use-training-lab";
 import { DEFAULT_SKILL_PACKS, SKILL_CATEGORY_CONFIG, type GuidanceDimension } from "@/types/skill-pack";
+import type { InstinctSetting } from "@/types/instinct-settings";
+import { synthesizeInstinctGuidance } from "@/types/instinct-settings";
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
@@ -48,9 +50,10 @@ interface TrainingLabProps {
   roleName: string;
   attachedSkillPackIds?: string[];
   guidanceDimensions?: GuidanceDimension[];
+  instinctSettings?: InstinctSetting[];
 }
 
-export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillPackIds = [], guidanceDimensions = [] }: TrainingLabProps) {
+export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillPackIds = [], guidanceDimensions = [], instinctSettings = [] }: TrainingLabProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const {
     messages, materials, drafts, events, sections, loading,
@@ -197,6 +200,26 @@ export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillP
               </span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Instinct settings strip */}
+      {instinctSettings.length > 0 && instinctSettings.some((s) => s.value !== "medium" && s.value !== "balanced") && (
+        <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg bg-card border border-border/30 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Shield className="h-3 w-3 text-muted-foreground/40" />
+            <span className="text-[10px] text-muted-foreground/50">Instincts:</span>
+            {instinctSettings.filter((s) => s.value !== "medium" && s.value !== "balanced").slice(0, 3).map((s) => (
+              <span key={s.key} className={cn(
+                "text-[9px] font-bold px-1.5 py-0.5 rounded",
+                s.value === "high" || s.value === "strong" || s.value === "early"
+                  ? "bg-status-amber/10 text-status-amber"
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {s.label}: {s.value}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
