@@ -25,6 +25,9 @@ import type { BriefSectionData } from "@/lib/intake-brief-transfer";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import type { BriefSignals } from "@/lib/business/market-benchmarking";
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
+import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
+import { generateBacklogCards } from "@/lib/cto-backlog";
+import type { CTOBacklogCardDraft, SystemModule } from "@/types/front-office-planning";
 
 /* ── Types ───────────────────────────────────────────────── */
 

@@ -992,6 +992,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </RailCard>
             )}
 
+            {/* CTO Backlog Draft — shown after MVP reduction */}
+            {ctoBacklogCards.length > 0 && showEstimate && (
+              <CtoBacklogDraftPanel
+                cards={ctoBacklogCards}
+                onCardsChange={setCtoBacklogCards}
+              />
+            )}
+
             {/* Market Benchmark — founder-only, uses post-reduction scope */}
             {showEstimate && effectiveScope && (
               <MarketBenchmarkPanel
