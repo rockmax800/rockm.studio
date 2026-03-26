@@ -365,6 +365,9 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
     setSlicesInitialized(true);
   }
 
+  // ── TaskSpec Drafts — compiled from engineering slices (local draft) ──
+  const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
+
   useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
