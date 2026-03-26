@@ -14,6 +14,7 @@ import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPane
 import { VerificationRail } from "@/components/project-cockpit/VerificationRail";
 import { ProjectGuidancePack } from "@/components/project-cockpit/ProjectGuidancePack";
 import { PlanningPackageSummary } from "@/components/project-cockpit/PlanningPackageSummary";
+import { CtoReadinessGate } from "@/components/project-cockpit/CtoReadinessGate";
 import { deriveGuidancePack } from "@/types/project-guidance";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
@@ -438,6 +439,18 @@ export default function ProjectDetail() {
               Upstream planning quality audit — clarification, decomposition, backlog, and task drafts.
             </p>
             <PlanningPackageSummary
+              blueprintContractId={(project as any).blueprint_contract_id ?? null}
+              intakeRequestId={(project as any).intake_request_id ?? null}
+            />
+          </div>
+
+          {/* ══ CTO READINESS GATE — Engineering Decomposition Prerequisite ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Cpu} title="CTO Readiness Gate" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              AI CTO engineering decomposition prerequisites — validates planning maturity before TaskSpec compilation.
+            </p>
+            <CtoReadinessGate
               blueprintContractId={(project as any).blueprint_contract_id ?? null}
               intakeRequestId={(project as any).intake_request_id ?? null}
             />
