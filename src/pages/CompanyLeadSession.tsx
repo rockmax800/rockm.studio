@@ -8,7 +8,7 @@ import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
-  X, Maximize2, GraduationCap, User, ShieldCheck,
+  X, Maximize2, GraduationCap, User, ShieldCheck, FileText,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
@@ -19,9 +19,11 @@ import { MvpReductionPanel } from "@/components/intake/MvpReductionPanel";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
+import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDraftsPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { generateEngineeringSlices } from "@/lib/engineering-slices";
+import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
@@ -362,6 +364,9 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
     setEngineeringSlices(autoSlices);
     setSlicesInitialized(true);
   }
+
+  // ── TaskSpec Drafts — compiled from engineering slices (local draft) ──
+  const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
 
   useQuery({
     queryKey: ["departments"],
@@ -1134,6 +1139,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   slices={engineeringSlices}
                   onSlicesChange={setEngineeringSlices}
                 />
+              </RailCard>
+            )}
+
+            {/* TaskSpec Drafts — compiled from engineering slices */}
+            {taskSpecDrafts.length > 0 && showEstimate && (
+              <RailCard title="TaskSpec Drafts" icon={FileText}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Pre-delivery engineering planning — canonical TaskSpec format. No live tasks created.
+                </p>
+                <TaskSpecDraftsPanel drafts={taskSpecDrafts} />
               </RailCard>
             )}
 
