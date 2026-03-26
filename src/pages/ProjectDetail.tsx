@@ -92,7 +92,7 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
-  const [clarificationRequests, setClarificationRequests] = useState<ClarificationRequest[]>([]);
+  // clarificationRequests now loaded from DB below
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
@@ -115,6 +115,11 @@ export default function ProjectDetail() {
   const { data: persistedTaskSpecs } = usePersistedTaskSpecs(blueprintContractId);
   const { data: persistedPlan } = usePersistedPlan(blueprintContractId);
   const { data: persistedConformance } = usePersistedConformance(id ?? null);
+  const { data: clarificationRequests = [] } = usePersistedClarifications(id ?? null);
+  const { data: persistedSanityReports = [] } = usePersistedSanityReports(id ?? null);
+  const createClarification = useCreateClarification(id ?? null);
+  const resolveClarification = useResolveClarification(id ?? null);
+  const saveSanityReport = useSaveSanityReport(id ?? null);
   const saveSlices = useSaveSlices(blueprintContractId);
   const saveTaskSpecs = useSaveTaskSpecs(blueprintContractId);
   const saveExecPlan = useSaveExecutionPlan(blueprintContractId);
@@ -176,36 +181,43 @@ export default function ProjectDetail() {
 
   const handleCreateClarification = useCallback(
     (moduleId: string, moduleName: string, ambiguity: string, requested: string) => {
-      const req = createClarificationRequest({
-        projectId: id!,
-        blueprintId: blueprintContractId,
+      createClarification.mutate({
+        blueprintContractId,
         affectedModuleId: moduleId,
         affectedModuleName: moduleName,
         ambiguityDescription: ambiguity,
         requestedClarification: requested,
       });
-      setClarificationRequests((prev) => [...prev, req]);
     },
-    [id, blueprintContractId],
+    [blueprintContractId, createClarification],
   );
 
   const handleResolveClarification = useCallback((reqId: string, note: string) => {
-    setClarificationRequests((prev) =>
-      prev.map((r) => r.id === reqId ? { ...r, status: "resolved" as const, resolvedAt: new Date().toISOString(), resolverNote: note } : r),
-    );
-  }, []);
+    resolveClarification.mutate({ id: reqId, status: "resolved", note });
+  }, [resolveClarification]);
 
   const handleDismissClarification = useCallback((reqId: string) => {
-    setClarificationRequests((prev) =>
-      prev.map((r) => r.id === reqId ? { ...r, status: "dismissed" as const, resolvedAt: new Date().toISOString() } : r),
-    );
-  }, []);
+    resolveClarification.mutate({ id: reqId, status: "dismissed" });
+  }, [resolveClarification]);
 
-  // Sync open clarification requests to sessionStorage for CompanyLeadSession
+  // Auto-persist sanity report when it changes
+  const lastSanityRef = useRef<string>("");
   useEffect(() => {
-    const open = clarificationRequests.filter((r) => r.status === "open");
-    sessionStorage.setItem("cto_clarification_requests", JSON.stringify(open));
-  }, [clarificationRequests]);
+    if (!id || taskSpecDrafts.length === 0) return;
+    const key = JSON.stringify({ s: sanityReport.overallStatus, t: sanityReport.totalDrafts });
+    if (key === lastSanityRef.current) return;
+    lastSanityRef.current = key;
+    saveSanityReport.mutate({
+      blueprintContractId,
+      overallStatus: sanityReport.overallStatus,
+      totalDrafts: sanityReport.totalDrafts,
+      validCount: sanityReport.validCount,
+      warningCount: sanityReport.warningCount,
+      blockedCount: sanityReport.blockedCount,
+      issues: sanityReport.issues,
+      materializationAllowed: sanityReport.overallStatus !== "blocked",
+    });
+  }, [sanityReport, id, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
