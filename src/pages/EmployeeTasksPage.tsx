@@ -85,13 +85,14 @@ export default function EmployeeTasksPage() {
   const persona = employee ? getPersona(employee.role_code) : null;
   const st = employee ? getStatusMeta(employee.status) : null;
   const roleName = roleData?.name ?? employee?.role_code ?? "";
+  const hasRoleId = !!employee?.role_id;
 
   const groups = [
-    { key: "blocked", label: "Blocked", tasks: activeTasks.filter(t => t.state === "blocked") },
-    { key: "waiting_review", label: "Waiting Review", tasks: activeTasks.filter(t => t.state === "waiting_review") },
-    { key: "in_progress", label: "In Progress", tasks: activeTasks.filter(t => t.state === "in_progress") },
-    { key: "assigned", label: "Assigned / Ready", tasks: activeTasks.filter(t => ["assigned", "ready"].includes(t.state)) },
-    { key: "done", label: "Recently Completed", tasks: completedTasks },
+    { key: "blocked", label: "Blocked", icon: AlertTriangle, tasks: activeTasks.filter(t => t.state === "blocked") },
+    { key: "waiting_review", label: "Waiting Review", icon: Clock, tasks: activeTasks.filter(t => t.state === "waiting_review") },
+    { key: "in_progress", label: "In Progress", icon: Clock, tasks: activeTasks.filter(t => t.state === "in_progress") },
+    { key: "assigned", label: "Assigned / Ready", icon: Clock, tasks: activeTasks.filter(t => ["assigned", "ready"].includes(t.state)) },
+    { key: "done", label: "Recently Completed", icon: CheckCircle2, tasks: completedTasks },
   ];
 
   return (
