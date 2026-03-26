@@ -33,11 +33,13 @@ const DRAFT_SECTIONS: { key: keyof PromptSections; label: string; icon: React.Re
 ];
 
 const MATERIAL_CATEGORIES = [
-  { value: "note", label: "Note", color: "bg-secondary text-muted-foreground" },
-  { value: "example", label: "Example", color: "bg-status-green/15 text-status-green" },
-  { value: "rule", label: "Rule", color: "bg-status-blue/15 text-status-blue" },
-  { value: "anti_pattern", label: "Anti-pattern", color: "bg-destructive/15 text-destructive" },
-  { value: "reference", label: "Reference", color: "bg-status-amber/15 text-status-amber" },
+  { value: "note", label: "Temporary Note", color: "bg-secondary text-muted-foreground", desc: "Session-scoped note, not retained long-term" },
+  { value: "learned_pattern", label: "Learned Pattern", color: "bg-status-green/15 text-status-green", desc: "Reusable insight to retain across tasks" },
+  { value: "manual_override", label: "Manual Override", color: "bg-status-amber/15 text-status-amber", desc: "Founder-enforced rule that overrides defaults" },
+  { value: "anti_pattern", label: "Anti-pattern", color: "bg-destructive/15 text-destructive", desc: "Known bad pattern — agent must avoid" },
+  { value: "example", label: "Example", color: "bg-status-blue/15 text-status-blue", desc: "Reference example of good output" },
+  { value: "rule", label: "Core Rule", color: "bg-primary/15 text-primary", desc: "Permanent operational rule" },
+  { value: "reference", label: "Reference", color: "bg-muted text-muted-foreground", desc: "Background information for context" },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -350,16 +352,20 @@ export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillP
                     rows={4}
                     className="w-full rounded-lg bg-background border border-border px-3 py-2 text-[12px] text-foreground outline-none resize-none"
                   />
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={materialCategory}
-                      onChange={(e) => setMaterialCategory(e.target.value)}
-                      className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground"
-                    >
-                      {MATERIAL_CATEGORIES.map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                      ))}
-                    </select>
+                   <div className="space-y-1">
+                     <select
+                       value={materialCategory}
+                       onChange={(e) => setMaterialCategory(e.target.value)}
+                       className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground w-full"
+                     >
+                       {MATERIAL_CATEGORIES.map((c) => (
+                         <option key={c.value} value={c.value}>{c.label}</option>
+                       ))}
+                     </select>
+                     <p className="text-[9px] text-muted-foreground/50 px-0.5">
+                       {MATERIAL_CATEGORIES.find((c) => c.value === materialCategory)?.desc ?? ""}
+                     </p>
+                   </div>
                     <Button size="sm" className="h-7 text-[11px] px-3 gap-1 font-bold ml-auto" onClick={handleAddMaterial} disabled={!materialContent.trim()}>
                       <Plus className="h-3 w-3" /> Save
                     </Button>
