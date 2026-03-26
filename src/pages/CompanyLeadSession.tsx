@@ -8,17 +8,24 @@ import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
-  X, Maximize2, GraduationCap, User,
+  X, Maximize2, GraduationCap, User, ShieldCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
+import { ClarificationChecklist } from "@/components/intake/ClarificationChecklist";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
 import { ResearchModeBadge, type ResearchPhase } from "@/components/ui/research-mode-badge";
+import {
+  type ClarificationFields,
+  EMPTY_CLARIFICATION,
+  getClarificationStatus,
+  inferClarificationFromText,
+} from "@/lib/company-lead-clarification";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -232,6 +239,23 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
+  // ── Clarification Loop state (local draft — not persisted) ──
+  const [clarification, setClarification] = useState<ClarificationFields>(EMPTY_CLARIFICATION);
+  const [clarificationLocked, setClarificationLocked] = useState(false);
+  const clarificationStatus = getClarificationStatus(clarification);
+
+  const handleClarificationFieldChange = (key: keyof ClarificationFields, value: any) => {
+    if (clarificationLocked) return;
+    setClarification((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleMarkClarificationComplete = () => {
+    if (!clarificationStatus.isComplete) return;
+    setClarificationLocked(true);
+    toast.success("Clarification complete — planning outputs unlocked.");
+    addLeadMessage("Clarification Loop is complete. All required fields are confirmed.\n\nI will now proceed with team consultation and estimate generation.");
+  };
+
   useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
@@ -246,6 +270,28 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const totalTokens = moduleEstimates.reduce((s, m) => s + m.tokens, 0);
   const totalCost = moduleEstimates.reduce((s, m) => s + m.cost, 0);
   const totalDays = Math.max(...moduleEstimates.map((m) => m.days), 0);
+
+  // Auto-infer clarification fields from conversation (founder can override)
+  useEffect(() => {
+    if (clarificationLocked) return;
+    const allUserText = messages.filter((m) => m.role === "user").map((m) => m.content).join(" ");
+    if (!allUserText) return;
+    const inferred = inferClarificationFromText(allUserText, clarification);
+    if (Object.keys(inferred).length > 0) {
+      setClarification((prev) => ({ ...prev, ...inferred }));
+    }
+    // Infer projectGoal from first user message
+    if (!clarification.projectGoal) {
+      const firstMsg = messages.find((m) => m.role === "user");
+      if (firstMsg) {
+        setClarification((prev) => ({
+          ...prev,
+          projectGoal: prev.projectGoal || firstMsg.content.slice(0, 200),
+        }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, clarificationLocked]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -316,8 +362,9 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const showExtraction = userMessageCount >= 1;
-  const showConsultation = phase === "consultation" || phase === "estimate" || phase === "decision";
-  const showEstimate = phase === "estimate" || phase === "decision";
+  // Planning outputs gated behind clarification completion
+  const showConsultation = clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
+  const showEstimate = clarificationLocked && (phase === "estimate" || phase === "decision");
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
@@ -627,6 +674,27 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             <p className="text-[10px] text-muted-foreground/50 px-1 -mt-2">
               Structured outputs extracted from the briefing conversation
             </p>
+
+            {/* Clarification Loop checklist — always visible */}
+            <ClarificationChecklist
+              fields={clarification}
+              onFieldChange={handleClarificationFieldChange}
+              onMarkComplete={handleMarkClarificationComplete}
+              isLocked={clarificationLocked}
+            />
+
+            {/* Gate notice when clarification incomplete */}
+            {!clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision") && (
+              <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Planning Outputs Blocked</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Complete the Clarification Loop above to unlock consultation, estimates, and blueprint creation.
+                </p>
+              </div>
+            )}
 
             {/* Scope */}
             {showExtraction ? (
