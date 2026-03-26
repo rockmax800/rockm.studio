@@ -39,6 +39,7 @@ import type { MvpReductionEntry, MvpReductionResult } from "@/lib/mvp-reduction"
 import { generateInitialReduction, computeReductionResult, getMvpScopeModules } from "@/lib/mvp-reduction";
 import { validatePlanningGate, type PlanningGateResult } from "@/lib/planning-gates";
 import { useCompanyLeadPlanning, type PersistenceState } from "@/hooks/use-company-lead-planning";
+import { estimateModules, estimateFromNames, type EstimateSummary } from "@/lib/module-estimation";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -60,12 +61,7 @@ interface ConsultationEntry {
   severity: "info" | "warning" | "critical";
 }
 
-interface ModuleEstimate {
-  name: string;
-  tokens: number;
-  cost: number;
-  days: number;
-}
+/* ModuleEstimate type now comes from module-estimation.ts */
 
 interface ExtractedScope {
   goal: string;
@@ -220,15 +216,7 @@ function generateConsultation(scope: ExtractedScope): ConsultationEntry[] {
   return entries;
 }
 
-function generateModuleEstimates(scope: ExtractedScope): ModuleEstimate[] {
-  return scope.modules.map((mod) => {
-    const isComplex = ["Payments", "Real-time Chat", "Search Engine", "Analytics"].includes(mod);
-    const tokens = isComplex ? 65_000 : 40_000;
-    const cost = isComplex ? 18 : 10;
-    const days = isComplex ? 4 : 2;
-    return { name: mod, tokens, cost, days };
-  });
-}
+/* generateModuleEstimates removed — replaced by estimateModules from module-estimation.ts */
 
 /* ═══════════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -362,17 +350,21 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
   const scope = useMemo(() => extractScopeFromConversation(messages), [messages]);
   const consultation = useMemo(() => generateConsultation(scope), [scope]);
-  // Use effective (post-reduction) modules for estimates when available
-  const effectiveScope = useMemo(() => {
-    if (mvpReductionLocked && effectiveModuleNames.length > 0) {
-      return { ...scope, modules: effectiveModuleNames };
+  // Module-aware estimation: use SystemModule metadata when available, fallback to name-based
+  const estimate: EstimateSummary = useMemo(() => {
+    if (effectiveModules.length > 0) {
+      return estimateModules(effectiveModules);
     }
-    return scope;
-  }, [scope, mvpReductionLocked, effectiveModuleNames]);
-  const moduleEstimates = useMemo(() => generateModuleEstimates(effectiveScope), [effectiveScope]);
-  const totalTokens = moduleEstimates.reduce((s, m) => s + m.tokens, 0);
-  const totalCost = moduleEstimates.reduce((s, m) => s + m.cost, 0);
-  const totalDays = Math.max(...moduleEstimates.map((m) => m.days), 0);
+    // Fallback: use scope module names (pre-decomposition)
+    if (scope.modules.length > 0) {
+      return estimateFromNames(scope.modules);
+    }
+    return { rows: [], totalTokens: 0, totalCost: 0, totalDays: 0, moduleCount: 0 };
+  }, [effectiveModules, scope.modules]);
+  const moduleEstimates = estimate.rows;
+  const totalTokens = estimate.totalTokens;
+  const totalCost = estimate.totalCost;
+  const totalDays = estimate.totalDays;
 
   // Auto-infer clarification fields from conversation (founder can override)
   useEffect(() => {
@@ -947,14 +939,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             )}
 
             {/* Human Equivalent Team — uses post-reduction scope */}
-            {showEstimate && effectiveScope && (
+            {showEstimate && scope && (
               <HumanTeamSuggestionPanel
                 signals={{
-                  scopeKeywords: [...effectiveScope.modules, ...effectiveScope.constraints].map(s => s.toLowerCase()),
-                  complexity: effectiveScope.complexity,
-                  hasFrontend: effectiveScope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
-                  hasBackend: effectiveScope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
-                  moduleCount: effectiveScope.modules.length,
+                  scopeKeywords: [...effectiveModuleNames, ...scope.constraints].map(s => s.toLowerCase()),
+                  complexity: scope.complexity,
+                  hasFrontend: effectiveModuleNames.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: effectiveModuleNames.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: effectiveModuleNames.length,
                 }}
               />
             )}
@@ -1003,20 +995,43 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   ))}
                 </div>
 
-                {/* Module breakdown */}
+                {/* Module breakdown — module-aware estimation */}
                 <div className="rounded-xl overflow-hidden border border-border">
-                  <div className="grid grid-cols-4 gap-0 text-[10px] font-semibold uppercase tracking-wider px-3 py-2 bg-muted text-muted-foreground">
-                    <span>Module</span><span className="text-right">Tokens</span><span className="text-right">Cost</span><span className="text-right">Days</span>
+                  <div className="grid grid-cols-6 gap-0 text-[10px] font-semibold uppercase tracking-wider px-3 py-2 bg-muted text-muted-foreground">
+                    <span className="col-span-2">Module</span><span className="text-center">Complexity</span><span className="text-right">Tokens</span><span className="text-right">Cost</span><span className="text-right">Days</span>
                   </div>
                   {moduleEstimates.map((mod) => (
-                    <div key={mod.name} className="grid grid-cols-4 gap-0 px-3 py-2 text-[11px] border-t border-border">
-                      <span className="font-semibold truncate text-foreground">{mod.name}</span>
+                    <div key={mod.name} className="grid grid-cols-6 gap-0 px-3 py-2 text-[11px] border-t border-border">
+                      <span className="col-span-2 font-semibold truncate text-foreground">{mod.name}</span>
+                      <span className="text-center">
+                        <span className={cn(
+                          "inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase",
+                          mod.riskLevel === "critical" || mod.riskLevel === "high"
+                            ? "bg-destructive/10 text-destructive"
+                            : mod.complexity === "large" || mod.complexity === "xlarge"
+                            ? "bg-status-amber/10 text-status-amber"
+                            : "bg-muted text-muted-foreground",
+                        )}>
+                          {mod.complexity}
+                        </span>
+                      </span>
                       <span className="text-right font-mono text-muted-foreground">{(mod.tokens / 1000).toFixed(0)}k</span>
                       <span className="text-right font-mono text-muted-foreground">${mod.cost}</span>
                       <span className="text-right font-mono text-muted-foreground">{mod.days}d</span>
                     </div>
                   ))}
+                  {/* Totals row */}
+                  <div className="grid grid-cols-6 gap-0 px-3 py-2 text-[11px] border-t-2 border-border bg-muted/30 font-bold">
+                    <span className="col-span-2 text-foreground">{moduleEstimates.length} modules</span>
+                    <span />
+                    <span className="text-right font-mono text-foreground">{(totalTokens / 1000).toFixed(0)}k</span>
+                    <span className="text-right font-mono text-foreground">${totalCost}</span>
+                    <span className="text-right font-mono text-foreground">{totalDays}d</span>
+                  </div>
                 </div>
+                <p className="text-[9px] text-muted-foreground/50 italic px-1">
+                  Estimates use module complexity, risk level, and feature count. Timeline uses critical-path heuristic.
+                </p>
 
                 {/* Founder requirements */}
                 <div>
@@ -1074,14 +1089,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             )}
 
             {/* Market Benchmark — founder-only, uses post-reduction scope */}
-            {showEstimate && effectiveScope && (
+            {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
-                  scopeKeywords: [...effectiveScope.modules, ...effectiveScope.constraints].map(s => s.toLowerCase()),
-                  complexity: effectiveScope.complexity,
-                  hasFrontend: effectiveScope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
-                  hasBackend: effectiveScope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
-                  moduleCount: effectiveScope.modules.length,
+                  scopeKeywords: [...effectiveModuleNames, ...scope.constraints].map(s => s.toLowerCase()),
+                  complexity: scope.complexity,
+                  hasFrontend: effectiveModuleNames.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: effectiveModuleNames.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: effectiveModuleNames.length,
                 }}
                 estimatedAicUsd={totalCost}
                 sourceType="company_lead"
