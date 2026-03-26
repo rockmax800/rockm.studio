@@ -220,6 +220,12 @@ export default function ProjectDetail() {
     });
   }, [sanityReport, id, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Sync open clarification requests to sessionStorage for CompanyLeadSession (pre-project bridge)
+  useEffect(() => {
+    const open = clarificationRequests.filter((r: ClarificationRequest) => r.status === "open");
+    sessionStorage.setItem("cto_clarification_requests", JSON.stringify(open));
+  }, [clarificationRequests]);
+
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
     queryFn: async () => {
