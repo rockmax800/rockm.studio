@@ -40,6 +40,8 @@ import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanity
 import { CtoConformancePanel } from "@/components/project-cockpit/CtoConformancePanel";
 import { MaterializeTasksPanel } from "@/components/project-cockpit/MaterializeTasksPanel";
 import { CtoOverview } from "@/components/project-cockpit/CtoOverview";
+import { CtoHandoffCard } from "@/components/project-cockpit/CtoHandoffCard";
+import { buildHandoffContract } from "@/lib/cto-handoff";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
