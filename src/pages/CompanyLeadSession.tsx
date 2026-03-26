@@ -18,9 +18,12 @@ import { SystemDecompositionPanel } from "@/components/intake/SystemDecompositio
 import { MvpReductionPanel } from "@/components/intake/MvpReductionPanel";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
+import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import { generateEngineeringSlices } from "@/lib/engineering-slices";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
+import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
