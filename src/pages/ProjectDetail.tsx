@@ -33,7 +33,9 @@ import {
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
+import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
+import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { useState, useMemo } from "react";
 
@@ -67,6 +69,7 @@ function MetricChip({ label, value, alert }: { label: string; value: string | nu
 export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
+  const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const cardTitles = useMemo(() => {
     const map: Record<string, string> = {};
@@ -455,6 +458,21 @@ export default function ProjectDetail() {
               intakeRequestId={(project as any).intake_request_id ?? null}
             />
           </div>
+
+          {/* ══ ENGINEERING SLICES — AI CTO Normalization Output ══ */}
+          {engineeringSlices.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={Layers} title="Engineering Slices" count={engineeringSlices.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Bounded engineering units normalized from planning modules — draft until launch gate.
+              </p>
+              <EngineeringSlicesPanel
+                slices={engineeringSlices}
+                onSlicesChange={setEngineeringSlices}
+                locked={project.state !== "draft" && project.state !== "scoped"}
+              />
+            </div>
+          )}
 
           {/* ══ CTO BACKLOG DRAFT — Pre-Delivery Planning ══ */}
           {ctoBacklogCards.length > 0 && (

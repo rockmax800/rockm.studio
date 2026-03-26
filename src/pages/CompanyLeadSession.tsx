@@ -18,9 +18,12 @@ import { SystemDecompositionPanel } from "@/components/intake/SystemDecompositio
 import { MvpReductionPanel } from "@/components/intake/MvpReductionPanel";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
+import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import { generateEngineeringSlices } from "@/lib/engineering-slices";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
+import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -339,6 +342,26 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
     for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
     return map;
   }, [ctoBacklogCards]);
+
+  // ── Engineering Slices — normalized from effective modules (local draft) ──
+  const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
+  const autoSlices = useMemo(() => {
+    if (effectiveModules.length === 0) return [];
+    const deliveryMode = clarification.projectType === "mvp" ? "mvp_first" as const : "full_scope" as const;
+    return generateEngineeringSlices({
+      modules: effectiveModules,
+      dependencyGraph: decompositionGraph,
+      deliveryMode,
+      optimizationNotes: mvpReductionResult.optimizationNotes,
+    });
+  }, [effectiveModules, decompositionGraph, clarification.projectType, mvpReductionResult.optimizationNotes]);
+
+  // Auto-populate slices when generated (founder can then edit)
+  const [slicesInitialized, setSlicesInitialized] = useState(false);
+  if (autoSlices.length > 0 && !slicesInitialized && mvpReductionLocked) {
+    setEngineeringSlices(autoSlices);
+    setSlicesInitialized(true);
+  }
 
   useQuery({
     queryKey: ["departments"],
@@ -1101,7 +1124,19 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               />
             )}
 
-            {/* Market Benchmark — founder-only, uses post-reduction scope */}
+            {/* Engineering Slices — normalized from modules */}
+            {engineeringSlices.length > 0 && showEstimate && (
+              <RailCard title="Engineering Slices" icon={Layers}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Bounded engineering units — split, merge, or flag unclear boundaries. Draft until launch gate.
+                </p>
+                <EngineeringSlicesPanel
+                  slices={engineeringSlices}
+                  onSlicesChange={setEngineeringSlices}
+                />
+              </RailCard>
+            )}
+
             {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
