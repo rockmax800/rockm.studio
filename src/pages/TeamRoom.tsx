@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { loadFrozenBrief, type FrozenBrief } from "@/lib/intake-brief-transfer";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,8 @@ export default function TeamRoom() {
 
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(urlEmp);
   const [sessionActive, setSessionActive] = useState(false);
+  const hasBriefParam = searchParams.get("brief") === "frozen";
+  const briefContext = useMemo(() => hasBriefParam ? loadFrozenBrief() : null, [hasBriefParam]);
 
   // ── Employees query
   const { data: employees = [] } = useQuery({
@@ -130,6 +133,7 @@ export default function TeamRoom() {
         roles={roles}
         deptName={deptName}
         onBack={() => setSessionActive(false)}
+        briefContext={briefContext}
       />
     );
   }
@@ -345,14 +349,15 @@ export default function TeamRoom() {
 /* ================================================================
    SESSION WORKSPACE — 8/4 split
    ================================================================ */
-function SessionWorkspace({ emp, roles, deptName, onBack }: {
-  emp: any; roles: any[]; deptName: string; onBack: () => void;
+function SessionWorkspace({ emp, roles, deptName, onBack, briefContext }: {
+  emp: any; roles: any[]; deptName: string; onBack: () => void; briefContext: FrozenBrief | null;
 }) {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>(SEED_TRANSCRIPT);
   const [extraction] = useState<ExtractionState>(SEED_EXTRACTION);
   const [founderInput, setFounderInput] = useState("");
   const [meetingStatus, setMeetingStatus] = useState<"active" | "frozen" | "ended">("active");
   const [showHistory, setShowHistory] = useState(false);
+  const [showBriefDetail, setShowBriefDetail] = useState(false);
   const [empStatus] = useState<"listening" | "thinking" | "responding" | "idle">("listening");
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
@@ -529,7 +534,39 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
               </div>
             </div>
 
-            {/* ── Hero message — current speaker ── */}
+            {/* Frozen Brief Context Banner */}
+            {briefContext && (
+              <div className="px-6 py-2.5 border-b border-status-green/15 bg-status-green/[0.03] shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Snowflake className="h-3.5 w-3.5 text-status-green shrink-0" />
+                    <span className="text-[11px] font-semibold text-status-green">Brief Source: Frozen Intake Brief</span>
+                    <span className="text-[10px] text-muted-foreground/50 font-mono">
+                      {new Date(briefContext.frozenAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground/40">
+                      · {briefContext.sections.filter((s) => s.content).length} fields
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowBriefDetail(!showBriefDetail)}
+                    className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                  >
+                    {showBriefDetail ? "Hide" : "View brief"}
+                  </button>
+                </div>
+                {showBriefDetail && (
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    {briefContext.sections.filter((s) => s.content).map((s) => (
+                      <div key={s.key} className="px-2.5 py-1.5 rounded-md bg-card/50 border border-border/30">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/50 block">{s.title}</span>
+                        <span className="text-[11px] text-foreground/80 leading-snug line-clamp-2">{s.content}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {lastEntry && (
               <div className="px-6 py-5 border-b border-border/10 bg-card/20">
                 <div className="flex items-start gap-4">

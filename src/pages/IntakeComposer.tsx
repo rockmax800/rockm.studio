@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +15,13 @@ import {
   ArrowDown,
   MessageCircle,
   BookOpen,
+  CheckCircle2,
+  AlertTriangle,
+  Snowflake,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
+import { useIntakeBriefDraft } from "@/hooks/use-intake-brief-draft";
+import type { BriefSectionData } from "@/lib/intake-brief-transfer";
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -138,16 +144,20 @@ function heroMessage(filledCount: number, isEmpty: boolean): string {
 /* ── Component ───────────────────────────────────────────── */
 
 export default function IntakeComposerV2() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sections, setSections] = useState<BriefSection[]>(INITIAL_SECTIONS);
   const [navStatus, setNavStatus] = useState<"listening" | "thinking" | "ready">("listening");
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [freezeError, setFreezeError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const turnRef = useRef(0);
   const formRef = useRef<HTMLDivElement>(null);
+
+  const { frozenBrief, phase, freeze, startKickoff, reset } = useIntakeBriefDraft();
 
   const filledCount = sections.filter((s) => s.content.length > 0).length;
   const tokenEstimate = messages.reduce((acc, m) => acc + Math.round(m.content.length / 4), 0);
@@ -516,7 +526,7 @@ export default function IntakeComposerV2() {
                 {/* Footer */}
                 <div className="px-5 py-4 border-t border-border shrink-0 space-y-3">
                   {/* Guidance draft hint */}
-                  {filledCount >= 3 && (
+                  {filledCount >= 3 && phase === "drafting" && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/[0.04] border border-primary/10">
                       <BookOpen className="h-3.5 w-3.5 text-primary/40 shrink-0" />
                       <p className="text-[10px] text-primary/60 leading-relaxed">
@@ -524,6 +534,29 @@ export default function IntakeComposerV2() {
                       </p>
                     </div>
                   )}
+
+                  {/* Frozen success state */}
+                  {phase !== "drafting" && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/[0.06] border border-status-green/20">
+                      <Snowflake className="h-3.5 w-3.5 text-status-green shrink-0" />
+                      <p className="text-[10px] text-status-green leading-relaxed">
+                        Brief frozen at {frozenBrief ? new Date(frozenBrief.frozenAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}.
+                        {phase === "kickoff-started" ? " Kickoff in progress." : " Ready for kickoff."}
+                      </p>
+                      {phase === "frozen" && (
+                        <button onClick={reset} className="ml-auto text-[10px] text-muted-foreground hover:text-foreground underline">Unfreeze</button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Freeze validation error */}
+                  {freezeError && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/[0.06] border border-destructive/20">
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                      <p className="text-[10px] text-destructive leading-relaxed">{freezeError}</p>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
@@ -547,22 +580,54 @@ export default function IntakeComposerV2() {
                     <div className="flex gap-2">
                       <Button
                         className="flex-1 h-10 gap-2 text-[13px] font-semibold bg-foreground text-background hover:bg-foreground/90 rounded-[10px]"
-                        disabled={filledCount < 3}
+                        disabled={filledCount < 3 || phase !== "drafting"}
+                        onClick={() => {
+                          setFreezeError(null);
+                          const result = freeze(sections as BriefSectionData[], tokenEstimate);
+                          if (!result.success) {
+                            const names = result.missing.map((k) => sections.find((s) => s.key === k)?.title ?? k).join(", ");
+                            setFreezeError(`Cannot freeze — missing required fields: ${names}`);
+                          }
+                        }}
                       >
-                        <Lock className="h-3.5 w-3.5" /> Freeze Brief
+                        {phase !== "drafting" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                        {phase !== "drafting" ? "Brief Frozen" : "Freeze Brief"}
                       </Button>
                       <Button
                         variant="outline"
                         className="flex-1 h-10 gap-2 text-[13px] font-semibold border-border-strong text-foreground rounded-[10px]"
-                        disabled={filledCount < 5}
+                        disabled={phase === "drafting" || phase === "kickoff-started"}
+                        onClick={() => {
+                          if (phase !== "frozen") {
+                            setFreezeError("You must freeze the brief before starting kickoff.");
+                            return;
+                          }
+                          startKickoff();
+                          navigate("/team-room?brief=frozen");
+                        }}
                       >
                         <Users className="h-3.5 w-3.5" /> Invite to Kickoff
                       </Button>
                     </div>
                     <div className="flex gap-2 text-[10px] text-muted-foreground/40">
-                      <span className="flex-1 text-center">Lock the brief as input for kickoff</span>
-                      <span className="flex-1 text-center">Start team planning based on frozen brief</span>
+                      <span className="flex-1 text-center">{phase !== "drafting" ? "Brief is locked" : "Lock the brief as input for kickoff"}</span>
+                      <span className="flex-1 text-center">{phase === "kickoff-started" ? "Kickoff in progress" : "Start team planning based on frozen brief"}</span>
                     </div>
+                  </div>
+
+                  {/* Progression footer */}
+                  <div className="flex items-center gap-1.5 pt-1">
+                    {[
+                      { label: "Consultation", done: true },
+                      { label: "Brief frozen", done: phase !== "drafting" },
+                      { label: "Kickoff started", done: phase === "kickoff-started" },
+                    ].map((step, i, arr) => (
+                      <span key={step.label} className="flex items-center gap-1">
+                        <span className={`h-1.5 w-1.5 rounded-full ${step.done ? "bg-status-green" : "bg-muted-foreground/20"}`} />
+                        <span className={`text-[10px] ${step.done ? "text-foreground font-semibold" : "text-muted-foreground/40"}`}>{step.label}</span>
+                        {i < arr.length - 1 && <span className="text-muted-foreground/15 text-[10px] mx-0.5">→</span>}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
