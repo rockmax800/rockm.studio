@@ -467,7 +467,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const planningGate: PlanningGateResult = useMemo(() => validatePlanningGate({
     clarificationComplete: clarificationLocked,
     modules: decompositionModules,
-    dependencyEdges: decompositionEdges,
+    dependencyEdges: decompositionGraph,
     mvpReductionComplete: mvpReductionLocked,
     isMvpProject: isMvpProject,
   }), [clarificationLocked, decompositionModules, decompositionEdges, mvpReductionLocked, isMvpProject]);
