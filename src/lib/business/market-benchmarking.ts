@@ -21,36 +21,115 @@ export interface BlueprintRoleSuggestion {
   roleCode: RoleCode;
   roleLabel: string;
   suggestedAllocationPct: number;
+  suggestedEffortMonths: number;
+  rationale: string;
 }
 
+export interface BriefSignals {
+  scopeKeywords?: string[];
+  complexity?: "low" | "medium" | "high" | "critical";
+  projectType?: string;
+  hasFrontend?: boolean;
+  hasBackend?: boolean;
+  hasDesignSystem?: boolean;
+  moduleCount?: number;
+}
+
+const EFFORT_BY_COMPLEXITY: Record<string, number> = {
+  low: 1,
+  medium: 2,
+  high: 4,
+  critical: 6,
+};
+
 /**
- * Returns a default role mix suggestion.
- * `scopeKeywords` is a simple heuristic input (e.g. ["frontend", "api", "design-system"]).
- * The founder is expected to review and override.
+ * Deterministic heuristic: infers a probable human team composition from brief signals.
+ * Returns a founder-editable suggestion list. Every allocation bump has an explicit rationale.
  */
 export function suggestRoleMixFromBlueprint(
-  scopeKeywords: string[] = []
+  signals: BriefSignals = {}
 ): BlueprintRoleSuggestion[] {
-  const kw = new Set(scopeKeywords.map((k) => k.toLowerCase()));
+  const kw = new Set((signals.scopeKeywords ?? []).map((k) => k.toLowerCase()));
+  const cx = signals.complexity ?? "medium";
+  const baseEffort = EFFORT_BY_COMPLEXITY[cx] ?? 2;
+  const hasFE = signals.hasFrontend ?? kw.has("frontend") || kw.has("ui") || kw.has("design-system");
+  const hasBE = signals.hasBackend ?? kw.has("api") || kw.has("backend") || kw.has("database");
+  const hasDS = signals.hasDesignSystem ?? kw.has("design-system");
+  const mods = signals.moduleCount ?? 0;
 
   return DEFAULT_VELOCITY_PROFILES.map((vp) => {
     let alloc = vp.defaultAllocationPct;
+    let effortMul = 1.0;
+    const reasons: string[] = [`Base allocation ${(vp.defaultAllocationPct * 100).toFixed(0)}%`];
 
-    // Simple heuristic bumps — founder overrides anyway
-    if (vp.roleCode === "frontend_builder" && (kw.has("frontend") || kw.has("ui") || kw.has("design-system"))) {
-      alloc = Math.min(alloc + 0.10, 0.50);
+    // Product strategist scales with complexity
+    if (vp.roleCode === "product_strategist" && (cx === "high" || cx === "critical")) {
+      alloc = Math.min(alloc + 0.05, 0.30);
+      reasons.push(`+5% — ${cx} complexity needs more strategy`);
     }
-    if (vp.roleCode === "backend_implementer" && (kw.has("api") || kw.has("backend") || kw.has("database"))) {
-      alloc = Math.min(alloc + 0.10, 0.50);
+
+    // Solution architect scales with module count
+    if (vp.roleCode === "solution_architect") {
+      if (mods > 4) {
+        alloc = Math.min(alloc + 0.10, 0.30);
+        reasons.push(`+10% — ${mods} modules require significant architecture work`);
+      } else if (cx === "high" || cx === "critical") {
+        alloc = Math.min(alloc + 0.05, 0.25);
+        reasons.push(`+5% — ${cx} complexity needs deeper architecture`);
+      }
     }
-    if (vp.roleCode === "qa_agent" && (kw.has("testing") || kw.has("qa"))) {
-      alloc = Math.min(alloc + 0.05, 0.25);
+
+    // Frontend builder
+    if (vp.roleCode === "frontend_builder") {
+      if (hasFE) {
+        alloc = Math.min(alloc + 0.10, 0.45);
+        reasons.push("+10% — frontend/UI work detected in brief");
+      }
+      if (hasDS) {
+        alloc = Math.min(alloc + 0.05, 0.50);
+        reasons.push("+5% — design system requirement");
+      }
+    }
+
+    // Backend implementer
+    if (vp.roleCode === "backend_implementer") {
+      if (hasBE) {
+        alloc = Math.min(alloc + 0.10, 0.45);
+        reasons.push("+10% — backend/API/database work detected");
+      }
+    }
+
+    // QA agent
+    if (vp.roleCode === "qa_agent") {
+      if (kw.has("testing") || kw.has("qa")) {
+        alloc = Math.min(alloc + 0.05, 0.25);
+        reasons.push("+5% — explicit testing/QA requirement");
+      }
+      if (cx === "critical") {
+        alloc = Math.min(alloc + 0.05, 0.25);
+        effortMul = 1.2;
+        reasons.push("+5% — critical complexity demands extended QA");
+      }
+    }
+
+    // Reviewer
+    if (vp.roleCode === "reviewer" && (cx === "high" || cx === "critical")) {
+      alloc = Math.min(alloc + 0.05, 0.20);
+      reasons.push(`+5% — ${cx} complexity needs heavier review`);
+    }
+
+    // Release coordinator
+    if (vp.roleCode === "release_coordinator" && mods > 4) {
+      alloc = Math.min(alloc + 0.03, 0.12);
+      reasons.push("+3% — multi-module release coordination");
     }
 
     return {
       roleCode: vp.roleCode,
       roleLabel: ROLE_LABELS[vp.roleCode] ?? vp.roleCode,
-      suggestedAllocationPct: alloc,
+      suggestedAllocationPct: Math.round(alloc * 100) / 100,
+      suggestedEffortMonths: Math.round(baseEffort * effortMul * 10) / 10,
+      rationale: reasons.join(". ") + ".",
     };
   });
 }
