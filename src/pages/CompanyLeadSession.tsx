@@ -470,7 +470,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
     dependencyEdges: decompositionGraph,
     mvpReductionComplete: mvpReductionLocked,
     isMvpProject: isMvpProject,
-  }), [clarificationLocked, decompositionModules, decompositionEdges, mvpReductionLocked, isMvpProject]);
+  }), [clarificationLocked, decompositionModules, decompositionGraph, mvpReductionLocked, isMvpProject]);
   const estimateBlocked = showEstimate && !planningGate.passed;
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
