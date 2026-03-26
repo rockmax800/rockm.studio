@@ -7,12 +7,13 @@ import {
   Send, Plus, RotateCcw, Save, Clock, FileText,
   MessageSquare, BookOpen, Shield, Brain, Zap, AlertTriangle,
   Ban, Sparkles, ChevronDown, ChevronRight, Download, Copy, Check,
-  BadgeCheck, History, Loader2,
+  BadgeCheck, History, Loader2, Package, Sliders,
 } from "lucide-react";
 import {
   useTrainingLab, EMPTY_SECTIONS,
   type PromptSections,
 } from "@/hooks/use-training-lab";
+import { DEFAULT_SKILL_PACKS, SKILL_CATEGORY_CONFIG, type GuidanceDimension } from "@/types/skill-pack";
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
@@ -45,6 +46,8 @@ interface TrainingLabProps {
   employeeId: string;
   employeeName: string;
   roleName: string;
+  attachedSkillPackIds?: string[];
+  guidanceDimensions?: GuidanceDimension[];
 }
 
 export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabProps) {
