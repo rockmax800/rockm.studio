@@ -12,6 +12,7 @@ import { DecisionCard, type DecisionItem } from "@/components/founder/DecisionCa
 import { ContextPreview } from "@/components/founder/ContextPreview";
 import { RiskPanel } from "@/components/founder/RiskPanel";
 import { CalibrationSummary } from "@/components/founder/CalibrationSummary";
+import { VerificationSummary } from "@/components/founder/VerificationSummary";
 import { PipelineBar, resolveStageIndex, PIPELINE_STAGES, STAGE_COLORS } from "@/components/PipelineBar";
 import {
   Select,
@@ -312,7 +313,7 @@ export default function FounderPage() {
 
         {/* Bottom — System Risk Overview + Calibration */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-5">
             <RiskPanel
               highRiskTasks={allItems.filter((i) => i.riskLevel === "critical").map((i) => ({ id: i.id, title: i.title, linkTo: i.linkTo }))}
               escalatedItems={escalatedItems}
@@ -321,7 +322,12 @@ export default function FounderPage() {
               onNavigate={navigate}
             />
           </div>
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-4">
+            <div className="rounded-[14px] border border-border/40 bg-card p-4">
+              <VerificationSummary />
+            </div>
+          </div>
+          <div className="lg:col-span-3">
             <div className="rounded-[14px] border border-border/40 bg-card p-4">
               <h3 className="text-[13px] font-bold text-foreground tracking-tight mb-3 flex items-center gap-2">
                 <GraduationCap className="h-4 w-4 text-muted-foreground/40" /> Team Calibration
