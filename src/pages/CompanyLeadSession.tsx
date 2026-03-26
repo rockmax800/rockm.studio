@@ -354,15 +354,11 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
         setQuestionIndex(nextIdx);
       } else if (phase === "discovery") {
         addLeadMessage(
-          "Thank you. I have sufficient context to proceed.\n\nI am now consulting with the internal team — Architect, QA, and Reviewer — to assess feasibility, risks, and resource requirements.\n\nPlease review the Internal Consultation panel on the right."
+          "Thank you. I have sufficient context to proceed.\n\nPlease complete the Clarification Checklist in the right panel, then confirm to unlock System Decomposition."
         );
-        setPhase("consultation");
-        setTimeout(() => {
-          addLeadMessage(
-            "Internal consultation is complete. The team has provided their assessment.\n\nI have prepared the Estimate Panel with module-level breakdown, token budget, cost projection, and timeline.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel."
-          );
-          setPhase("estimate");
-        }, 1500);
+        // Don't auto-advance — clarification gate controls progression
+      } else if (phase === "decomposition") {
+        addLeadMessage("Review the System Decomposition panel. Add, merge, or adjust modules, then confirm to proceed to team consultation.");
       } else {
         addLeadMessage("The estimate is ready for your review. Use the decision buttons below the estimate panel to proceed.");
       }
