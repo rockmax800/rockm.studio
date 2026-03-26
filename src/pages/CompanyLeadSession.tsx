@@ -982,15 +982,15 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </RailCard>
             )}
 
-            {/* Market Benchmark — founder-only */}
-            {showEstimate && scope && (
+            {/* Market Benchmark — founder-only, uses post-reduction scope */}
+            {showEstimate && effectiveScope && (
               <MarketBenchmarkPanel
                 signals={{
-                  scopeKeywords: [...scope.modules, ...scope.constraints].map(s => s.toLowerCase()),
-                  complexity: scope.complexity,
-                  hasFrontend: scope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
-                  hasBackend: scope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
-                  moduleCount: scope.modules.length,
+                  scopeKeywords: [...effectiveScope.modules, ...effectiveScope.constraints].map(s => s.toLowerCase()),
+                  complexity: effectiveScope.complexity,
+                  hasFrontend: effectiveScope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: effectiveScope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: effectiveScope.modules.length,
                 }}
                 estimatedAicUsd={totalCost}
                 sourceType="company_lead"
