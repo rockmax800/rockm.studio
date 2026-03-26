@@ -9,6 +9,8 @@ export interface PlanningGateInput {
   dependencyEdges: DependencyEdge[];
   mvpReductionComplete: boolean;
   isMvpProject: boolean;
+  /** Founder explicitly confirmed modules are independent (no dependency edges needed) */
+  independenceAcknowledged?: boolean;
 }
 
 export interface GateFailure {
@@ -42,7 +44,7 @@ export function validatePlanningGate(input: PlanningGateInput): PlanningGateResu
     });
   }
 
-  if (input.modules.length > 0 && input.dependencyEdges.length === 0 && input.modules.length > 1) {
+  if (input.modules.length > 1 && input.dependencyEdges.length === 0 && !input.independenceAcknowledged) {
     failures.push({
       key: "dependencies",
       label: "Dependency graph missing",
