@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,9 @@ import type { BriefSectionData } from "@/lib/intake-brief-transfer";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import type { BriefSignals } from "@/lib/business/market-benchmarking";
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
+import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
+import { generateBacklogCards } from "@/lib/cto-backlog";
+import type { CTOBacklogCardDraft, SystemModule } from "@/types/front-office-planning";
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -161,10 +164,38 @@ export default function IntakeComposerV2() {
   const formRef = useRef<HTMLDivElement>(null);
 
   const { frozenBrief, phase, freeze, startKickoff, reset } = useIntakeBriefDraft();
+  const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
 
   const filledCount = sections.filter((s) => s.content.length > 0).length;
   const tokenEstimate = messages.reduce((acc, m) => acc + Math.round(m.content.length / 4), 0);
   const isEmpty = messages.length === 0;
+
+  // Generate CTO backlog from brief sections after freeze
+  const generateBacklogFromBrief = useCallback(() => {
+    if (phase !== "frozen" && phase !== "kickoff-started") return;
+    const scopeSection = sections.find(s => s.key === "in_scope");
+    const goalSection = sections.find(s => s.key === "goal");
+    if (!scopeSection?.content) return;
+    // Derive simple modules from scope text
+    const scopeItems = scopeSection.content.split(/[,;.\n]+/).map(s => s.trim()).filter(Boolean);
+    const modules: SystemModule[] = scopeItems.map((item) => ({
+      name: item.length > 40 ? item.slice(0, 40) : item,
+      purpose: item,
+      coreFeatures: [item],
+      dependencies: [],
+      riskLevel: "medium" as const,
+      complexityEstimate: "medium" as const,
+      mvpOptional: false,
+    }));
+    if (modules.length > 0 && ctoBacklogCards.length === 0) {
+      setCtoBacklogCards(generateBacklogCards(modules));
+    }
+  }, [phase, sections, ctoBacklogCards.length]);
+
+  // Trigger backlog generation when phase changes to frozen
+  useEffect(() => {
+    generateBacklogFromBrief();
+  }, [generateBacklogFromBrief]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -561,6 +592,14 @@ export default function IntakeComposerV2() {
                       </>
                     );
                   })()}
+
+                  {/* CTO Backlog Draft — after freeze */}
+                  {phase !== "drafting" && ctoBacklogCards.length > 0 && (
+                    <CtoBacklogDraftPanel
+                      cards={ctoBacklogCards}
+                      onCardsChange={setCtoBacklogCards}
+                    />
+                  )}
 
                   {/* Frozen success state */}
                   {phase !== "drafting" && (

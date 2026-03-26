@@ -25,10 +25,13 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
-  AlertTriangle, CheckCircle2, FileText, ChevronRight,
+  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList,
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
+import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
+import type { CTOBacklogCardDraft } from "@/types/front-office-planning";
+import { useState } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
@@ -59,6 +62,7 @@ function MetricChip({ label, value, alert }: { label: string; value: string | nu
 
 export default function ProjectDetail() {
   const { id } = useParams();
+  const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks = [] } = useTasks(id);
   const { data: approvals = [] } = useApprovals(id);
@@ -417,6 +421,21 @@ export default function ProjectDetail() {
               })}
             />
           </div>
+
+          {/* ══ CTO BACKLOG DRAFT — Pre-Delivery Planning ══ */}
+          {ctoBacklogCards.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={ClipboardList} title="CTO Backlog Draft" count={ctoBacklogCards.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Pre-delivery planning artifact — live Delivery tasks are created from approved cards after launch gate.
+              </p>
+              <CtoBacklogDraftPanel
+                cards={ctoBacklogCards}
+                onCardsChange={setCtoBacklogCards}
+                locked={project.state !== "draft" && project.state !== "scoped"}
+              />
+            </div>
+          )}
 
           {/* ══ DELIVERY BOARD ══ */}
           <div id="delivery-board" className="rounded-2xl bg-card border-2 border-primary/20 shadow-sm p-5 scroll-mt-6">
