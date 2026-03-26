@@ -422,6 +422,21 @@ export default function ProjectDetail() {
             />
           </div>
 
+          {/* ══ CTO BACKLOG DRAFT — Pre-Delivery Planning ══ */}
+          {ctoBacklogCards.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={ClipboardList} title="CTO Backlog Draft" count={ctoBacklogCards.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Pre-delivery planning artifact — live Delivery tasks are created from approved cards after launch gate.
+              </p>
+              <CtoBacklogDraftPanel
+                cards={ctoBacklogCards}
+                onCardsChange={setCtoBacklogCards}
+                locked={project.state !== "planning"}
+              />
+            </div>
+          )}
+
           {/* ══ DELIVERY BOARD ══ */}
           <div id="delivery-board" className="rounded-2xl bg-card border-2 border-primary/20 shadow-sm p-5 scroll-mt-6">
             <div className="flex items-center gap-3 mb-4">
