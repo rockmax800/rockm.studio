@@ -310,6 +310,17 @@ export default function OfficePage() {
                 const activeCount = employees.filter((e: any) => e.status !== "idle").length;
                 const blockedCount = employees.filter((e: any) => e.status === "blocked").length;
 
+                // Find active projects this room is working on
+                const roomRoleIds = new Set(employees.map((e: any) => e.roleId).filter(Boolean));
+                const roomProjectIds = new Set(
+                  (data.allTasks as any[])
+                    .filter((t: any) => roomRoleIds.has(t.owner_role_id) && !["done", "cancelled"].includes(t.state))
+                    .map((t: any) => t.project_id)
+                );
+                const roomProjects = (data.projects as any[]).filter((p: any) => roomProjectIds.has(p.id)).slice(0, 3);
+                const activeCount = employees.filter((e: any) => e.status !== "idle").length;
+                const blockedCount = employees.filter((e: any) => e.status === "blocked").length;
+
                 return (
                   <div key={team.id}
                     className={cn(
