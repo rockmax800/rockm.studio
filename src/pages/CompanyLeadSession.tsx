@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
 import { ClarificationChecklist } from "@/components/intake/ClarificationChecklist";
+import { SystemDecompositionPanel } from "@/components/intake/SystemDecompositionPanel";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -26,6 +27,8 @@ import {
   getClarificationStatus,
   inferClarificationFromText,
 } from "@/lib/company-lead-clarification";
+import type { SystemModule, DependencyEdge } from "@/types/front-office-planning";
+import { decomposeSystem } from "@/lib/system-decomposition";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
