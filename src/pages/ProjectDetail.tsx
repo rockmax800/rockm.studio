@@ -173,6 +173,33 @@ export default function ProjectDetail() {
     [id, taskSpecDrafts],
   );
 
+  const handleCreateClarification = useCallback(
+    (moduleId: string, moduleName: string, ambiguity: string, requested: string) => {
+      const req = createClarificationRequest({
+        projectId: id!,
+        blueprintId: blueprintContractId,
+        affectedModuleId: moduleId,
+        affectedModuleName: moduleName,
+        ambiguityDescription: ambiguity,
+        requestedClarification: requested,
+      });
+      setClarificationRequests((prev) => [...prev, req]);
+    },
+    [id, blueprintContractId],
+  );
+
+  const handleResolveClarification = useCallback((reqId: string, note: string) => {
+    setClarificationRequests((prev) =>
+      prev.map((r) => r.id === reqId ? { ...r, status: "resolved" as const, resolvedAt: new Date().toISOString(), resolverNote: note } : r),
+    );
+  }, []);
+
+  const handleDismissClarification = useCallback((reqId: string) => {
+    setClarificationRequests((prev) =>
+      prev.map((r) => r.id === reqId ? { ...r, status: "dismissed" as const, resolvedAt: new Date().toISOString() } : r),
+    );
+  }, []);
+
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
     queryFn: async () => {
