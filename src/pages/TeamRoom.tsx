@@ -133,6 +133,7 @@ export default function TeamRoom() {
         roles={roles}
         deptName={deptName}
         onBack={() => setSessionActive(false)}
+        briefContext={briefContext}
       />
     );
   }
