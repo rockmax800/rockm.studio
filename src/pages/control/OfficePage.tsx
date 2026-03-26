@@ -21,7 +21,7 @@ import {
   AlertTriangle, UserPlus, Loader2,
   MessageSquare, Plus, Radio, Activity,
   TrendingUp, Shield, ChevronRight,
-  RefreshCw, Clock,
+  RefreshCw, Clock, Columns3,
 } from "lucide-react";
 
 /* ═══ ROOM ACCENTS — minimal left-border color only ═══ */
