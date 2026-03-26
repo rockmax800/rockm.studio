@@ -397,8 +397,14 @@ export default function EmployeeProfile() {
                     <button onClick={() => toggleMemory(cat.key)}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-secondary/15 transition-colors">
                       <span className="text-muted-foreground/50">{cat.icon}</span>
-                      <span className="text-[12px] font-bold text-foreground flex-1">{cat.title}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[12px] font-bold text-foreground">{cat.title}</span>
+                        <p className="text-[10px] text-muted-foreground/40 mt-0.5">{cat.description}</p>
+                      </div>
                       <span className="text-[10px] text-muted-foreground/40 font-mono">{cat.items.length}</span>
+                      {cat.items.length > 0 && (
+                        <span className="text-[9px] text-muted-foreground/25">{cat.items[0].updated}</span>
+                      )}
                       {isExpanded ? <ChevronDown className="h-3 w-3 text-muted-foreground/30" /> : <ChevronRight className="h-3 w-3 text-muted-foreground/30" />}
                     </button>
                     {isExpanded && (
