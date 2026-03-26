@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Snowflake,
+  Cpu,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { useIntakeBriefDraft } from "@/hooks/use-intake-brief-draft";
