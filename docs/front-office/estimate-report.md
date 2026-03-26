@@ -55,6 +55,7 @@ A LaunchDecision can only be created when an Approval record with `decision = ap
 - Requires an approved BlueprintContract (via Approval entity).
 - Founder must approve estimate (via Approval entity) before a LaunchDecision can be made.
 - Estimates are informational — actual costs may vary.
+- **v2.1:** The source BlueprintContract MUST contain non-empty `modules_json` and `dependency_graph_json` before an EstimateReport can be created. Estimation without modular decomposition is blocked.
 
 ---
 
