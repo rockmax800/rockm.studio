@@ -7,7 +7,7 @@ import { useSystemMode } from "@/hooks/use-system-mode";
 import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/use-diagnostics-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette, Blocks } from "lucide-react";
+import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette, Blocks, Cable } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { lazy, Suspense, useMemo } from "react";
 
@@ -17,6 +17,8 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import { VerificationStatusPanel } from "@/components/system/VerificationStatusPanel";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LOCAL_RULES } from "@/config/harness-rules";
+import { ENGINE_PRESETS } from "@/config/execution-engines";
+import { HARNESS_TARGETS } from "@/types/execution";
 import { LOCAL_COMMANDS } from "@/config/harness-commands";
 import { LOCAL_HOOKS } from "@/config/harness-hooks";
 
@@ -87,6 +89,9 @@ export default function SystemPage() {
             </TabsTrigger>
             <TabsTrigger value="harness" className="gap-1.5">
               <Blocks className="h-3.5 w-3.5" /> Harness
+            </TabsTrigger>
+            <TabsTrigger value="interop" className="gap-1.5">
+              <Cable className="h-3.5 w-3.5" /> Interop
             </TabsTrigger>
             <TabsTrigger value="docs" className="gap-1.5">
               <BookOpen className="h-3.5 w-3.5" /> Documentation
