@@ -25,13 +25,15 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
-  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList,
+  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList, Cpu,
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
 import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
-import type { CTOBacklogCardDraft } from "@/types/front-office-planning";
-import { useState } from "react";
+import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
+import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
+import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
+import { useState, useMemo } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
@@ -63,6 +65,12 @@ function MetricChip({ label, value, alert }: { label: string; value: string | nu
 export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
+  const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
+  const cardTitles = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
+    return map;
+  }, [ctoBacklogCards]);
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks = [] } = useTasks(id);
   const { data: approvals = [] } = useApprovals(id);
@@ -433,6 +441,20 @@ export default function ProjectDetail() {
                 cards={ctoBacklogCards}
                 onCardsChange={setCtoBacklogCards}
                 locked={project.state !== "draft" && project.state !== "scoped"}
+              />
+            </div>
+          )}
+
+          {/* ══ AI TASK DRAFTS — Atomic Pre-Delivery Planning ══ */}
+          {aiTaskDrafts.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={Cpu} title="AI Task Drafts" count={aiTaskDrafts.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Atomic task drafts decomposed from CTO Backlog — each affects one layer only. Becomes live Delivery tasks after launch gate.
+              </p>
+              <AiTaskDraftPanel
+                drafts={aiTaskDrafts}
+                cardTitles={cardTitles}
               />
             </div>
           )}
