@@ -12,6 +12,8 @@ import { RiskSummary } from "@/components/project-cockpit/RiskSummary";
 import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
 import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPanel";
 import { VerificationRail } from "@/components/project-cockpit/VerificationRail";
+import { ProjectGuidancePack } from "@/components/project-cockpit/ProjectGuidancePack";
+import { deriveGuidancePack } from "@/types/project-guidance";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
 import { Button } from "@/components/ui/button";
@@ -24,7 +26,7 @@ import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
   AlertTriangle, CheckCircle2, FileText, ChevronRight,
-  Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck,
+  Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 
 const RISK_COLORS = {
@@ -376,6 +378,25 @@ export default function ProjectDetail() {
                 hasProductionLive={hasProductionLive}
               />
             </div>
+          </div>
+
+          {/* ══ PROJECT GUIDANCE PACK ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={BookOpen} title="Project Guidance Pack" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Operating rules and quality expectations for this project — derived from current state.
+            </p>
+            <ProjectGuidancePack
+              guidancePack={deriveGuidancePack(project, {
+                taskCount: tasks.length,
+                blockedCount: blockedCount,
+                failedRunCount: failedRuns.length,
+                pendingApprovalCount: pendingApprovals.length,
+                hasCI: ciPassed || ciFailed,
+                hasDomain: domainBindings.length > 0,
+                riskLevel: riskLevel,
+              })}
+            />
           </div>
 
           {/* ══ DELIVERY BOARD ══ */}
