@@ -48,6 +48,8 @@ The founder operates as:
 - Learning arbiter (approves/rejects improvement proposals)
 - Strategic analyst (market benchmarking — comparing AI cost vs human-equivalent cost vs offer price; see `market-benchmarking-engine.md`)
 
+**Hard rule:** Market Benchmarking is advisory only. It may inform the founder's pricing and go/no-go judgment but **cannot directly trigger or block any Delivery Plane transition** (task state changes, run approvals, deployment gates). It is never rendered in the Client Portal or any client-facing surface.
+
 The founder does NOT:
 - Write code
 - Configure infrastructure manually

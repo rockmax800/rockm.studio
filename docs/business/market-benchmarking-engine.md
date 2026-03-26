@@ -30,9 +30,11 @@ This is a **strategic compass**, not pricing automation. It does not set prices,
 |------|--------|
 | Visibility | **Founder-only.** Never exposed in Client Portal, client reports, or external estimates. |
 | Delivery coupling | **None.** Does not influence task state transitions, run execution, approval gates, or deployment flow. |
+| **Hard rule: no delivery triggers** | **Market Benchmarking may inform founder judgment but cannot directly trigger or block Delivery Plane transitions.** No benchmark metric may appear as a guard condition, gate prerequisite, or automated decision input in the Delivery Plane state machine. |
 | Pricing coupling | **None.** Studio Offer Price is a founder input, not an output of this module. See `pricing-strategy.md` for client-facing pricing. |
 | Token budgeting coupling | **Read-only.** May consume AIC data from `token-economy-and-budgeting.md` as an input, but never writes back or modifies budget limits. |
 | Assumption versioning | **Required.** Every benchmark calculation must reference a named assumption set with date and source. |
+| Client Portal exclusion | **Explicit.** `ClientPortal.tsx` must never import, render, or reference any market benchmarking data, types, or components. This is verified by code review. |
 
 ---
 
@@ -115,10 +117,16 @@ Assumptions are **not auto-updated**. The founder reviews and publishes new assu
 | Component | Status |
 |-----------|--------|
 | Documented specification | ✅ This document |
-| UI surface (founder dashboard) | ⬜ Not implemented |
-| Assumption management | ⬜ Not implemented (founder uses docs) |
-| AIC auto-import from token tracking | ⬜ Not implemented |
-| Role mix auto-suggestion from blueprints | ⬜ Not implemented |
+| Type definitions (`src/types/market-benchmark.ts`) | ✅ Implemented |
+| Pure calculation engine (`src/lib/business/market-benchmarking.ts`) | ✅ Implemented |
+| Default benchmarks (`src/config/market-benchmark-defaults.ts`) | ✅ Implemented |
+| Role-mix suggestion from blueprint | ✅ Implemented (deterministic heuristic) |
+| UI panel in IntakeComposer / CompanyLeadSession | ✅ Implemented (founder-only, collapsible) |
+| Versioned snapshot persistence (`market_benchmark_snapshots`) | ✅ Implemented |
+| Snapshot history viewer | ✅ Implemented |
+| AIC auto-import from token tracking | ⬜ Not implemented (manual input) |
 | Historical velocity derivation | ⬜ Not implemented |
+| Client Portal exclusion verified | ✅ Verified — no benchmark imports or references |
+| ProjectDetail exclusion verified | ✅ Verified — no benchmark data in delivery controls |
 
 When implemented, this will be a read-only analytics panel inside the Founder dashboard or a dedicated founder-only route. It will never write to delivery entities.
