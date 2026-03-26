@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { cn } from "@/lib/utils";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
