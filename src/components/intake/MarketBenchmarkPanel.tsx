@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, ChevronDown, ChevronRight, TrendingUp, AlertTriangle, DollarSign } from "lucide-react";
+import { ShieldAlert, ChevronDown, ChevronRight, TrendingUp, AlertTriangle, DollarSign, Save, History, Clock } from "lucide-react";
 import {
   suggestRoleMixFromBlueprint,
   buildRoleBenchmarkLines,
@@ -8,11 +8,16 @@ import {
   type BriefSignals,
 } from "@/lib/business/market-benchmarking";
 import { DEFAULT_ASSUMPTIONS_VERSION } from "@/config/market-benchmark-defaults";
+import { useMarketBenchmark, type BenchmarkSnapshot } from "@/hooks/use-market-benchmark";
+import type { RoleBenchmarkLine } from "@/types/market-benchmark";
 
 interface Props {
   signals: BriefSignals;
   /** Pre-filled AIC from token estimate if available */
   estimatedAicUsd?: number;
+  /** Source context for persistence */
+  sourceType?: "company_lead" | "intake" | "project";
+  sourceId?: string;
   className?: string;
 }
 
@@ -20,35 +25,62 @@ function fmt(n: number) {
   return n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n.toFixed(0)}`;
 }
 
-export function MarketBenchmarkPanel({ signals, estimatedAicUsd, className = "" }: Props) {
+export function MarketBenchmarkPanel({ signals, estimatedAicUsd, sourceType, sourceId, className = "" }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [aicInput, setAicInput] = useState<string>(estimatedAicUsd?.toFixed(0) ?? "");
   const [sopInput, setSopInput] = useState<string>("");
   const [countryCode, setCountryCode] = useState("US");
+  const [showHistory, setShowHistory] = useState(false);
+
+  const { snapshots, loading, saving, loadSnapshots, saveSnapshot } = useMarketBenchmark(
+    sourceType ?? "intake",
+    sourceId
+  );
 
   const suggestion = useMemo(() => suggestRoleMixFromBlueprint(signals), [signals]);
 
-  const result = useMemo(() => {
-    const aic = Number(aicInput) || 0;
-    const sop = Number(sopInput) || 0;
-    if (suggestion.length === 0) return null;
-
-    const lines = buildRoleBenchmarkLines({
+  const currentLines = useMemo<RoleBenchmarkLine[]>(() => {
+    if (suggestion.length === 0) return [];
+    return buildRoleBenchmarkLines({
       roleCodes: suggestion.map((s) => s.roleCode),
       countryCode,
       effortMonths: suggestion[0]?.suggestedEffortMonths ?? 2,
       allocationOverrides: Object.fromEntries(suggestion.map((s) => [s.roleCode, s.suggestedAllocationPct])),
     });
+  }, [suggestion, countryCode]);
+
+  const result = useMemo(() => {
+    const aic = Number(aicInput) || 0;
+    const sop = Number(sopInput) || 0;
+    if (currentLines.length === 0) return null;
 
     return calculateMarketBenchmark({
-      roleLines: lines,
+      roleLines: currentLines,
       aiInternalCostUsd: aic,
       studioOfferPriceUsd: sop,
       assumptionsVersion: DEFAULT_ASSUMPTIONS_VERSION,
     });
-  }, [suggestion, aicInput, sopInput, countryCode]);
+  }, [currentLines, aicInput, sopInput]);
 
   const hasInputs = Number(aicInput) > 0 && Number(sopInput) > 0;
+  const canSave = result && hasInputs && sourceId;
+
+  // Load history when toggled
+  useEffect(() => {
+    if (showHistory && sourceId) {
+      loadSnapshots();
+    }
+  }, [showHistory, sourceId, loadSnapshots]);
+
+  const handleSave = async () => {
+    if (!result || !canSave) return;
+    await saveSnapshot(result, currentLines, {
+      assumptionsVersion: DEFAULT_ASSUMPTIONS_VERSION,
+      countryCode,
+      aicUsd: Number(aicInput) || 0,
+      sopUsd: Number(sopInput) || 0,
+    });
+  };
 
   return (
     <div className={`rounded-xl border border-status-amber/20 bg-status-amber/[0.02] overflow-hidden ${className}`}>
@@ -62,6 +94,9 @@ export function MarketBenchmarkPanel({ signals, estimatedAicUsd, className = "" 
         <Badge variant="outline" className="text-[8px] h-auto py-0 px-1.5 border-status-amber/30 text-status-amber uppercase tracking-widest font-bold">
           Founder only
         </Badge>
+        {snapshots.length > 0 && (
+          <span className="text-[9px] text-muted-foreground/40 font-mono">{snapshots.length} saved</span>
+        )}
         <span className="ml-auto">
           {expanded ? <ChevronDown className="h-3 w-3 text-muted-foreground/40" /> : <ChevronRight className="h-3 w-3 text-muted-foreground/40" />}
         </span>
@@ -201,6 +236,29 @@ export function MarketBenchmarkPanel({ signals, estimatedAicUsd, className = "" 
                 </div>
               )}
 
+              {/* Actions */}
+              <div className="flex items-center gap-2 pt-1">
+                {canSave && (
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-primary/10 border border-primary/20 text-primary hover:bg-primary/15 transition-colors disabled:opacity-50"
+                  >
+                    <Save className="h-3 w-3" />
+                    {saving ? "Saving…" : "Save founder snapshot"}
+                  </button>
+                )}
+                {sourceId && (
+                  <button
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-muted/40 border border-border/30 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <History className="h-3 w-3" />
+                    {showHistory ? "Hide history" : "View snapshots"}
+                  </button>
+                )}
+              </div>
+
               {/* Break-even */}
               {result.breakEvenStudioPriceUsd && (
                 <p className="text-[9px] text-muted-foreground/30 font-mono text-center">
@@ -209,8 +267,67 @@ export function MarketBenchmarkPanel({ signals, estimatedAicUsd, className = "" 
               )}
             </div>
           )}
+
+          {/* Snapshot History */}
+          {showHistory && (
+            <div className="space-y-2 pt-1 border-t border-border/10">
+              <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                Previous snapshots
+              </h4>
+              {loading ? (
+                <p className="text-[10px] text-muted-foreground/40">Loading…</p>
+              ) : snapshots.length === 0 ? (
+                <p className="text-[10px] text-muted-foreground/30 italic">No snapshots saved yet for this context.</p>
+              ) : (
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {snapshots.map((s) => (
+                    <SnapshotRow key={s.id} snapshot={s} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+function SnapshotRow({ snapshot }: { snapshot: BenchmarkSnapshot }) {
+  const d = new Date(snapshot.created_at);
+  return (
+    <div className="flex items-center gap-3 rounded-lg bg-muted/20 border border-border/10 px-3 py-2">
+      <Clock className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono text-foreground">
+            HEC {fmt(snapshot.human_equivalent_cost_usd)}
+          </span>
+          <span className="text-[9px] text-muted-foreground/40">→</span>
+          <span className="text-[10px] font-mono text-foreground">
+            SOP {fmt(snapshot.studio_offer_price_usd)}
+          </span>
+          {snapshot.advantage_ratio && (
+            <Badge variant="outline" className="text-[8px] h-auto py-0 px-1 border-primary/20 text-primary font-mono">
+              {Number(snapshot.advantage_ratio).toFixed(1)}×
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[8px] text-muted-foreground/30">
+            {d.toLocaleDateString()} {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
+          <span className="text-[8px] text-muted-foreground/20">·</span>
+          <span className="text-[8px] text-muted-foreground/30">{snapshot.country_code}</span>
+          <span className="text-[8px] text-muted-foreground/20">·</span>
+          <span className="text-[8px] text-muted-foreground/30">v{snapshot.assumptions_version}</span>
+        </div>
+      </div>
+      <span className={`text-[10px] font-bold font-mono ${
+        snapshot.gross_ai_margin_usd > 0 ? "text-status-green" : "text-destructive"
+      }`}>
+        {fmt(snapshot.gross_ai_margin_usd)}
+      </span>
     </div>
   );
 }

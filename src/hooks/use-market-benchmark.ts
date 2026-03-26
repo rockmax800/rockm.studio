@@ -16,7 +16,6 @@ export interface BenchmarkSnapshot {
   gross_ai_margin_usd: number;
   ai_efficiency_spread: number | null;
   created_at: string;
-  role_lines?: RoleBenchmarkLine[];
 }
 
 export function useMarketBenchmark(sourceType: string, sourceId: string | undefined) {
@@ -28,7 +27,7 @@ export function useMarketBenchmark(sourceType: string, sourceId: string | undefi
     if (!sourceId) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("market_benchmark_snapshots")
         .select("*")
         .eq("source_type", sourceType)
@@ -56,7 +55,7 @@ export function useMarketBenchmark(sourceType: string, sourceId: string | undefi
       if (!sourceId) return null;
       setSaving(true);
       try {
-        const { data: snap, error: snapErr } = await supabase
+        const { data: snap, error: snapErr } = await (supabase as any)
           .from("market_benchmark_snapshots")
           .insert({
             source_type: sourceType,
@@ -90,7 +89,7 @@ export function useMarketBenchmark(sourceType: string, sourceId: string | undefi
             velocity_index: l.velocityIndex,
             human_equivalent_cost_usd: l.humanEquivalentCostUsd,
           }));
-          const { error: lineErr } = await supabase
+          const { error: lineErr } = await (supabase as any)
             .from("market_benchmark_role_lines")
             .insert(rows);
           if (lineErr) throw lineErr;
