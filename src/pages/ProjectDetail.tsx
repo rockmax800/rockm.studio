@@ -13,6 +13,7 @@ import { DeliveryBoard } from "@/components/project-cockpit/DeliveryBoard";
 import { ProjectSetupPanel } from "@/components/project-cockpit/ProjectSetupPanel";
 import { VerificationRail } from "@/components/project-cockpit/VerificationRail";
 import { ProjectGuidancePack } from "@/components/project-cockpit/ProjectGuidancePack";
+import { PlanningPackageSummary } from "@/components/project-cockpit/PlanningPackageSummary";
 import { deriveGuidancePack } from "@/types/project-guidance";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineBar, resolveStageIndex } from "@/components/PipelineBar";
