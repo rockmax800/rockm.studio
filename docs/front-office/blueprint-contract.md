@@ -53,3 +53,19 @@ An EstimateReport can only be created when an Approval record with `decision = a
 - One IntakeRequest can produce multiple BlueprintContract iterations.
 - Only the blueprint with an approved Approval record proceeds to estimation.
 - Scope changes after approval require a new blueprint version and new Approval.
+
+---
+
+## 5 — Planning Package Integration (v2.1)
+
+Under the **Company Lead Planning Package v2.1**, the BlueprintContract becomes an **Enhanced Blueprint** that includes modular decomposition data:
+
+- `scope_json` must reference module definitions from System Decomposition.
+- The blueprint cannot be created without a completed Clarification Loop.
+- After approval, the blueprint feeds into the CTO Backlog Draft phase.
+
+**Hard invariants:**
+- No blueprint without clarification complete.
+- No EstimateReport without `modules_json` + `dependency_graph_json` attached to or derived from this blueprint.
+
+See `company-lead-planning-package.md` for the full phase sequence.
