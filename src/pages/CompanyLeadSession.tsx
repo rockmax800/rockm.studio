@@ -966,9 +966,17 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   {planningGate.failures.map((f) => (
                     <div key={f.key} className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/[0.04] px-3 py-2">
                       <XCircle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
-                      <div>
+                      <div className="flex-1">
                         <span className="text-[11px] font-bold text-destructive">{f.label}</span>
                         <p className="text-[10px] text-muted-foreground mt-0.5">{f.detail}</p>
+                        {f.key === "dependencies" && (
+                          <button
+                            onClick={() => { setIndependenceAcknowledged(true); toast.success("Module independence confirmed."); }}
+                            className="mt-1.5 text-[10px] font-semibold text-primary underline underline-offset-2 hover:opacity-80"
+                          >
+                            Confirm modules are independent →
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
