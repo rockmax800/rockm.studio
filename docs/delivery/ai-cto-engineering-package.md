@@ -232,14 +232,18 @@ Post-run conformance reports from the AI CTO feed into the Hard Enforcement Laye
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Planning Gate validation | ✅ Implemented | `src/lib/planning-gates.ts` |
+| Planning Gate validation | ✅ Implemented | `src/lib/planning-gates.ts`, `src/lib/cto-readiness.ts` |
 | Module-aware estimation | ✅ Implemented | `src/lib/module-estimation.ts` |
 | CTO Backlog Draft generation | ✅ Implemented | `src/lib/cto-backlog.ts` |
 | AI Task Draft decomposition | ✅ Implemented | `src/lib/ai-task-decomposition.ts` |
-| Engineering Slice compilation | ⬜ Not implemented | Requires dedicated prompt |
-| TaskSpec draft generation | ⬜ Not implemented | Requires engineering slices first |
-| Execution DAG computation | ⬜ Not implemented | Requires TaskSpec drafts |
-| Post-run conformance review | ⬜ Not implemented | Requires live Delivery integration |
-| Canonical persistence | 🟡 Partial | Planning artifacts persisted; engineering outputs not yet |
+| Engineering Slice compilation | ✅ Implemented | `src/lib/engineering-slices.ts`, split/merge controls |
+| TaskSpec draft generation | ✅ Implemented | `src/lib/taskspec-draft-compiler.ts`, auto-split at C>8 |
+| Execution DAG computation | ✅ Implemented | `src/lib/execution-planner.ts`, cycle/parallel/critical-path |
+| TaskSpec sanity validation | ✅ Implemented | `src/lib/taskspec-sanity.ts`, layer/DoD/path/complexity/bleed checks |
+| Post-run conformance review | 🟡 Structural only | `src/lib/cto-conformance.ts` — no live telemetry on current branch |
+| Canonical persistence | ✅ Implemented | 4 tables: `engineering_slice_drafts`, `taskspec_drafts`, `execution_plan_drafts`, `cto_conformance_reports` |
+| Controlled materialization | ✅ Implemented | `src/lib/materialize-delivery-tasks.ts` — gated, founder-confirmed |
+| CTO Overview (founder UI) | ✅ Implemented | `src/components/project-cockpit/CtoOverview.tsx` |
+| CTO Readiness Gate (UI) | ✅ Implemented | `src/components/project-cockpit/CtoReadinessGate.tsx` |
 
-> **Document Honesty:** This document defines the canonical contract for the AI CTO. Implementation will follow in dedicated prompts. The contract is authoritative; code enforcement is incremental.
+> **Document Honesty:** Conformance checks are structural only — derived from draft quality, not live run telemetry. UI panels display "no telemetry" badges and honesty banners where applicable. All CTO outputs remain Intent Plane drafts until founder-confirmed materialization.
