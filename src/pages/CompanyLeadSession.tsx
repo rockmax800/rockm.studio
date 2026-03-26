@@ -939,14 +939,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             )}
 
             {/* Human Equivalent Team — uses post-reduction scope */}
-            {showEstimate && effectiveScope && (
+            {showEstimate && scope && (
               <HumanTeamSuggestionPanel
                 signals={{
-                  scopeKeywords: [...effectiveScope.modules, ...effectiveScope.constraints].map(s => s.toLowerCase()),
-                  complexity: effectiveScope.complexity,
-                  hasFrontend: effectiveScope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
-                  hasBackend: effectiveScope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
-                  moduleCount: effectiveScope.modules.length,
+                  scopeKeywords: [...effectiveModuleNames, ...scope.constraints].map(s => s.toLowerCase()),
+                  complexity: scope.complexity,
+                  hasFrontend: effectiveModuleNames.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: effectiveModuleNames.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: effectiveModuleNames.length,
                 }}
               />
             )}
@@ -1089,14 +1089,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             )}
 
             {/* Market Benchmark — founder-only, uses post-reduction scope */}
-            {showEstimate && effectiveScope && (
+            {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
-                  scopeKeywords: [...effectiveScope.modules, ...effectiveScope.constraints].map(s => s.toLowerCase()),
-                  complexity: effectiveScope.complexity,
-                  hasFrontend: effectiveScope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
-                  hasBackend: effectiveScope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
-                  moduleCount: effectiveScope.modules.length,
+                  scopeKeywords: [...effectiveModuleNames, ...scope.constraints].map(s => s.toLowerCase()),
+                  complexity: scope.complexity,
+                  hasFrontend: effectiveModuleNames.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: effectiveModuleNames.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: effectiveModuleNames.length,
                 }}
                 estimatedAicUsd={totalCost}
                 sourceType="company_lead"
