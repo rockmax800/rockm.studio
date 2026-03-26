@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
-  Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
+  Briefcase, Zap, Sparkles, MessageSquare, MessageSquareWarning, ChevronRight,
   X, Maximize2, GraduationCap, User, ShieldCheck, FileText,
 } from "lucide-react";
 import { Link } from "react-router-dom";
