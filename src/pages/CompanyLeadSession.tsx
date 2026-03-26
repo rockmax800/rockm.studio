@@ -239,6 +239,23 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
+  // ── Clarification Loop state (local draft — not persisted) ──
+  const [clarification, setClarification] = useState<ClarificationFields>(EMPTY_CLARIFICATION);
+  const [clarificationLocked, setClarificationLocked] = useState(false);
+  const clarificationStatus = getClarificationStatus(clarification);
+
+  const handleClarificationFieldChange = (key: keyof ClarificationFields, value: any) => {
+    if (clarificationLocked) return;
+    setClarification((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleMarkClarificationComplete = () => {
+    if (!clarificationStatus.isComplete) return;
+    setClarificationLocked(true);
+    toast.success("Clarification complete — planning outputs unlocked.");
+    addLeadMessage("Clarification Loop is complete. All required fields are confirmed.\n\nI will now proceed with team consultation and estimate generation.");
+  };
+
   useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
