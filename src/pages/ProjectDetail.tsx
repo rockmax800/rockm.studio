@@ -65,6 +65,12 @@ function MetricChip({ label, value, alert }: { label: string; value: string | nu
 export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
+  const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
+  const cardTitles = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
+    return map;
+  }, [ctoBacklogCards]);
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks = [] } = useTasks(id);
   const { data: approvals = [] } = useApprovals(id);
