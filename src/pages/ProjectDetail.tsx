@@ -38,6 +38,7 @@ import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDrafts
 import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPanel";
 import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanityPanel";
 import { CtoConformancePanel } from "@/components/project-cockpit/CtoConformancePanel";
+import { MaterializeTasksPanel } from "@/components/project-cockpit/MaterializeTasksPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
@@ -46,7 +47,8 @@ import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { buildExecutionPlan } from "@/lib/execution-planner";
 import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import { evaluateConformance } from "@/lib/cto-conformance";
-import { useState, useMemo } from "react";
+import { checkMaterializationGate, materializeDeliveryTasks } from "@/lib/materialize-delivery-tasks";
+import { useState, useMemo, useCallback } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
