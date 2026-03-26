@@ -11,6 +11,7 @@ import {
   X, Maximize2, GraduationCap, User,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -697,6 +698,19 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   ))}
                 </div>
               </RailCard>
+            )}
+
+            {/* Human Equivalent Team */}
+            {showEstimate && scope && (
+              <HumanTeamSuggestionPanel
+                signals={{
+                  scopeKeywords: [...scope.modules, ...scope.constraints].map(s => s.toLowerCase()),
+                  complexity: scope.complexity,
+                  hasFrontend: scope.modules.some(m => ["Dashboard", "Landing Page", "User Portal"].includes(m)),
+                  hasBackend: scope.modules.some(m => ["Payments", "Real-time Chat", "API", "Search Engine"].includes(m)),
+                  moduleCount: scope.modules.length,
+                }}
+              />
             )}
 
             {/* Estimate */}

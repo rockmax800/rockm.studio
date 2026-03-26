@@ -22,6 +22,8 @@ import {
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { useIntakeBriefDraft } from "@/hooks/use-intake-brief-draft";
 import type { BriefSectionData } from "@/lib/intake-brief-transfer";
+import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
+import type { BriefSignals } from "@/lib/business/market-benchmarking";
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -534,6 +536,25 @@ export default function IntakeComposerV2() {
                       </p>
                     </div>
                   )}
+
+                  {/* Human Equivalent Team suggestion */}
+                  {filledCount >= 2 && (() => {
+                    const cxSection = sections.find(s => s.key === "complexity");
+                    const scopeSection = sections.find(s => s.key === "in_scope");
+                    const goalSection = sections.find(s => s.key === "goal");
+                    const allText = [scopeSection?.content, goalSection?.content, cxSection?.content].filter(Boolean).join(" ").toLowerCase();
+                    const briefSignals: BriefSignals = {
+                      scopeKeywords: allText.split(/[\s,;]+/).filter(w => w.length > 2),
+                      complexity: cxSection?.content?.toLowerCase().includes("critical") ? "critical"
+                        : cxSection?.content?.toLowerCase().includes("high") ? "high"
+                        : cxSection?.content?.toLowerCase().includes("low") ? "low"
+                        : "medium",
+                      hasFrontend: allText.includes("frontend") || allText.includes("ui") || allText.includes("interface"),
+                      hasBackend: allText.includes("backend") || allText.includes("api") || allText.includes("database"),
+                      hasDesignSystem: allText.includes("design system") || allText.includes("design-system"),
+                    };
+                    return <HumanTeamSuggestionPanel signals={briefSignals} />;
+                  })()}
 
                   {/* Frozen success state */}
                   {phase !== "drafting" && (
