@@ -30,6 +30,7 @@ import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/front-office-planning";
+import { validatePlanningGate } from "@/lib/planning-gates";
 
 /* ── Types ───────────────────────────────────────────────── */
 
