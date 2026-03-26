@@ -557,7 +557,7 @@ export default function IntakeComposerV2() {
                     return (
                       <>
                         <HumanTeamSuggestionPanel signals={briefSignals} />
-                        <MarketBenchmarkPanel signals={briefSignals} />
+                        <MarketBenchmarkPanel signals={briefSignals} sourceType="intake" />
                       </>
                     );
                   })()}

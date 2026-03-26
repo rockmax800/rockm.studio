@@ -796,6 +796,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   moduleCount: scope.modules.length,
                 }}
                 estimatedAicUsd={totalCost}
+                sourceType="company_lead"
               />
             )}
           </div>
