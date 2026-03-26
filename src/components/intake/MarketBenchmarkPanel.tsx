@@ -189,51 +189,67 @@ export function MarketBenchmarkPanel({ signals, estimatedAicUsd, sourceType, sou
 
               {/* Derived metrics */}
               {hasInputs && (
-                <div className="grid grid-cols-2 gap-2">
-                  <MetricCard
-                    label="Advantage Ratio"
-                    value={result.advantageRatio ? `${result.advantageRatio}×` : "—"}
-                    sub="HEC ÷ AIC"
-                    positive={result.advantageRatio !== null && result.advantageRatio > 1}
-                  />
-                  <MetricCard
-                    label="Value Capture"
-                    value={result.valueCapture ? `${(result.valueCapture * 100).toFixed(0)}%` : "—"}
-                    sub="SOP ÷ HEC"
-                    positive={result.valueCapture !== null && result.valueCapture < 1}
-                  />
-                  <MetricCard
-                    label="Gross AI Margin"
-                    value={fmt(result.grossAiMarginUsd)}
-                    sub="SOP − AIC"
-                    positive={result.grossAiMarginUsd > 0}
-                    negative={result.grossAiMarginUsd < 0}
-                  />
-                  <MetricCard
-                    label="AI Efficiency Spread"
-                    value={result.aiEfficiencySpread !== null ? `${(result.aiEfficiencySpread * 100).toFixed(1)}%` : "—"}
-                    sub="(HEC − AIC) ÷ HEC"
-                    positive={result.aiEfficiencySpread !== null && result.aiEfficiencySpread > 0}
-                  />
-                </div>
-              )}
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <MetricCard
+                      label="Advantage Ratio"
+                      value={result.advantageRatio ? `${result.advantageRatio}×` : "—"}
+                      sub="HEC ÷ AIC"
+                      hint={
+                        result.advantageRatio === null ? undefined
+                          : result.advantageRatio >= 5 ? "AI delivery is dramatically cheaper than a human team — strong structural advantage."
+                          : result.advantageRatio >= 2 ? "A human team would cost roughly " + result.advantageRatio + "× more for this scope."
+                          : result.advantageRatio >= 1 ? "Modest cost advantage over human teams. Efficiency gains are limited."
+                          : "AI delivery costs more than a human team — review scope or model costs."
+                      }
+                      positive={result.advantageRatio !== null && result.advantageRatio > 1}
+                      negative={result.advantageRatio !== null && result.advantageRatio < 1}
+                    />
+                    <MetricCard
+                      label="Value Capture"
+                      value={result.valueCapture ? `${(result.valueCapture * 100).toFixed(0)}%` : "—"}
+                      sub="SOP ÷ HEC"
+                      hint={
+                        result.valueCapture === null ? undefined
+                          : result.valueCapture < 0.3 ? "Capturing under 30% of the human-market value — potential underpricing."
+                          : result.valueCapture > 0.9 ? "Capturing 90%+ of market value — approaching the human-team price ceiling."
+                          : result.valueCapture > 0.7 ? "Capturing a healthy share of human-equivalent market value."
+                          : "Moderate value capture — room to raise the offer price if justified."
+                      }
+                      positive={result.valueCapture !== null && result.valueCapture >= 0.3 && result.valueCapture <= 0.9}
+                      negative={result.valueCapture !== null && result.valueCapture > 0.9}
+                    />
+                    <MetricCard
+                      label="Gross AI Margin"
+                      value={fmt(result.grossAiMarginUsd)}
+                      sub="SOP − AIC"
+                      hint={
+                        result.grossAiMarginUsd < 0 ? "Negative margin — you would lose money on this project."
+                          : result.grossAiMarginUsd < 200 ? "Thin margin — barely covers operational overhead and risk."
+                          : "Absolute profit from this project after AI delivery costs."
+                      }
+                      positive={result.grossAiMarginUsd >= 200}
+                      negative={result.grossAiMarginUsd < 0}
+                    />
+                    <MetricCard
+                      label="AI Efficiency Spread"
+                      value={result.aiEfficiencySpread !== null ? `${(result.aiEfficiencySpread * 100).toFixed(1)}%` : "—"}
+                      sub="(HEC − AIC) ÷ HEC"
+                      hint={
+                        result.aiEfficiencySpread === null ? undefined
+                          : result.aiEfficiencySpread > 0.7 ? "Over 70% cost efficiency vs human teams — high structural advantage."
+                          : result.aiEfficiencySpread > 0.3 ? "Solid efficiency advantage. AI delivery is meaningfully cheaper."
+                          : result.aiEfficiencySpread > 0 ? "Slight efficiency edge — advantage is narrow."
+                          : "No efficiency advantage — AI costs match or exceed human delivery."
+                      }
+                      positive={result.aiEfficiencySpread !== null && result.aiEfficiencySpread > 0.3}
+                      negative={result.aiEfficiencySpread !== null && result.aiEfficiencySpread <= 0}
+                    />
+                  </div>
 
-              {/* Warnings */}
-              {hasInputs && result.grossAiMarginUsd < 0 && (
-                <div className="flex items-start gap-2 rounded-lg bg-destructive/[0.06] border border-destructive/20 px-3 py-2">
-                  <AlertTriangle className="h-3 w-3 text-destructive mt-0.5 shrink-0" />
-                  <p className="text-[10px] text-destructive leading-relaxed">
-                    Negative margin — studio offer price is below AI internal cost. This project would lose money.
-                  </p>
-                </div>
-              )}
-              {hasInputs && result.valueCapture !== null && result.valueCapture > 0.9 && result.grossAiMarginUsd > 0 && (
-                <div className="flex items-start gap-2 rounded-lg bg-status-amber/[0.06] border border-status-amber/15 px-3 py-2">
-                  <TrendingUp className="h-3 w-3 text-status-amber mt-0.5 shrink-0" />
-                  <p className="text-[10px] text-status-amber/80 leading-relaxed">
-                    Offer price approaches human-equivalent ceiling. Room for competitive advantage is narrow.
-                  </p>
-                </div>
+                  {/* Founder guidance blocks */}
+                  <FounderGuidance result={result} />
+                </>
               )}
 
               {/* Actions */}
