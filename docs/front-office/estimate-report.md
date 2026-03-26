@@ -69,4 +69,4 @@ Under the **Company Lead Planning Package v2.1**, an EstimateReport has addition
 
 **Hard invariant:** No EstimateReport without `modules_json` + `dependency_graph_json`.
 
-See `company-lead-planning-package.md` for the full phase sequence.
+See `company-lead-planning-package.md` for the full phase sequence and `lead-cto-deterministic-pipeline.md` for the unified Lead → CTO pipeline contract.

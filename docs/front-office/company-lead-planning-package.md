@@ -146,7 +146,7 @@ Task Drafts ──converted to──▶ Live Delivery Tasks (Delivery Plane)
 
 ## 6 — Dependency Rule Compliance
 
-This planning package operates entirely within the **Intent Plane**. It respects the dependency hierarchy:
+This planning package operates entirely within the **Intent Plane** as the upstream half of the **Lead → CTO Deterministic Pipeline** (`lead-cto-deterministic-pipeline.md`). It respects the dependency hierarchy:
 
 ```
 Intent → Delivery → Knowledge → Experience
