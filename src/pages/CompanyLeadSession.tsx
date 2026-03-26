@@ -30,6 +30,8 @@ import {
 } from "@/lib/company-lead-clarification";
 import type { SystemModule, DependencyEdge } from "@/types/front-office-planning";
 import { decomposeSystem } from "@/lib/system-decomposition";
+import type { MvpReductionEntry, MvpReductionResult } from "@/lib/mvp-reduction";
+import { generateInitialReduction, computeReductionResult, getMvpScopeModules } from "@/lib/mvp-reduction";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
