@@ -25,7 +25,7 @@ import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import {
   ArrowLeft, Rocket, Pause, Building2, GitBranch,
   Upload, Clock, Server, Globe, Shield, Zap,
-  AlertTriangle, CheckCircle2, FileText, ChevronRight,
+  AlertTriangle, CheckCircle2, FileText, ChevronRight, ClipboardList,
   Layers, Activity, Package, History, Columns3, Settings2, ShieldCheck, BookOpen,
 } from "lucide-react";
 import { ResearchModeBadge } from "@/components/ui/research-mode-badge";
@@ -432,7 +432,7 @@ export default function ProjectDetail() {
               <CtoBacklogDraftPanel
                 cards={ctoBacklogCards}
                 onCardsChange={setCtoBacklogCards}
-                locked={project.state !== "planning"}
+                locked={project.state !== "draft" && project.state !== "scoped"}
               />
             </div>
           )}
