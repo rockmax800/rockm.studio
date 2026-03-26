@@ -1155,6 +1155,20 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </RailCard>
             )}
 
+            {/* Execution Plan — dependency-ordered batches */}
+            {taskSpecDrafts.length > 0 && showEstimate && (
+              <RailCard title="Execution Plan" icon={Layers}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Dependency-ordered batch sequence — draft until launch gate.
+                </p>
+                <ExecutionPlanPanel
+                  plan={executionPlanResult.plan}
+                  warnings={executionPlanResult.warnings}
+                  drafts={taskSpecDrafts}
+                />
+              </RailCard>
+            )}
+
             {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
