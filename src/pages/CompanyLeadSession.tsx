@@ -845,6 +845,29 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               Structured outputs extracted from the briefing conversation
             </p>
 
+            {/* CTO Clarification Requests — returned from engineering */}
+            {ctoClarifications.length > 0 && (
+              <div className="rounded-xl border border-status-amber/25 bg-status-amber/5 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquareWarning className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Returned for Clarification</span>
+                </div>
+                {ctoClarifications.map((req) => (
+                  <div key={req.id} className="rounded-lg border border-border/30 bg-card px-3 py-2 space-y-1">
+                    <span className="text-[10px] font-bold text-foreground">{req.affectedModuleName}</span>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">{req.ambiguityDescription}</p>
+                    <div className="pt-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Requested</span>
+                      <p className="text-[10px] text-foreground/70 mt-0.5">{req.requestedClarification}</p>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[9px] text-muted-foreground/50 italic">
+                  CTO cannot mutate scope — address the ambiguity in conversation, then update planning if needed.
+                </p>
+              </div>
+            )}
+
             {/* Clarification Loop checklist — always visible */}
             <ClarificationChecklist
               fields={clarification}
