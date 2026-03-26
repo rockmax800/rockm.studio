@@ -91,6 +91,7 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
+  const [clarificationRequests, setClarificationRequests] = useState<ClarificationRequest[]>([]);
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
