@@ -217,6 +217,22 @@ export default function ProjectDetail() {
   const ciPassed = checkSuites.some((c: any) => c.status === "passed");
   const ciFailed = checkSuites.some((c: any) => c.status === "failed");
 
+  const planningApproved = approvals.some(
+    (a) => a.approval_type === "blueprint_final" && a.state === "decided" && (a as any).decision === "approved"
+  );
+  const materializationGate = useMemo(() => checkMaterializationGate({
+    projectExists: !!project,
+    projectState: project?.state ?? "draft",
+    planningApproved,
+    sanityReport,
+    draftsCount: taskSpecDrafts.length,
+  }), [project, planningApproved, sanityReport, taskSpecDrafts]);
+
+  const handleMaterialize = useCallback(
+    () => materializeDeliveryTasks(id!, taskSpecDrafts),
+    [id, taskSpecDrafts],
+  );
+
   const taskItems = tasks.map((t) => ({
     id: t.id, title: t.title, state: t.state, domain: t.domain,
     roleName: (t as any).agent_roles?.name, roleCode: (t as any).agent_roles?.code,
