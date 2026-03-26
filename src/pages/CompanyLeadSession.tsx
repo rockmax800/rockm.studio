@@ -402,12 +402,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const researchPhase: ResearchPhase =
     phase === "discovery" && userMessageCount <= 2 ? "researching"
     : phase === "discovery" ? "evidence-gathering"
+    : phase === "decomposition" ? "evidence-gathering"
     : phase === "consultation" ? "evidence-gathering"
     : phase === "estimate" || phase === "decision" ? "ready-to-execute"
     : "unknown";
 
   const researchDetail =
     researchPhase === "researching" ? `Discovery in progress — ${LEAD_QUESTIONS.length - questionIndex} question(s) remaining.`
+    : phase === "decomposition" ? "System decomposition in progress — modules not yet frozen."
     : researchPhase === "evidence-gathering" ? "Team is reviewing feasibility — scope not yet frozen."
     : researchPhase === "ready-to-execute" ? "Scope defined. Estimate ready — founder can approve or revise."
     : undefined;
