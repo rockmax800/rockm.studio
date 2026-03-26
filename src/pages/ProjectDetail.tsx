@@ -684,7 +684,22 @@ export default function ProjectDetail() {
             </div>
           )}
 
-          {/* ══ MATERIALIZE DELIVERY TASKS — Founder-Only Launch Action ══ */}
+          {/* ══ CTO CLARIFICATION REQUESTS — Return Path to Lead/Founder ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={AlertTriangle} title="CTO Clarification Requests" count={clarificationRequests.filter(r => r.status === "open").length} />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Return path from CTO to Company Lead — CTO may request clarification but cannot mutate approved scope.
+            </p>
+            <ClarificationRequestCard
+              requests={clarificationRequests}
+              onResolve={handleResolveClarification}
+              onDismiss={handleDismissClarification}
+              showCreateForm={engineeringSlices.length > 0}
+              onCreateRequest={handleCreateClarification}
+              availableModules={engineeringSlices.map((s) => ({ id: s.moduleId, name: s.moduleName }))}
+            />
+          </div>
+
           {taskSpecDrafts.length > 0 && (
             <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <SectionHeader icon={Rocket} title="Materialize Delivery Tasks" count={taskSpecDrafts.length} />
