@@ -144,16 +144,20 @@ function heroMessage(filledCount: number, isEmpty: boolean): string {
 /* ── Component ───────────────────────────────────────────── */
 
 export default function IntakeComposerV2() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sections, setSections] = useState<BriefSection[]>(INITIAL_SECTIONS);
   const [navStatus, setNavStatus] = useState<"listening" | "thinking" | "ready">("listening");
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [freezeError, setFreezeError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const turnRef = useRef(0);
   const formRef = useRef<HTMLDivElement>(null);
+
+  const { frozenBrief, phase, freeze, startKickoff, reset } = useIntakeBriefDraft();
 
   const filledCount = sections.filter((s) => s.content.length > 0).length;
   const tokenEstimate = messages.reduce((acc, m) => acc + Math.round(m.content.length / 4), 0);
