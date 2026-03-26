@@ -8,7 +8,7 @@ import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
   Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
-  X, Maximize2, GraduationCap, User, ShieldCheck,
+  X, Maximize2, GraduationCap, User, ShieldCheck, FileText,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestionPanel";
