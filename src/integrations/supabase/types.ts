@@ -1389,6 +1389,66 @@ export type Database = {
           },
         ]
       }
+      cto_clarification_requests: {
+        Row: {
+          affected_module_id: string
+          affected_module_name: string
+          ambiguity_description: string
+          blueprint_contract_id: string | null
+          created_at: string
+          id: string
+          project_id: string
+          requested_clarification: string
+          resolved_at: string | null
+          resolver_note: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          affected_module_id: string
+          affected_module_name: string
+          ambiguity_description?: string
+          blueprint_contract_id?: string | null
+          created_at?: string
+          id?: string
+          project_id: string
+          requested_clarification?: string
+          resolved_at?: string | null
+          resolver_note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          affected_module_id?: string
+          affected_module_name?: string
+          ambiguity_description?: string
+          blueprint_contract_id?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string
+          requested_clarification?: string
+          resolved_at?: string | null
+          resolver_note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cto_clarification_requests_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cto_clarification_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cto_conformance_reports: {
         Row: {
           artifacts_complete: boolean
@@ -1446,6 +1506,63 @@ export type Database = {
             columns: ["taskspec_draft_id"]
             isOneToOne: false
             referencedRelation: "taskspec_drafts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cto_sanity_reports: {
+        Row: {
+          blocked_count: number
+          blueprint_contract_id: string | null
+          created_at: string
+          id: string
+          issues_json: Json
+          materialization_allowed: boolean
+          overall_status: string
+          project_id: string
+          total_drafts: number
+          valid_count: number
+          warning_count: number
+        }
+        Insert: {
+          blocked_count?: number
+          blueprint_contract_id?: string | null
+          created_at?: string
+          id?: string
+          issues_json?: Json
+          materialization_allowed?: boolean
+          overall_status?: string
+          project_id: string
+          total_drafts?: number
+          valid_count?: number
+          warning_count?: number
+        }
+        Update: {
+          blocked_count?: number
+          blueprint_contract_id?: string | null
+          created_at?: string
+          id?: string
+          issues_json?: Json
+          materialization_allowed?: boolean
+          overall_status?: string
+          project_id?: string
+          total_drafts?: number
+          valid_count?: number
+          warning_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cto_sanity_reports_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cto_sanity_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

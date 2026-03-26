@@ -46,7 +46,6 @@ import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-plan
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
 import type { ClarificationRequest } from "@/types/clarification-request";
-import { createClarificationRequest } from "@/types/clarification-request";
 import { ClarificationRequestCard } from "@/components/project-cockpit/ClarificationRequestCard";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
@@ -57,6 +56,8 @@ import { checkMaterializationGate, materializeDeliveryTasks } from "@/lib/materi
 import {
   usePersistedSlices, usePersistedTaskSpecs, usePersistedPlan, usePersistedConformance,
   useSaveSlices, useSaveTaskSpecs, useSaveExecutionPlan,
+  usePersistedClarifications, useCreateClarification, useResolveClarification,
+  usePersistedSanityReports, useSaveSanityReport,
 } from "@/hooks/use-ai-cto-planning";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
@@ -91,7 +92,7 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
-  const [clarificationRequests, setClarificationRequests] = useState<ClarificationRequest[]>([]);
+  // clarificationRequests now loaded from DB below
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
@@ -114,6 +115,11 @@ export default function ProjectDetail() {
   const { data: persistedTaskSpecs } = usePersistedTaskSpecs(blueprintContractId);
   const { data: persistedPlan } = usePersistedPlan(blueprintContractId);
   const { data: persistedConformance } = usePersistedConformance(id ?? null);
+  const { data: clarificationRequests = [] } = usePersistedClarifications(id ?? null);
+  const { data: persistedSanityReports = [] } = usePersistedSanityReports(id ?? null);
+  const createClarification = useCreateClarification(id ?? null);
+  const resolveClarification = useResolveClarification(id ?? null);
+  const saveSanityReport = useSaveSanityReport(id ?? null);
   const saveSlices = useSaveSlices(blueprintContractId);
   const saveTaskSpecs = useSaveTaskSpecs(blueprintContractId);
   const saveExecPlan = useSaveExecutionPlan(blueprintContractId);
@@ -175,34 +181,48 @@ export default function ProjectDetail() {
 
   const handleCreateClarification = useCallback(
     (moduleId: string, moduleName: string, ambiguity: string, requested: string) => {
-      const req = createClarificationRequest({
-        projectId: id!,
-        blueprintId: blueprintContractId,
+      createClarification.mutate({
+        blueprintContractId,
         affectedModuleId: moduleId,
         affectedModuleName: moduleName,
         ambiguityDescription: ambiguity,
         requestedClarification: requested,
       });
-      setClarificationRequests((prev) => [...prev, req]);
     },
-    [id, blueprintContractId],
+    [blueprintContractId, createClarification],
   );
 
   const handleResolveClarification = useCallback((reqId: string, note: string) => {
-    setClarificationRequests((prev) =>
-      prev.map((r) => r.id === reqId ? { ...r, status: "resolved" as const, resolvedAt: new Date().toISOString(), resolverNote: note } : r),
-    );
-  }, []);
+    resolveClarification.mutate({ id: reqId, status: "resolved", note });
+  }, [resolveClarification]);
 
   const handleDismissClarification = useCallback((reqId: string) => {
-    setClarificationRequests((prev) =>
-      prev.map((r) => r.id === reqId ? { ...r, status: "dismissed" as const, resolvedAt: new Date().toISOString() } : r),
-    );
-  }, []);
+    resolveClarification.mutate({ id: reqId, status: "dismissed" });
+  }, [resolveClarification]);
 
-  // Sync open clarification requests to sessionStorage for CompanyLeadSession
+  // Auto-persist sanity report when it changes
+  const lastSanityRef = useRef<string>("");
   useEffect(() => {
-    const open = clarificationRequests.filter((r) => r.status === "open");
+    if (!id || sanityReport.results.length === 0) return;
+    const totalDrafts = sanityReport.results.length;
+    const key = JSON.stringify({ s: sanityReport.overallStatus, t: totalDrafts });
+    if (key === lastSanityRef.current) return;
+    lastSanityRef.current = key;
+    saveSanityReport.mutate({
+      blueprintContractId,
+      overallStatus: sanityReport.overallStatus,
+      totalDrafts,
+      validCount: sanityReport.validCount,
+      warningCount: sanityReport.warningCount,
+      blockedCount: sanityReport.blockedCount,
+      issues: sanityReport.results.filter(r => r.status !== "valid").map(r => ({ draftId: r.draftId, status: r.status, findings: r.findings })),
+      materializationAllowed: sanityReport.overallStatus !== "blocked",
+    });
+  }, [sanityReport, id, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync open clarification requests to sessionStorage for CompanyLeadSession (pre-project bridge)
+  useEffect(() => {
+    const open = clarificationRequests.filter((r: ClarificationRequest) => r.status === "open");
     sessionStorage.setItem("cto_clarification_requests", JSON.stringify(open));
   }, [clarificationRequests]);
 

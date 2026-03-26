@@ -287,3 +287,151 @@ export function useSaveConformanceReport(projectId: string | null) {
     },
   });
 }
+
+// ── Clarification Requests ──
+
+const clarificationKeys = {
+  list: (projectId: string) => ["cto-clarifications", projectId] as const,
+};
+
+/** Load persisted clarification requests for a project */
+export function usePersistedClarifications(projectId: string | null) {
+  return useQuery({
+    queryKey: clarificationKeys.list(projectId ?? "__none__"),
+    enabled: !!projectId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("cto_clarification_requests")
+        .select("*")
+        .eq("project_id", projectId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((row: any) => ({
+        id: row.id,
+        source: "cto" as const,
+        projectId: row.project_id,
+        blueprintId: row.blueprint_contract_id,
+        affectedModuleId: row.affected_module_id,
+        affectedModuleName: row.affected_module_name,
+        ambiguityDescription: row.ambiguity_description,
+        requestedClarification: row.requested_clarification,
+        status: row.status,
+        createdAt: row.created_at,
+        resolvedAt: row.resolved_at,
+        resolverNote: row.resolver_note,
+      }));
+    },
+  });
+}
+
+/** Create a clarification request in DB */
+export function useCreateClarification(projectId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (req: {
+      blueprintContractId: string | null;
+      affectedModuleId: string;
+      affectedModuleName: string;
+      ambiguityDescription: string;
+      requestedClarification: string;
+    }) => {
+      if (!projectId) throw new Error("No project ID");
+      const { error } = await (supabase as any)
+        .from("cto_clarification_requests")
+        .insert({
+          project_id: projectId,
+          blueprint_contract_id: req.blueprintContractId,
+          affected_module_id: req.affectedModuleId,
+          affected_module_name: req.affectedModuleName,
+          ambiguity_description: req.ambiguityDescription,
+          requested_clarification: req.requestedClarification,
+          status: "open",
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: clarificationKeys.list(projectId!) });
+    },
+  });
+}
+
+/** Resolve or dismiss a clarification request */
+export function useResolveClarification(projectId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (opts: { id: string; status: "resolved" | "dismissed"; note?: string }) => {
+      const { error } = await (supabase as any)
+        .from("cto_clarification_requests")
+        .update({
+          status: opts.status,
+          resolver_note: opts.note ?? null,
+          resolved_at: new Date().toISOString(),
+        })
+        .eq("id", opts.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: clarificationKeys.list(projectId!) });
+    },
+  });
+}
+
+// ── Sanity Reports ──
+
+const sanityKeys = {
+  list: (projectId: string) => ["cto-sanity", projectId] as const,
+};
+
+/** Load persisted sanity reports for a project */
+export function usePersistedSanityReports(projectId: string | null) {
+  return useQuery({
+    queryKey: sanityKeys.list(projectId ?? "__none__"),
+    enabled: !!projectId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("cto_sanity_reports")
+        .select("*")
+        .eq("project_id", projectId!)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+/** Save a sanity report snapshot */
+export function useSaveSanityReport(projectId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (report: {
+      blueprintContractId: string | null;
+      overallStatus: string;
+      totalDrafts: number;
+      validCount: number;
+      warningCount: number;
+      blockedCount: number;
+      issues: any[];
+      materializationAllowed: boolean;
+    }) => {
+      if (!projectId) throw new Error("No project ID");
+      const { error } = await (supabase as any)
+        .from("cto_sanity_reports")
+        .insert({
+          project_id: projectId,
+          blueprint_contract_id: report.blueprintContractId,
+          overall_status: report.overallStatus,
+          total_drafts: report.totalDrafts,
+          valid_count: report.validCount,
+          warning_count: report.warningCount,
+          blocked_count: report.blockedCount,
+          issues_json: report.issues,
+          materialization_allowed: report.materializationAllowed,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: sanityKeys.list(projectId!) });
+    },
+  });
+}
