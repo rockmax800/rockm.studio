@@ -352,27 +352,28 @@ export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillP
                     rows={4}
                     className="w-full rounded-lg bg-background border border-border px-3 py-2 text-[12px] text-foreground outline-none resize-none"
                   />
-                   <div className="space-y-1">
-                     <select
-                       value={materialCategory}
-                       onChange={(e) => setMaterialCategory(e.target.value)}
-                       className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground w-full"
-                     >
-                       {MATERIAL_CATEGORIES.map((c) => (
-                         <option key={c.value} value={c.value}>{c.label}</option>
-                       ))}
-                     </select>
-                     <p className="text-[9px] text-muted-foreground/50 px-0.5">
-                       {MATERIAL_CATEGORIES.find((c) => c.value === materialCategory)?.desc ?? ""}
-                     </p>
+                   <div className="flex items-center gap-2">
+                     <div className="space-y-1 flex-1">
+                       <select
+                         value={materialCategory}
+                         onChange={(e) => setMaterialCategory(e.target.value)}
+                         className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground"
+                       >
+                         {MATERIAL_CATEGORIES.map((c) => (
+                           <option key={c.value} value={c.value}>{c.label}</option>
+                         ))}
+                       </select>
+                       <p className="text-[9px] text-muted-foreground/50 px-0.5">
+                         {MATERIAL_CATEGORIES.find((c) => c.value === materialCategory)?.desc ?? ""}
+                       </p>
+                     </div>
+                     <Button size="sm" className="h-7 text-[11px] px-3 gap-1 font-bold ml-auto" onClick={handleAddMaterial} disabled={!materialContent.trim()}>
+                       <Plus className="h-3 w-3" /> Save
+                     </Button>
+                     <Button size="sm" variant="ghost" className="h-7 text-[11px] px-2" onClick={() => setShowAddMaterial(false)}>
+                       Cancel
+                     </Button>
                    </div>
-                    <Button size="sm" className="h-7 text-[11px] px-3 gap-1 font-bold ml-auto" onClick={handleAddMaterial} disabled={!materialContent.trim()}>
-                      <Plus className="h-3 w-3" /> Save
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-7 text-[11px] px-2" onClick={() => setShowAddMaterial(false)}>
-                      Cancel
-                    </Button>
-                  </div>
                 </div>
               )}
 
