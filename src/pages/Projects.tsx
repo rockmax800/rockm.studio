@@ -129,8 +129,8 @@ export default function ProjectsPage() {
                       <span className="text-[10px] text-muted-foreground/30 font-medium">
                         {STATE_LABELS[p.state] ?? p.state}
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground/40 group-hover:text-foreground/60 transition-colors font-medium">
-                        Board <ChevronRight className="h-3 w-3" />
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground/40 group-hover:text-foreground/60 transition-colors font-semibold">
+                        <Columns3 className="h-3 w-3" /> Delivery Board <ChevronRight className="h-3 w-3" />
                       </span>
                     </div>
                   </div>
