@@ -343,6 +343,26 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
     return map;
   }, [ctoBacklogCards]);
 
+  // ── Engineering Slices — normalized from effective modules (local draft) ──
+  const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
+  const autoSlices = useMemo(() => {
+    if (effectiveModules.length === 0) return [];
+    const deliveryMode = clarification.projectType === "mvp" ? "mvp_first" as const : "full_scope" as const;
+    return generateEngineeringSlices({
+      modules: effectiveModules,
+      dependencyGraph: decompositionGraph,
+      deliveryMode,
+      optimizationNotes: mvpReductionResult.optimizationNotes,
+    });
+  }, [effectiveModules, decompositionGraph, clarification.projectType, mvpReductionResult.optimizationNotes]);
+
+  // Auto-populate slices when generated (founder can then edit)
+  const [slicesInitialized, setSlicesInitialized] = useState(false);
+  if (autoSlices.length > 0 && !slicesInitialized && mvpReductionLocked) {
+    setEngineeringSlices(autoSlices);
+    setSlicesInitialized(true);
+  }
+
   useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
