@@ -35,6 +35,8 @@ import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/fro
 import { validatePlanningGate } from "@/lib/planning-gates";
 import { useCompanyLeadPlanning } from "@/hooks/use-company-lead-planning";
 import { estimateFromNames } from "@/lib/module-estimation";
+import { buildHandoffContract } from "@/lib/cto-handoff";
+import { CtoHandoffCard } from "@/components/project-cockpit/CtoHandoffCard";
 import { validateCtoReadiness } from "@/lib/cto-readiness";
 
 /* ── Types ───────────────────────────────────────────────── */
