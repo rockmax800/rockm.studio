@@ -390,9 +390,10 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const showExtraction = userMessageCount >= 1;
-  // Planning outputs gated behind clarification completion
-  const showConsultation = clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
-  const showEstimate = clarificationLocked && (phase === "estimate" || phase === "decision");
+  // Planning outputs gated behind clarification + decomposition completion
+  const showDecomposition = clarificationLocked;
+  const showConsultation = decompositionLocked && (phase === "consultation" || phase === "estimate" || phase === "decision");
+  const showEstimate = decompositionLocked && (phase === "estimate" || phase === "decision");
   const currentPhaseIdx = PHASE_ORDER.indexOf(phase);
   const latestLeadMessage = [...messages].reverse().find((m) => m.role === "lead");
   const isEarlyPhase = userMessageCount <= 2 && phase === "discovery";
