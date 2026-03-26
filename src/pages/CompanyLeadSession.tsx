@@ -38,6 +38,7 @@ import { decomposeSystem } from "@/lib/system-decomposition";
 import type { MvpReductionEntry, MvpReductionResult } from "@/lib/mvp-reduction";
 import { generateInitialReduction, computeReductionResult, getMvpScopeModules } from "@/lib/mvp-reduction";
 import { validatePlanningGate, type PlanningGateResult } from "@/lib/planning-gates";
+import { useCompanyLeadPlanning, type PersistenceState } from "@/hooks/use-company-lead-planning";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -253,10 +254,15 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
-  // ── Clarification Loop state (local draft — not persisted) ──
+  // ── Clarification Loop state ──
   const [clarification, setClarification] = useState<ClarificationFields>(EMPTY_CLARIFICATION);
   const [clarificationLocked, setClarificationLocked] = useState(false);
   const clarificationStatus = getClarificationStatus(clarification);
+
+  // ── Canonical persistence hook (Intent Plane) ──
+  // We don't have a real intake_request_id in this local session yet, so pass null.
+  // Once blueprint creation persists an intake request, this can be wired.
+  const planning = useCompanyLeadPlanning(null);
 
   const handleClarificationFieldChange = (key: keyof ClarificationFields, value: any) => {
     if (clarificationLocked) return;
