@@ -320,13 +320,20 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const handleMvpReductionConfirm = () => {
     setMvpReductionLocked(true);
     toast.success("MVP scope confirmed — team consultation unlocked.");
-    addLeadMessage(`MVP Reduction Pass complete. ${mvpReductionResult.keptModules.length} module${mvpReductionResult.keptModules.length !== 1 ? "s" : ""} in MVP scope, ${mvpReductionResult.deferredModules.length} deferred, ${mvpReductionResult.replacedModules.length} replaced with SaaS, ${mvpReductionResult.removedModules.length} removed.\n\nI am now consulting with the internal team based on the reduced scope.`);
+    // Generate CTO Backlog Draft from effective modules
+    const postReductionModules = getMvpScopeModules(decompositionModules, mvpReductionResult);
+    const generatedCards = generateBacklogCards(postReductionModules.length > 0 ? postReductionModules : decompositionModules);
+    setCtoBacklogCards(generatedCards);
+    addLeadMessage(`MVP Reduction Pass complete. ${mvpReductionResult.keptModules.length} module${mvpReductionResult.keptModules.length !== 1 ? "s" : ""} in MVP scope, ${mvpReductionResult.deferredModules.length} deferred, ${mvpReductionResult.replacedModules.length} replaced with SaaS, ${mvpReductionResult.removedModules.length} removed.\n\nCTO Backlog Draft has been generated with ${generatedCards.length} cards. Review, edit, split, or merge cards before proceeding.\n\nI am now consulting with the internal team based on the reduced scope.`);
     setPhase("consultation");
     setTimeout(() => {
       addLeadMessage("Internal consultation is complete. The team has reviewed the post-reduction scope.\n\nEstimate Panel is ready — using MVP scope for projections.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel.");
       setPhase("estimate");
     }, 1500);
   };
+
+  // ── CTO Backlog Draft state (local draft — not persisted) ──
+  const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
 
   useQuery({
     queryKey: ["departments"],
