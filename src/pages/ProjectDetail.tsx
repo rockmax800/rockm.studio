@@ -53,7 +53,7 @@ import {
   usePersistedSlices, usePersistedTaskSpecs, usePersistedPlan, usePersistedConformance,
   useSaveSlices, useSaveTaskSpecs, useSaveExecutionPlan,
 } from "@/hooks/use-ai-cto-planning";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
@@ -112,31 +112,44 @@ export default function ProjectDetail() {
   const saveTaskSpecs = useSaveTaskSpecs(blueprintContractId);
   const saveExecPlan = useSaveExecutionPlan(blueprintContractId);
 
-  // Seed local state from persisted data on first load
+  // Seed local state from persisted data on first load (once only)
+  const seededRef = useRef(false);
   useEffect(() => {
-    if (persistedSlices && persistedSlices.length > 0 && engineeringSlices.length === 0) {
+    if (!seededRef.current && persistedSlices && persistedSlices.length > 0 && engineeringSlices.length === 0) {
+      seededRef.current = true;
       setEngineeringSlices(persistedSlices);
     }
-  }, [persistedSlices]);
+  }, [persistedSlices]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-persist slices, taskspec drafts, and execution plan when they change
-  useEffect(() => {
-    if (blueprintContractId && engineeringSlices.length > 0) {
-      saveSlices.mutate(engineeringSlices);
-    }
-  }, [engineeringSlices, blueprintContractId]);
-
-  useEffect(() => {
-    if (blueprintContractId && taskSpecDrafts.length > 0) {
-      saveTaskSpecs.mutate(taskSpecDrafts);
-    }
-  }, [taskSpecDrafts, blueprintContractId]);
+  // Debounced auto-persist — avoids infinite mutation loops.
+  // Only persist when the serialized content actually changes.
+  const lastPersistedSlicesRef = useRef<string>("");
+  const lastPersistedSpecsRef = useRef<string>("");
+  const lastPersistedPlanRef = useRef<string>("");
 
   useEffect(() => {
-    if (blueprintContractId && executionPlanResult.plan.batches.length > 0) {
-      saveExecPlan.mutate(executionPlanResult.plan);
-    }
-  }, [executionPlanResult.plan, blueprintContractId]);
+    if (!blueprintContractId || engineeringSlices.length === 0) return;
+    const key = JSON.stringify(engineeringSlices.map((s) => s.id).sort());
+    if (key === lastPersistedSlicesRef.current) return;
+    lastPersistedSlicesRef.current = key;
+    saveSlices.mutate(engineeringSlices);
+  }, [engineeringSlices, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!blueprintContractId || taskSpecDrafts.length === 0) return;
+    const key = JSON.stringify(taskSpecDrafts.map((d) => d.id).sort());
+    if (key === lastPersistedSpecsRef.current) return;
+    lastPersistedSpecsRef.current = key;
+    saveTaskSpecs.mutate(taskSpecDrafts);
+  }, [taskSpecDrafts, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!blueprintContractId || executionPlanResult.plan.batches.length === 0) return;
+    const key = JSON.stringify(executionPlanResult.plan.batches.map((b) => b.batchNumber));
+    if (key === lastPersistedPlanRef.current) return;
+    lastPersistedPlanRef.current = key;
+    saveExecPlan.mutate(executionPlanResult.plan);
+  }, [executionPlanResult.plan, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const planningApproved = approvals.some(
     (a) => a.approval_type === "blueprint_approval" && a.state === "decided" && (a as any).decision === "approved"
