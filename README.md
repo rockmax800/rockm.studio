@@ -124,6 +124,8 @@ Other routes (Office, Founder, Teams, System) are operational views, not alterna
 ### Front Office (Intent Plane)
 Company Lead → Intake → Blueprint Contract → Estimate Report → Launch Decision → Project
 
+The full deterministic pipeline is documented in `docs/front-office/lead-cto-deterministic-pipeline.md`.
+
 ### Deterministic Delivery Core
 Task → Run → Artifact → Review → Approval (with rework loop)
 

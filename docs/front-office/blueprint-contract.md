@@ -72,4 +72,4 @@ Under the **Company Lead Planning Package v2.1**, the BlueprintContract becomes 
 - No blueprint without clarification complete.
 - No EstimateReport without `modules_json` + `dependency_graph_json` attached to or derived from this blueprint.
 
-See `company-lead-planning-package.md` for the full phase sequence.
+See `company-lead-planning-package.md` for the full phase sequence and `lead-cto-deterministic-pipeline.md` for the unified Lead → CTO pipeline contract.

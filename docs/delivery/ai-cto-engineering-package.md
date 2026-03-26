@@ -216,7 +216,7 @@ AI CTO (engineering normalization, TaskSpec compilation)
 Delivery Spine (execution, CI/CD, deployment)
 ```
 
-The boundary is clear: Company Lead decides **what** to build. AI CTO decides **how** to slice it for execution. Founder approves both.
+The boundary is clear: Company Lead decides **what** to build. AI CTO decides **how** to slice it for execution. Founder approves both. See `docs/front-office/lead-cto-deterministic-pipeline.md` for the unified pipeline contract.
 
 ### 7.3 — Delivery Spine
 
