@@ -11,7 +11,9 @@ import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TrainingLab } from "@/components/employees/TrainingLab";
 import { SkillPackPanel } from "@/components/employees/SkillPackPanel";
 import { GuidancePackPanel } from "@/components/employees/GuidancePackPanel";
+import { InstinctSettingsPanel } from "@/components/employees/InstinctSettingsPanel";
 import { DEFAULT_GUIDANCE_DIMENSIONS, type GuidanceDimension } from "@/types/skill-pack";
+import { DEFAULT_INSTINCT_SETTINGS, type InstinctSetting } from "@/types/instinct-settings";
 
 import {
   TrendingUp, Shield, Brain, GraduationCap, Wrench, AlertTriangle,
@@ -31,6 +33,9 @@ export default function EmployeeProfile() {
   const [attachedSkillPacks, setAttachedSkillPacks] = useState<string[]>([]);
   const [guidanceDimensions, setGuidanceDimensions] = useState<GuidanceDimension[]>(
     () => DEFAULT_GUIDANCE_DIMENSIONS.map((d) => ({ ...d }))
+  );
+  const [instinctSettings, setInstinctSettings] = useState<InstinctSetting[]>(
+    () => DEFAULT_INSTINCT_SETTINGS.map((s) => ({ ...s }))
   );
   const toggleMemory = (key: string) => setExpandedMemory((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -448,6 +453,19 @@ export default function EmployeeProfile() {
                 />
               </div>
             </div>
+          </Section>
+
+          {/* ═══ INSTINCT SETTINGS ═══ */}
+          <Section icon={<Sliders className="h-4 w-4" />} title="Instinct Settings"
+            subtitle="Explicit founder-controlled behavior preferences — not self-adjusting">
+            <InstinctSettingsPanel
+              settings={instinctSettings}
+              onChange={(key, value) =>
+                setInstinctSettings((prev) =>
+                  prev.map((s) => s.key === key ? { ...s, value: value as any } : s)
+                )
+              }
+            />
           </Section>
 
           {/* ═══ TRAINING LAB ═══ */}
