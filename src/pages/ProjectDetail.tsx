@@ -49,7 +49,11 @@ import { buildExecutionPlan } from "@/lib/execution-planner";
 import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import { evaluateConformance } from "@/lib/cto-conformance";
 import { checkMaterializationGate, materializeDeliveryTasks } from "@/lib/materialize-delivery-tasks";
-import { useState, useMemo, useCallback } from "react";
+import {
+  usePersistedSlices, usePersistedTaskSpecs, usePersistedPlan, usePersistedConformance,
+  useSaveSlices, useSaveTaskSpecs, useSaveExecutionPlan,
+} from "@/hooks/use-ai-cto-planning";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
@@ -97,6 +101,42 @@ export default function ProjectDetail() {
   const { data: approvals = [] } = useApprovals(id);
   const { data: artifacts = [] } = useArtifacts(id);
   const { data: events = [] } = useActivityEvents(id, 30);
+
+  // ── Persisted CTO planning artifacts ──
+  const blueprintContractId = (project as any)?.blueprint_contract_id ?? null;
+  const { data: persistedSlices } = usePersistedSlices(blueprintContractId);
+  const { data: persistedTaskSpecs } = usePersistedTaskSpecs(blueprintContractId);
+  const { data: persistedPlan } = usePersistedPlan(blueprintContractId);
+  const { data: persistedConformance } = usePersistedConformance(id ?? null);
+  const saveSlices = useSaveSlices(blueprintContractId);
+  const saveTaskSpecs = useSaveTaskSpecs(blueprintContractId);
+  const saveExecPlan = useSaveExecutionPlan(blueprintContractId);
+
+  // Seed local state from persisted data on first load
+  useEffect(() => {
+    if (persistedSlices && persistedSlices.length > 0 && engineeringSlices.length === 0) {
+      setEngineeringSlices(persistedSlices);
+    }
+  }, [persistedSlices]);
+
+  // Auto-persist slices, taskspec drafts, and execution plan when they change
+  useEffect(() => {
+    if (blueprintContractId && engineeringSlices.length > 0) {
+      saveSlices.mutate(engineeringSlices);
+    }
+  }, [engineeringSlices, blueprintContractId]);
+
+  useEffect(() => {
+    if (blueprintContractId && taskSpecDrafts.length > 0) {
+      saveTaskSpecs.mutate(taskSpecDrafts);
+    }
+  }, [taskSpecDrafts, blueprintContractId]);
+
+  useEffect(() => {
+    if (blueprintContractId && executionPlanResult.plan.batches.length > 0) {
+      saveExecPlan.mutate(executionPlanResult.plan);
+    }
+  }, [executionPlanResult.plan, blueprintContractId]);
 
   const planningApproved = approvals.some(
     (a) => a.approval_type === "blueprint_approval" && a.state === "decided" && (a as any).decision === "approved"

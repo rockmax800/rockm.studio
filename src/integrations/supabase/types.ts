@@ -1389,6 +1389,67 @@ export type Database = {
           },
         ]
       }
+      cto_conformance_reports: {
+        Row: {
+          artifacts_complete: boolean
+          boundary_respected: boolean
+          created_at: string
+          dod_met: boolean
+          forbidden_changes_detected: boolean
+          id: string
+          project_id: string
+          summary: string
+          task_id: string | null
+          taskspec_draft_id: string | null
+        }
+        Insert: {
+          artifacts_complete?: boolean
+          boundary_respected?: boolean
+          created_at?: string
+          dod_met?: boolean
+          forbidden_changes_detected?: boolean
+          id?: string
+          project_id: string
+          summary?: string
+          task_id?: string | null
+          taskspec_draft_id?: string | null
+        }
+        Update: {
+          artifacts_complete?: boolean
+          boundary_respected?: boolean
+          created_at?: string
+          dod_met?: boolean
+          forbidden_changes_detected?: boolean
+          id?: string
+          project_id?: string
+          summary?: string
+          task_id?: string | null
+          taskspec_draft_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cto_conformance_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cto_conformance_reports_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cto_conformance_reports_taskspec_draft_id_fkey"
+            columns: ["taskspec_draft_id"]
+            isOneToOne: false
+            referencedRelation: "taskspec_drafts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string
@@ -1847,6 +1908,71 @@ export type Database = {
           },
         ]
       }
+      engineering_slice_drafts: {
+        Row: {
+          allowed_repo_areas_json: Json
+          blueprint_contract_id: string
+          business_goal: string
+          created_at: string
+          execution_batch: number
+          expected_interfaces_json: Json
+          expected_touch_points_json: Json
+          id: string
+          max_complexity_score: number
+          module_id: string
+          module_name: string
+          performance_constraints_json: Json
+          status: string
+          technical_boundary: string
+          test_scope_json: Json
+          updated_at: string
+        }
+        Insert: {
+          allowed_repo_areas_json?: Json
+          blueprint_contract_id: string
+          business_goal?: string
+          created_at?: string
+          execution_batch?: number
+          expected_interfaces_json?: Json
+          expected_touch_points_json?: Json
+          id?: string
+          max_complexity_score?: number
+          module_id: string
+          module_name: string
+          performance_constraints_json?: Json
+          status?: string
+          technical_boundary?: string
+          test_scope_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          allowed_repo_areas_json?: Json
+          blueprint_contract_id?: string
+          business_goal?: string
+          created_at?: string
+          execution_batch?: number
+          expected_interfaces_json?: Json
+          expected_touch_points_json?: Json
+          id?: string
+          max_complexity_score?: number
+          module_id?: string
+          module_name?: string
+          performance_constraints_json?: Json
+          status?: string
+          technical_boundary?: string
+          test_scope_json?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engineering_slice_drafts_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estimate_reports: {
         Row: {
           avg_cost_estimate: number
@@ -2131,6 +2257,53 @@ export type Database = {
           payload_json?: Json
         }
         Relationships: []
+      }
+      execution_plan_drafts: {
+        Row: {
+          batches_json: Json
+          blueprint_contract_id: string
+          created_at: string
+          critical_path_json: Json
+          edges_json: Json
+          id: string
+          notes_json: Json
+          status: string
+          taskspec_draft_ids_json: Json
+          updated_at: string
+        }
+        Insert: {
+          batches_json?: Json
+          blueprint_contract_id: string
+          created_at?: string
+          critical_path_json?: Json
+          edges_json?: Json
+          id?: string
+          notes_json?: Json
+          status?: string
+          taskspec_draft_ids_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          batches_json?: Json
+          blueprint_contract_id?: string
+          created_at?: string
+          critical_path_json?: Json
+          edges_json?: Json
+          id?: string
+          notes_json?: Json
+          status?: string
+          taskspec_draft_ids_json?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_plan_drafts_blueprint_contract_id_fkey"
+            columns: ["blueprint_contract_id"]
+            isOneToOne: false
+            referencedRelation: "blueprint_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       handoffs: {
         Row: {
@@ -4373,6 +4546,77 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      taskspec_drafts: {
+        Row: {
+          acceptance_criteria_json: Json
+          allowed_repo_paths_json: Json
+          complexity_score: number
+          created_at: string
+          definition_of_done_json: Json
+          engineering_layer: string
+          engineering_slice_id: string
+          forbidden_repo_paths_json: Json
+          goal: string
+          id: string
+          module_id: string
+          owner_role: string
+          required_artifacts_json: Json
+          risk_class: string
+          status: string
+          title: string
+          updated_at: string
+          verification_plan_json: Json
+        }
+        Insert: {
+          acceptance_criteria_json?: Json
+          allowed_repo_paths_json?: Json
+          complexity_score?: number
+          created_at?: string
+          definition_of_done_json?: Json
+          engineering_layer?: string
+          engineering_slice_id: string
+          forbidden_repo_paths_json?: Json
+          goal?: string
+          id?: string
+          module_id: string
+          owner_role?: string
+          required_artifacts_json?: Json
+          risk_class?: string
+          status?: string
+          title: string
+          updated_at?: string
+          verification_plan_json?: Json
+        }
+        Update: {
+          acceptance_criteria_json?: Json
+          allowed_repo_paths_json?: Json
+          complexity_score?: number
+          created_at?: string
+          definition_of_done_json?: Json
+          engineering_layer?: string
+          engineering_slice_id?: string
+          forbidden_repo_paths_json?: Json
+          goal?: string
+          id?: string
+          module_id?: string
+          owner_role?: string
+          required_artifacts_json?: Json
+          risk_class?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          verification_plan_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taskspec_drafts_engineering_slice_id_fkey"
+            columns: ["engineering_slice_id"]
+            isOneToOne: false
+            referencedRelation: "engineering_slice_drafts"
             referencedColumns: ["id"]
           },
         ]
