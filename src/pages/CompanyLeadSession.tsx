@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
+import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
