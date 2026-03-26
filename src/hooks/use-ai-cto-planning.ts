@@ -30,8 +30,10 @@ function rowToSlice(row: any): EngineeringSliceDraft {
     allowedRepoAreas: row.allowed_repo_areas_json ?? [],
     expectedTouchPoints: row.expected_touch_points_json ?? [],
     expectedInterfaces: row.expected_interfaces_json ?? [],
+    dataContracts: row.data_contracts_json ?? [],
     performanceConstraints: row.performance_constraints_json ?? [],
     testScope: row.test_scope_json ?? [],
+    forbiddenShortcuts: row.forbidden_shortcuts_json ?? [],
     maxComplexityScore: row.max_complexity_score,
     executionBatch: row.execution_batch,
   };

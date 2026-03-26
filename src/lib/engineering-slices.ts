@@ -223,8 +223,10 @@ export function generateEngineeringSlices(input: GenerateSlicesInput): Engineeri
           `${mod.name.toLowerCase().replace(/\s+/g, "-")}/${tp}`,
         ),
         expectedInterfaces: inferInterfaces(mod, layer, modules),
+        dataContracts: inferDataContracts(mod, layer),
         performanceConstraints: inferPerformanceConstraints(mod, layer),
         testScope: spec.testScope,
+        forbiddenShortcuts: inferForbiddenShortcuts(mod, layer),
         maxComplexityScore: complexity,
         executionBatch: batch,
       });
