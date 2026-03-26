@@ -46,7 +46,6 @@ import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-plan
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
 import type { ClarificationRequest } from "@/types/clarification-request";
-import { createClarificationRequest } from "@/types/clarification-request";
 import { ClarificationRequestCard } from "@/components/project-cockpit/ClarificationRequestCard";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
@@ -57,6 +56,8 @@ import { checkMaterializationGate, materializeDeliveryTasks } from "@/lib/materi
 import {
   usePersistedSlices, usePersistedTaskSpecs, usePersistedPlan, usePersistedConformance,
   useSaveSlices, useSaveTaskSpecs, useSaveExecutionPlan,
+  usePersistedClarifications, useCreateClarification, useResolveClarification,
+  usePersistedSanityReports, useSaveSanityReport,
 } from "@/hooks/use-ai-cto-planning";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
