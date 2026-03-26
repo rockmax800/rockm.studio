@@ -335,7 +335,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
   const scope = useMemo(() => extractScopeFromConversation(messages), [messages]);
   const consultation = useMemo(() => generateConsultation(scope), [scope]);
-  const moduleEstimates = useMemo(() => generateModuleEstimates(scope), [scope]);
+  // Use effective (post-reduction) modules for estimates when available
+  const effectiveScope = useMemo(() => {
+    if (mvpReductionLocked && effectiveModuleNames.length > 0) {
+      return { ...scope, modules: effectiveModuleNames };
+    }
+    return scope;
+  }, [scope, mvpReductionLocked, effectiveModuleNames]);
+  const moduleEstimates = useMemo(() => generateModuleEstimates(effectiveScope), [effectiveScope]);
   const totalTokens = moduleEstimates.reduce((s, m) => s + m.tokens, 0);
   const totalCost = moduleEstimates.reduce((s, m) => s + m.cost, 0);
   const totalDays = Math.max(...moduleEstimates.map((m) => m.days), 0);
