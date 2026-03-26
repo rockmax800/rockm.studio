@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPersona, getStatusMeta } from "@/lib/personas";
-import { ArrowLeft, ArrowUpRight, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, AlertTriangle, Clock, CheckCircle2, Shield } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const STATE_DOT: Record<string, string> = {
@@ -123,6 +123,27 @@ export default function EmployeeTasksPage() {
             </div>
           )}
 
+          {/* Role-based ownership explainer */}
+          {employee && hasRoleId && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-border/30 bg-muted/20 px-4 py-3">
+              <Shield className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0" />
+              <div className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                <span className="font-semibold text-foreground/70">Role-based ownership:</span>{" "}
+                Tasks are assigned to the <span className="font-semibold text-foreground/60">{roleName}</span> role contract, not to {employee.name} individually.
+                Multiple employees sharing this role may see the same task pool.
+              </div>
+            </div>
+          )}
+
+          {!hasRoleId && employee && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/[0.04] px-4 py-3">
+              <AlertTriangle className="h-4 w-4 text-destructive/60 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                This employee has no linked role contract. Tasks cannot be loaded without a role assignment.
+              </p>
+            </div>
+          )}
+
           {/* Task groups */}
           {loadingActive ? (
             <p className="text-[13px] text-muted-foreground py-8">Loading tasks…</p>
@@ -158,8 +179,14 @@ export default function EmployeeTasksPage() {
                   </div>
                 );
               })}
-              {activeTasks.length === 0 && completedTasks.length === 0 && (
-                <p className="text-[12px] text-muted-foreground/40 py-6 text-center">No tasks assigned to this role.</p>
+              {hasRoleId && activeTasks.length === 0 && completedTasks.length === 0 && (
+                <div className="rounded-xl border border-border/30 bg-muted/10 px-5 py-8 text-center space-y-1">
+                  <p className="text-[13px] font-semibold text-foreground/60">No tasks assigned to this role</p>
+                  <p className="text-[11px] text-muted-foreground/40">
+                    The <span className="font-medium">{roleName}</span> role has no active or recently completed tasks.
+                    Tasks appear here when assigned to this role via a project delivery board.
+                  </p>
+                </div>
               )}
             </div>
           )}
