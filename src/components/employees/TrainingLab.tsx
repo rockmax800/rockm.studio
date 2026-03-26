@@ -50,7 +50,7 @@ interface TrainingLabProps {
   guidanceDimensions?: GuidanceDimension[];
 }
 
-export function TrainingLab({ employeeId, employeeName, roleName }: TrainingLabProps) {
+export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillPackIds = [], guidanceDimensions = [] }: TrainingLabProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const {
     messages, materials, drafts, events, sections, loading,
