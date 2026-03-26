@@ -141,6 +141,9 @@ All evolution requires evaluation rail pass + founder approval. No silent mutati
 ### Experimental: External Execution Engines
 The system may optionally delegate run execution to external orchestration engines (e.g. Ruflo). External engines execute work but do not own product state — projects, tasks, runs, artifacts, reviews, approvals, and deployments remain the source of truth in this app. See `docs/integrations/01-ruflo-execution-engine.md` for the architecture decision record.
 
+### Agent Harness Patterns
+Verification loops, skill packs, project memory, and harness interoperability are adopted as local internal patterns — not as external dependencies. All patterns operate under founder approval and cannot bypass the state model. See `docs/integrations/02-agent-harness-patterns-adoption.md`.
+
 ### Hard Enforcement Layer
 - Role contract boundary enforcement (path-level restrictions)
 - Mandatory artifact gates (Implementation Patch, Review Report, QA Evidence)
