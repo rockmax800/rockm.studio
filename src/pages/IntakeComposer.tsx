@@ -603,6 +603,16 @@ export default function IntakeComposerV2() {
                     />
                   )}
 
+                  {/* AI Task Drafts — decomposed from backlog */}
+                  {phase !== "drafting" && ctoBacklogCards.length > 0 && (() => {
+                    const taskDrafts = decomposeBacklogToTasks(ctoBacklogCards);
+                    const titles: Record<string, string> = {};
+                    for (const c of ctoBacklogCards) titles[c.id] = c.featureSlice;
+                    return taskDrafts.length > 0 ? (
+                      <AiTaskDraftPanel drafts={taskDrafts} cardTitles={titles} />
+                    ) : null;
+                  })()}
+
                   {/* Frozen success state */}
                   {phase !== "drafting" && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/[0.06] border border-status-green/20">
