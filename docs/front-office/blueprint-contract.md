@@ -28,6 +28,10 @@ Transforms a discussed IntakeRequest into a structured scope contract with accep
 | key_decisions_json | jsonb | Architecture and design decisions |
 | critical_risks_json | jsonb | Identified risks |
 | effort_band | string | small / medium / large / xlarge |
+| modules_json | jsonb | **v2.1** — Array of `SystemModule` definitions (see `src/types/front-office-planning.ts`) |
+| dependency_graph_json | jsonb | **v2.1** — Array of `DependencyEdge` records between modules |
+| delivery_mode | string | **v2.1** — `mvp_first` / `full_scope` / `phased_rollout` |
+| optimization_notes_json | jsonb | **v2.1** — Array of `OptimizationNote` — founder + system observations |
 | created_at | timestamp | |
 
 ---
