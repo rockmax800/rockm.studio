@@ -76,6 +76,8 @@ export default function TeamRoom() {
 
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(urlEmp);
   const [sessionActive, setSessionActive] = useState(false);
+  const hasBriefParam = searchParams.get("brief") === "frozen";
+  const briefContext = useMemo(() => hasBriefParam ? loadFrozenBrief() : null, [hasBriefParam]);
 
   // ── Employees query
   const { data: employees = [] } = useQuery({
