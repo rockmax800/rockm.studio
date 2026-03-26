@@ -83,10 +83,10 @@ export function useCompanyLeadPlanning(intakeRequestId: string | null) {
             intake_request_id: intakeRequestId,
             project_type: fields.projectType || "",
             priority_axis: fields.priorityAxis || "",
-            scope_optimization_preference: fields.scopeOptimization || "",
-            constraints_json: fields.constraints || [],
-            integrations_json: fields.integrations || [],
-            timeline_notes: fields.timeline || "",
+            scope_optimization_preference: fields.scopeOptimizationPreference != null ? String(fields.scopeOptimizationPreference) : "",
+            constraints_json: fields.constraints ? fields.constraints.split(",").map(s => s.trim()).filter(Boolean) : [],
+            integrations_json: fields.integrationsOrStack ? fields.integrationsOrStack.split(",").map(s => s.trim()).filter(Boolean) : [],
+            timeline_notes: fields.timelineExpectation || "",
             completed,
           })
           .select()
