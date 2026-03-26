@@ -84,14 +84,15 @@ const LEAD_QUESTIONS: string[] = [
   "What does success look like? Define measurable outcomes you expect at launch.",
 ];
 
-const PHASE_LABELS = {
+const PHASE_LABELS: Record<string, string> = {
   discovery: "Discovery",
+  decomposition: "Decomposition",
   consultation: "Team Review",
   estimate: "Estimate",
   decision: "Decision",
 };
 
-const PHASE_ORDER = ["discovery", "consultation", "estimate", "decision"] as const;
+const PHASE_ORDER = ["discovery", "decomposition", "consultation", "estimate", "decision"] as const;
 
 const COMPLEXITY_CONFIG = {
   low: { label: "Low", color: "hsl(152 60% 42%)", bg: "hsl(152 60% 42% / 0.08)" },
