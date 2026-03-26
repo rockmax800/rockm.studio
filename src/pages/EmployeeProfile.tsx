@@ -10,6 +10,7 @@ import { useState } from "react";
 import { getPersona, getStatusMeta } from "@/lib/personas";
 import { TrainingLab } from "@/components/employees/TrainingLab";
 import { SkillPackPanel } from "@/components/employees/SkillPackPanel";
+import { MemorySummaryPanel, type MemoryCategory, type MemoryEntry } from "@/components/employees/MemorySummaryPanel";
 import { GuidancePackPanel } from "@/components/employees/GuidancePackPanel";
 import { InstinctSettingsPanel } from "@/components/employees/InstinctSettingsPanel";
 import { DEFAULT_GUIDANCE_DIMENSIONS, type GuidanceDimension } from "@/types/skill-pack";
@@ -159,33 +160,38 @@ export default function EmployeeProfile() {
   const trendPoints = [62, 68, 65, 72, 78, successPct];
   const loadPct = tasks.length > 0 ? Math.min(100, Math.round((tasks.length / 4) * 100)) : 0;
 
-  const memoryCategories = [
+  const memoryCategories: MemoryCategory[] = [
     { key: "core_knowledge", title: "Core Knowledge", icon: <BookOpen className="h-3.5 w-3.5" />,
+      description: "Permanent operational rules from contracts and system defaults.",
       items: [
         { text: "Follow role contract boundaries strictly", desc: "Base behavioral rule inherited from system", updated: "2 days ago", source: "contract" },
-        { text: "Produce artifacts before marking tasks done", desc: "Quality gate requirement", updated: "5 days ago", source: "manual" },
+        { text: "Produce artifacts before marking tasks done", desc: "Quality gate requirement", updated: "5 days ago", source: "manual", priority: "high" },
         { text: "Escalate when confidence < 70%", desc: "Auto-learned from failure pattern analysis", updated: "1 week ago", source: "learning" },
       ] },
     { key: "project_memory", title: "Project-Specific Memory", icon: <FileCode className="h-3.5 w-3.5" />,
+      description: "Context retained per project — scoped to active engagements.",
       items: [
-        { text: "Project Alpha: strict TypeScript — no any types", desc: "Enforced by client constraint", updated: "1 day ago", source: "manual" },
+        { text: "Project Alpha: strict TypeScript — no any types", desc: "Enforced by client constraint", updated: "1 day ago", source: "manual", priority: "high" },
         { text: "Project Beta: GraphQL preferred for data fetching", desc: "Architecture decision from blueprint", updated: "4 days ago", source: "contract" },
         { text: "All projects: 80% test coverage minimum", desc: "Company-wide quality standard", updated: "1 week ago", source: "contract" },
       ] },
     { key: "learned_patterns", title: "Learned Patterns", icon: <Lightbulb className="h-3.5 w-3.5" />,
+      description: "Reusable insights promoted from training sessions or review feedback.",
       items: [
         { text: "Prefer small, focused components over monolithic files", desc: "Discovered through review feedback analysis", updated: "2 days ago", source: "learning" },
         { text: "Verify DB schema before writing queries", desc: "Reduced bug rate by 15%", updated: "5 days ago", source: "learning" },
         { text: "Include error boundaries in page-level components", desc: "Learned from production incident", updated: "1 week ago", source: "learning" },
       ] },
     { key: "failure_corrections", title: "Failure Corrections", icon: <AlertTriangle className="h-3.5 w-3.5" />,
+      description: "Specific corrections from past failures — prevents repeat mistakes.",
       items: [
-        { text: "Missed forbidden path check on prisma/ (Run #42)", desc: "Correction: Always validate paths pre-execution", updated: "3 days ago", source: "manual" },
-        { text: "Output without acceptance criteria (Task #18)", desc: "Correction: Verify criteria exist before submission", updated: "1 week ago", source: "manual" },
+        { text: "Missed forbidden path check on prisma/ (Run #42)", desc: "Correction: Always validate paths pre-execution", updated: "3 days ago", source: "correction", priority: "high" },
+        { text: "Output without acceptance criteria (Task #18)", desc: "Correction: Verify criteria exist before submission", updated: "1 week ago", source: "correction" },
       ] },
     { key: "manual_overrides", title: "Manual Overrides", icon: <Pencil className="h-3.5 w-3.5" />,
+      description: "Founder-enforced rules that override all other behavior.",
       items: [
-        { text: "Never auto-generate migrations without explicit task", desc: "Founder override — safety constraint", updated: "1 day ago", source: "manual" },
+        { text: "Never auto-generate migrations without explicit task", desc: "Founder override — safety constraint", updated: "1 day ago", source: "manual", priority: "high" },
       ] },
   ];
 
@@ -193,6 +199,7 @@ export default function EmployeeProfile() {
     contract: { label: "Contract", cls: "bg-secondary text-muted-foreground" },
     manual: { label: "Manual", cls: "bg-status-amber/15 text-status-amber" },
     learning: { label: "Learned", cls: "bg-status-green/15 text-status-green" },
+    correction: { label: "Correction", cls: "bg-destructive/15 text-destructive" },
   };
 
   const addPendingRule = () => {
@@ -372,9 +379,16 @@ export default function EmployeeProfile() {
             )}
           </Section>
 
+          {/* ═══ MEMORY SUMMARY ═══ */}
+          <MemorySummaryPanel
+            categories={memoryCategories}
+            lastTrainingUpdate={employee.updated_at ? new Date(employee.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null}
+            hasActiveGuidance={attachedSkillPacks.length > 0 || guidanceDimensions.some((d) => d.value !== 3)}
+          />
+
           {/* ═══ MEMORY ═══ */}
-          <Section icon={<Brain className="h-4 w-4" />} title="Memory"
-            subtitle={trainingMode ? "Click entries to edit — changes staged until saved" : `${memoryCategories.length} categories`}>
+          <Section icon={<Brain className="h-4 w-4" />} title="Operational Memory"
+            subtitle={trainingMode ? "Click entries to edit — changes staged until saved" : `${memoryCategories.length} categories · ${memoryCategories.reduce((s, c) => s + c.items.length, 0)} entries`}>
             <div className="space-y-1.5">
               {memoryCategories.map((cat) => {
                 const isExpanded = expandedMemory[cat.key] ?? false;
@@ -383,8 +397,14 @@ export default function EmployeeProfile() {
                     <button onClick={() => toggleMemory(cat.key)}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-secondary/15 transition-colors">
                       <span className="text-muted-foreground/50">{cat.icon}</span>
-                      <span className="text-[12px] font-bold text-foreground flex-1">{cat.title}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[12px] font-bold text-foreground">{cat.title}</span>
+                        <p className="text-[10px] text-muted-foreground/40 mt-0.5">{cat.description}</p>
+                      </div>
                       <span className="text-[10px] text-muted-foreground/40 font-mono">{cat.items.length}</span>
+                      {cat.items.length > 0 && (
+                        <span className="text-[9px] text-muted-foreground/25">{cat.items[0].updated}</span>
+                      )}
                       {isExpanded ? <ChevronDown className="h-3 w-3 text-muted-foreground/30" /> : <ChevronRight className="h-3 w-3 text-muted-foreground/30" />}
                     </button>
                     {isExpanded && (
