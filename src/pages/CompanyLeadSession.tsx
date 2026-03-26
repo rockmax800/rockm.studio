@@ -402,7 +402,9 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
         );
         // Don't auto-advance — clarification gate controls progression
       } else if (phase === "decomposition") {
-        addLeadMessage("Review the System Decomposition panel. Add, merge, or adjust modules, then confirm to proceed to team consultation.");
+        addLeadMessage("Review the System Decomposition panel. Add, merge, or adjust modules, then confirm to proceed.");
+      } else if (phase === "mvp_reduction") {
+        addLeadMessage("Review the MVP Reduction panel. Decide which modules to keep, defer, replace with SaaS, or remove. Confirm when ready.");
       } else {
         addLeadMessage("The estimate is ready for your review. Use the decision buttons below the estimate panel to proceed.");
       }
