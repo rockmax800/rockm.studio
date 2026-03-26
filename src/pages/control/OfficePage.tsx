@@ -318,8 +318,6 @@ export default function OfficePage() {
                     .map((t: any) => t.project_id)
                 );
                 const roomProjects = (data.projects as any[]).filter((p: any) => roomProjectIds.has(p.id)).slice(0, 3);
-                const activeCount = employees.filter((e: any) => e.status !== "idle").length;
-                const blockedCount = employees.filter((e: any) => e.status === "blocked").length;
 
                 return (
                   <div key={team.id}
