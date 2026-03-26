@@ -200,6 +200,12 @@ export default function ProjectDetail() {
     );
   }, []);
 
+  // Sync open clarification requests to sessionStorage for CompanyLeadSession
+  useEffect(() => {
+    const open = clarificationRequests.filter((r) => r.status === "open");
+    sessionStorage.setItem("cto_clarification_requests", JSON.stringify(open));
+  }, [clarificationRequests]);
+
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
     queryFn: async () => {
