@@ -215,7 +215,7 @@ export default function ProjectDetail() {
       validCount: sanityReport.validCount,
       warningCount: sanityReport.warningCount,
       blockedCount: sanityReport.blockedCount,
-      issues: sanityReport.results.filter(r => r.status !== "valid").map(r => ({ draftId: r.draftId, status: r.status, reasons: r.reasons })),
+      issues: sanityReport.results.filter(r => r.status !== "valid").map(r => ({ draftId: r.draftId, status: r.status, findings: r.findings })),
       materializationAllowed: sanityReport.overallStatus !== "blocked",
     });
   }, [sanityReport, id, blueprintContractId]); // eslint-disable-line react-hooks/exhaustive-deps
