@@ -379,9 +379,16 @@ export default function EmployeeProfile() {
             )}
           </Section>
 
+          {/* ═══ MEMORY SUMMARY ═══ */}
+          <MemorySummaryPanel
+            categories={memoryCategories}
+            lastTrainingUpdate={employee.updated_at ? new Date(employee.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null}
+            hasActiveGuidance={attachedSkillPacks.length > 0 || guidanceDimensions.some((d) => d.value !== 3)}
+          />
+
           {/* ═══ MEMORY ═══ */}
-          <Section icon={<Brain className="h-4 w-4" />} title="Memory"
-            subtitle={trainingMode ? "Click entries to edit — changes staged until saved" : `${memoryCategories.length} categories`}>
+          <Section icon={<Brain className="h-4 w-4" />} title="Operational Memory"
+            subtitle={trainingMode ? "Click entries to edit — changes staged until saved" : `${memoryCategories.length} categories · ${memoryCategories.reduce((s, c) => s + c.items.length, 0)} entries`}>
             <div className="space-y-1.5">
               {memoryCategories.map((cat) => {
                 const isExpanded = expandedMemory[cat.key] ?? false;
