@@ -197,6 +197,7 @@ export default function IntakeComposerV2() {
     generateBacklogFromBrief();
   }, [generateBacklogFromBrief]);
 
+  const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }, 50);
