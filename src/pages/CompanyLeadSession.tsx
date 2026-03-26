@@ -1172,6 +1172,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               </RailCard>
             )}
 
+            {/* CTO Sanity Check — pre-delivery quality gate */}
+            {taskSpecDrafts.length > 0 && showEstimate && (
+              <RailCard title="CTO Sanity Check" icon={ShieldCheck}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Pre-delivery quality gate — must pass before live task materialization.
+                </p>
+                <TaskSpecSanityPanel report={sanityReport} />
+              </RailCard>
+            )}
+
             {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
