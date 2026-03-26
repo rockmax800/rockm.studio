@@ -192,7 +192,11 @@ export default function IntakeComposerV2() {
     }
   }, [phase, sections, ctoBacklogCards.length]);
 
-  const scrollToBottom = useCallback(() => {
+  // Trigger backlog generation when phase changes to frozen
+  useEffect(() => {
+    generateBacklogFromBrief();
+  }, [generateBacklogFromBrief]);
+
     setTimeout(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }, 50);
