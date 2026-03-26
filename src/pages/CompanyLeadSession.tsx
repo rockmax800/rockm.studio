@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
+import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
 import { ExecutionOverrideSheet, type SessionOverride } from "@/components/ui/execution-override-sheet";
 import { useExecutionPolicy } from "@/hooks/use-execution-policy";
@@ -394,14 +395,14 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
 
         {/* Right side: profile + training + execution badge + expand */}
         <div className="flex items-center gap-2">
-          <Link to="/lead/profile"
+          <Link to={LEAD_PROFILE_ROUTE}
             className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
             title="Open Lead Profile"
             onClick={() => { if (embedded) onClose?.(); }}
           >
             <User className="h-3.5 w-3.5" /> Profile
           </Link>
-          <Link to="/lead/profile"
+          <Link to={LEAD_PROFILE_ROUTE}
             className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
             title="Train Company Lead"
             onClick={() => { if (embedded) onClose?.(); }}
