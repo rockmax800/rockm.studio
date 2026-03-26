@@ -500,6 +500,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   // ── Independence acknowledgment for dependency-less multi-module projects ──
   const [independenceAcknowledged, setIndependenceAcknowledged] = useState(false);
 
+  // ── CTO Clarification Requests (received from ProjectDetail, stored locally for now) ──
+  // In a real system these would come from a shared store / URL params.
+  // For now, this surface shows any requests passed via sessionStorage.
+  const [ctoClarifications, setCtoClarifications] = useState<ClarificationRequest[]>(() => {
+    try {
+      const raw = sessionStorage.getItem("cto_clarification_requests");
+      return raw ? (JSON.parse(raw) as ClarificationRequest[]).filter(r => r.status === "open") : [];
+    } catch { return []; }
+  });
+
   // ── Planning Gate — blocks estimate if prerequisites are missing ──
   const planningGate: PlanningGateResult = useMemo(() => validatePlanningGate({
     clarificationComplete: clarificationLocked,
