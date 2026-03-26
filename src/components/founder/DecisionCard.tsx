@@ -8,7 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export interface DecisionItem {
   id: string;
-  category: "blueprint_approval" | "estimate_approval" | "review_escalation" | "deploy_production" | "risk_acknowledgement" | "learning_promotion" | "domain_binding" | "approval" | "escalation" | "risk";
+  category: "blueprint_approval" | "estimate_approval" | "review_escalation" | "deploy_production" | "risk_acknowledgement" | "learning_promotion" | "domain_binding" | "approval" | "escalation" | "risk" | "conformance_violation";
   projectName?: string;
   entityType: string;
   title: string;
