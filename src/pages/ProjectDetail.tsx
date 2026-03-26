@@ -38,6 +38,7 @@ import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDrafts
 import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPanel";
 import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanityPanel";
 import { CtoConformancePanel } from "@/components/project-cockpit/CtoConformancePanel";
+import { MaterializeTasksPanel } from "@/components/project-cockpit/MaterializeTasksPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
@@ -46,7 +47,8 @@ import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { buildExecutionPlan } from "@/lib/execution-planner";
 import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import { evaluateConformance } from "@/lib/cto-conformance";
-import { useState, useMemo } from "react";
+import { checkMaterializationGate, materializeDeliveryTasks } from "@/lib/materialize-delivery-tasks";
+import { useState, useMemo, useCallback } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
@@ -94,6 +96,22 @@ export default function ProjectDetail() {
   const { data: approvals = [] } = useApprovals(id);
   const { data: artifacts = [] } = useArtifacts(id);
   const { data: events = [] } = useActivityEvents(id, 30);
+
+  const planningApproved = approvals.some(
+    (a) => a.approval_type === "blueprint_approval" && a.state === "decided" && (a as any).decision === "approved"
+  );
+  const materializationGate = useMemo(() => checkMaterializationGate({
+    projectExists: !!project,
+    projectState: project?.state ?? "draft",
+    planningApproved,
+    sanityReport,
+    draftsCount: taskSpecDrafts.length,
+  }), [project, planningApproved, sanityReport, taskSpecDrafts]);
+
+  const handleMaterialize = useCallback(
+    () => materializeDeliveryTasks(id!, taskSpecDrafts),
+    [id, taskSpecDrafts],
+  );
 
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
@@ -214,6 +232,7 @@ export default function ProjectDetail() {
   const hasProductionLive = deployments.some((d: any) => d.environment === "production" && d.status === "live");
   const ciPassed = checkSuites.some((c: any) => c.status === "passed");
   const ciFailed = checkSuites.some((c: any) => c.status === "failed");
+
 
   const taskItems = tasks.map((t) => ({
     id: t.id, title: t.title, state: t.state, domain: t.domain,
@@ -524,14 +543,18 @@ export default function ProjectDetail() {
             </div>
           )}
 
-          {/* ══ CTO CONFORMANCE — Post-Run Engineering Guardrail ══ */}
+          {/* ══ MATERIALIZE DELIVERY TASKS — Founder-Only Launch Action ══ */}
           {taskSpecDrafts.length > 0 && (
             <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
-              <SectionHeader icon={ShieldCheck} title="CTO Conformance" count={conformanceSummary.totalDrafts} />
+              <SectionHeader icon={Rocket} title="Materialize Delivery Tasks" count={taskSpecDrafts.length} />
               <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
-                Post-run conformance evaluation — engineering guardrail, does not replace Review/QA.
+                Controlled transition from planning drafts to live Delivery Plane tasks — founder confirmation required.
               </p>
-              <CtoConformancePanel summary={conformanceSummary} />
+              <MaterializeTasksPanel
+                gate={materializationGate}
+                draftsCount={taskSpecDrafts.length}
+                onMaterialize={handleMaterialize}
+              />
             </div>
           )}
 
