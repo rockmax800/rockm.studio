@@ -40,6 +40,8 @@ import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanity
 import { CtoConformancePanel } from "@/components/project-cockpit/CtoConformancePanel";
 import { MaterializeTasksPanel } from "@/components/project-cockpit/MaterializeTasksPanel";
 import { CtoOverview } from "@/components/project-cockpit/CtoOverview";
+import { CtoHandoffCard } from "@/components/project-cockpit/CtoHandoffCard";
+import { buildHandoffContract } from "@/lib/cto-handoff";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
@@ -531,6 +533,30 @@ export default function ProjectDetail() {
               blueprintContractId={(project as any).blueprint_contract_id ?? null}
               intakeRequestId={(project as any).intake_request_id ?? null}
             />
+          </div>
+
+          {/* ══ CTO HANDOFF CONTRACT — Lead → CTO Planning Boundary ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Target} title="CTO Handoff Contract" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Formal handoff from Company Lead planning to AI CTO engineering — shows what is ready and what is missing.
+            </p>
+            {(() => {
+              const handoff = buildHandoffContract({
+                blueprintId: blueprintContractId,
+                clarificationComplete: true, // project exists = clarification done
+                modules: ctoBacklogCards.map(c => ({ name: c.moduleName })),
+                dependencyEdgeCount: 0,
+                independenceAcknowledged: false,
+                deliveryMode: null,
+                mvpReductionComplete: true,
+                isMvpProject: false,
+                approvedByFounder: planningApproved,
+                backlogCardCount: ctoBacklogCards.length,
+                taskDraftCount: aiTaskDrafts.length,
+              });
+              return <CtoHandoffCard contract={handoff} />;
+            })()}
           </div>
 
           {/* ══ CTO ENGINEERING OVERVIEW — Founder Health Summary ══ */}

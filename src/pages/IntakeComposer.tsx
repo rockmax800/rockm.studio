@@ -35,6 +35,8 @@ import type { CTOBacklogCardDraft, AITaskDraft, SystemModule } from "@/types/fro
 import { validatePlanningGate } from "@/lib/planning-gates";
 import { useCompanyLeadPlanning } from "@/hooks/use-company-lead-planning";
 import { estimateFromNames } from "@/lib/module-estimation";
+import { buildHandoffContract } from "@/lib/cto-handoff";
+import { CtoHandoffCard } from "@/components/project-cockpit/CtoHandoffCard";
 import { validateCtoReadiness } from "@/lib/cto-readiness";
 
 /* ── Types ───────────────────────────────────────────────── */
@@ -679,7 +681,27 @@ export default function IntakeComposerV2() {
                     );
                   })()}
 
-                  {/* Frozen success state */}
+                  {/* CTO Handoff Contract — after freeze */}
+                  {phase !== "drafting" && (() => {
+                    const scopeSection = sections.find(s => s.key === "in_scope");
+                    const scopeItems = (scopeSection?.content ?? "").split(/[,;.\n]+/).map(s => s.trim()).filter(Boolean);
+                    const modules = scopeItems.map(item => ({ name: item.length > 40 ? item.slice(0, 40) : item }));
+                    const handoff = buildHandoffContract({
+                      blueprintId: null,
+                      clarificationComplete: true,
+                      modules,
+                      dependencyEdgeCount: 0,
+                      independenceAcknowledged: false,
+                      deliveryMode: null,
+                      mvpReductionComplete: true,
+                      isMvpProject: false,
+                      approvedByFounder: false,
+                      backlogCardCount: ctoBacklogCards.length,
+                      taskDraftCount: decomposeBacklogToTasks(ctoBacklogCards).length,
+                    });
+                    return <CtoHandoffCard contract={handoff} compact />;
+                  })()}
+
                   {phase !== "drafting" && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/[0.06] border border-status-green/20">
                       <Snowflake className="h-3.5 w-3.5 text-status-green shrink-0" />
