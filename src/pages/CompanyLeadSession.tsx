@@ -1124,7 +1124,19 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               />
             )}
 
-            {/* Market Benchmark — founder-only, uses post-reduction scope */}
+            {/* Engineering Slices — normalized from modules */}
+            {engineeringSlices.length > 0 && showEstimate && (
+              <RailCard title="Engineering Slices" icon={Layers}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Bounded engineering units — split, merge, or flag unclear boundaries. Draft until launch gate.
+                </p>
+                <EngineeringSlicesPanel
+                  slices={engineeringSlices}
+                  onSlicesChange={setEngineeringSlices}
+                />
+              </RailCard>
+            )}
+
             {showEstimate && scope && (
               <MarketBenchmarkPanel
                 signals={{
