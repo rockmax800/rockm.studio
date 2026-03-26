@@ -346,14 +346,15 @@ export default function TeamRoom() {
 /* ================================================================
    SESSION WORKSPACE — 8/4 split
    ================================================================ */
-function SessionWorkspace({ emp, roles, deptName, onBack }: {
-  emp: any; roles: any[]; deptName: string; onBack: () => void;
+function SessionWorkspace({ emp, roles, deptName, onBack, briefContext }: {
+  emp: any; roles: any[]; deptName: string; onBack: () => void; briefContext: FrozenBrief | null;
 }) {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>(SEED_TRANSCRIPT);
   const [extraction] = useState<ExtractionState>(SEED_EXTRACTION);
   const [founderInput, setFounderInput] = useState("");
   const [meetingStatus, setMeetingStatus] = useState<"active" | "frozen" | "ended">("active");
   const [showHistory, setShowHistory] = useState(false);
+  const [showBriefDetail, setShowBriefDetail] = useState(false);
   const [empStatus] = useState<"listening" | "thinking" | "responding" | "idle">("listening");
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
