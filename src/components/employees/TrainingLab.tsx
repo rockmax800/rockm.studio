@@ -198,7 +198,28 @@ export function TrainingLab({ employeeId, employeeName, roleName, attachedSkillP
               <span className="text-[10px] text-muted-foreground/50">
                 {guidanceDimensions.filter((d) => d.value !== 3).length} dimension(s) calibrated
               </span>
+        </div>
+        {instinctSettings.length > 0 && (
+          <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg bg-card border border-border/30 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Shield className="h-3 w-3 text-muted-foreground/40" />
+              <span className="text-[10px] text-muted-foreground/50">Instincts:</span>
+              {instinctSettings.filter((s) => s.value !== "medium" && s.value !== "balanced").slice(0, 3).map((s) => (
+                <span key={s.key} className={cn(
+                  "text-[9px] font-bold px-1.5 py-0.5 rounded",
+                  s.value === "high" || s.value === "strong" || s.value === "early"
+                    ? "bg-status-amber/10 text-status-amber"
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {s.label}: {s.value}
+                </span>
+              ))}
+              {instinctSettings.filter((s) => s.value !== "medium" && s.value !== "balanced").length === 0 && (
+                <span className="text-[9px] text-muted-foreground/30 italic">all defaults</span>
+              )}
             </div>
+          </div>
+        )}
           )}
         </div>
       )}
