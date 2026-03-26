@@ -586,8 +586,19 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               <ExecutionOverrideSheet override={execOverride} onChange={setExecOverride} triggerLabel="Override" />
             </>
           )}
+          {/* Planning persistence state */}
+          {planning.persistenceState !== "unsaved" && (
+            <span className={cn(
+              "text-[9px] font-mono px-2 py-0.5 rounded-md",
+              planning.persistenceState === "saved" && "bg-status-green/10 text-status-green",
+              planning.persistenceState === "saving" && "bg-status-amber/10 text-status-amber",
+              planning.persistenceState === "error" && "bg-destructive/10 text-destructive",
+            )}>
+              {planning.persistenceState === "saved" ? "Saved" : planning.persistenceState === "saving" ? "Saving…" : "Save error"}
+            </span>
+          )}
 
-          {embedded && (
+
             <button
               onClick={() => { onClose?.(); navigate("/lead"); }}
               className="h-8 px-3 flex items-center gap-1.5 text-[11px] font-semibold rounded-lg hover:bg-muted transition-colors text-muted-foreground"
