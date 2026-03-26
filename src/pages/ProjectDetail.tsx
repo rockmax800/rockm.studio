@@ -39,6 +39,7 @@ import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPa
 import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanityPanel";
 import { CtoConformancePanel } from "@/components/project-cockpit/CtoConformancePanel";
 import { MaterializeTasksPanel } from "@/components/project-cockpit/MaterializeTasksPanel";
+import { CtoOverview } from "@/components/project-cockpit/CtoOverview";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
@@ -479,8 +480,27 @@ export default function ProjectDetail() {
             />
           </div>
 
-          {/* ══ CTO READINESS GATE — Engineering Decomposition Prerequisite ══ */}
+          {/* ══ CTO ENGINEERING OVERVIEW — Founder Health Summary ══ */}
           <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Cpu} title="CTO Engineering Overview" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Founder-level engineering health summary — click any metric to jump to its detail panel.
+            </p>
+            <CtoOverview
+              readinessStatus="blocked"
+              readinessPassedCount={0}
+              readinessTotalCount={0}
+              slicesCount={engineeringSlices.length}
+              draftsCount={taskSpecDrafts.length}
+              executionPlan={executionPlanResult.plan}
+              sanityReport={sanityReport}
+              conformanceSummary={conformanceSummary}
+              projectId={id!}
+            />
+          </div>
+
+          {/* ══ CTO READINESS GATE — Engineering Decomposition Prerequisite ══ */}
+          <div id="cto-readiness-gate" className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
             <SectionHeader icon={Cpu} title="CTO Readiness Gate" />
             <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
               AI CTO engineering decomposition prerequisites — validates planning maturity before TaskSpec compilation.
@@ -493,7 +513,7 @@ export default function ProjectDetail() {
 
           {/* ══ ENGINEERING SLICES — AI CTO Normalization Output ══ */}
           {engineeringSlices.length > 0 && (
-            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <div id="cto-engineering-slices" className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <SectionHeader icon={Layers} title="Engineering Slices" count={engineeringSlices.length} />
               <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
                 Bounded engineering units normalized from planning modules — draft until launch gate.
@@ -508,7 +528,7 @@ export default function ProjectDetail() {
 
           {/* ══ TASKSPEC DRAFTS — AI CTO Compilation Output ══ */}
           {taskSpecDrafts.length > 0 && (
-            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <div id="cto-taskspec-drafts" className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <SectionHeader icon={FileText} title="TaskSpec Drafts" count={taskSpecDrafts.length} />
               <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
                 Pre-delivery engineering planning — compiled from engineering slices into canonical TaskSpec format.
@@ -519,7 +539,7 @@ export default function ProjectDetail() {
 
           {/* ══ EXECUTION PLAN — Dependency-Ordered Batch Sequence ══ */}
           {taskSpecDrafts.length > 0 && (
-            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <div id="cto-execution-plan" className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <SectionHeader icon={Activity} title="Execution Plan" count={executionPlanResult.plan.batches.length} />
               <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
                 Dependency-ordered batch sequence — draft until launch gate. Founder may reorder.
@@ -534,12 +554,23 @@ export default function ProjectDetail() {
 
           {/* ══ CTO SANITY CHECK — Pre-Delivery Quality Gate ══ */}
           {taskSpecDrafts.length > 0 && (
-            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <div id="cto-sanity-check" className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <SectionHeader icon={ShieldCheck} title="CTO Sanity Check" count={taskSpecDrafts.length} />
               <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
                 Pre-delivery quality gate — must pass before live task materialization.
               </p>
               <TaskSpecSanityPanel report={sanityReport} />
+            </div>
+          )}
+
+          {/* ══ CTO CONFORMANCE — Post-Run Engineering Guardrail ══ */}
+          {taskSpecDrafts.length > 0 && (
+            <div id="cto-conformance" className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={ShieldCheck} title="CTO Conformance" count={conformanceSummary.totalDrafts} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Post-run conformance evaluation — engineering guardrail, does not replace Review/QA.
+              </p>
+              <CtoConformancePanel summary={conformanceSummary} />
             </div>
           )}
 
