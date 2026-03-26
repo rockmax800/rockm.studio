@@ -675,6 +675,27 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
               Structured outputs extracted from the briefing conversation
             </p>
 
+            {/* Clarification Loop checklist — always visible */}
+            <ClarificationChecklist
+              fields={clarification}
+              onFieldChange={handleClarificationFieldChange}
+              onMarkComplete={handleMarkClarificationComplete}
+              isLocked={clarificationLocked}
+            />
+
+            {/* Gate notice when clarification incomplete */}
+            {!clarificationLocked && (phase === "consultation" || phase === "estimate" || phase === "decision") && (
+              <div className="rounded-xl px-3 py-2.5 border border-status-amber/20 bg-status-amber/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Planning Outputs Blocked</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Complete the Clarification Loop above to unlock consultation, estimates, and blueprint creation.
+                </p>
+              </div>
+            )}
+
             {/* Scope */}
             {showExtraction ? (
               <RailCard title="Scope" icon={Target}>
