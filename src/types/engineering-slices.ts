@@ -26,8 +26,10 @@ export interface EngineeringSliceDraft {
   allowedRepoAreas: string[];
   expectedTouchPoints: string[];
   expectedInterfaces: string[];
+  dataContracts: string[];
   performanceConstraints: string[];
   testScope: string[];
+  forbiddenShortcuts: string[];
   maxComplexityScore: number;
   executionBatch?: number | null;
 }
