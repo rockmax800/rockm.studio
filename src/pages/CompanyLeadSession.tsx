@@ -242,7 +242,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   ]);
   const [inputValue, setInputValue] = useState("");
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [phase, setPhase] = useState<"discovery" | "decomposition" | "consultation" | "estimate" | "decision">("discovery");
+  const [phase, setPhase] = useState<"discovery" | "decomposition" | "mvp_reduction" | "consultation" | "estimate" | "decision">("discovery");
   const [isThinking, setIsThinking] = useState(false);
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
