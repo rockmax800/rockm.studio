@@ -12,6 +12,44 @@
 /** Which engine executes the run */
 export type ExecutionEngine = "native" | "ruflo";
 
+/**
+ * Conceptual external harness targets for future interoperability.
+ * These are NOT live integrations — they represent compatibility categories.
+ */
+export type HarnessTarget = "claude-style" | "codex-style" | "generic-tool";
+
+export interface HarnessTargetMeta {
+  id: HarnessTarget;
+  label: string;
+  pattern: string;
+  mappingSummary: string;
+  status: "active" | "experimental" | "planned" | "not-connected";
+}
+
+export const HARNESS_TARGETS: HarnessTargetMeta[] = [
+  {
+    id: "claude-style",
+    label: "Claude-style Harness",
+    pattern: "Single-agent with structured tool calls, AGENTS.md-driven rules",
+    mappingSummary: "AGENTS.md rules → RuleManifest · Tool calls → CommandManifest",
+    status: "not-connected",
+  },
+  {
+    id: "codex-style",
+    label: "Codex-style Harness",
+    pattern: "Sandboxed environment with file system access, iterative execution",
+    mappingSummary: "Sandbox paths → Role contract boundaries · Steps → Run transitions",
+    status: "not-connected",
+  },
+  {
+    id: "generic-tool",
+    label: "Generic Tool-Driven Harness",
+    pattern: "CLI-driven code generation (OpenCode, Aider, etc.)",
+    mappingSummary: "Model selection → ExecutionPolicy · Output → Artifact submission",
+    status: "not-connected",
+  },
+];
+
 /** Model provider family */
 export type ProviderFamily = "anthropic" | "openai" | "google" | "local";
 
