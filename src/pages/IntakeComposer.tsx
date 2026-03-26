@@ -588,6 +588,17 @@ export default function IntakeComposerV2() {
                     );
                   })()}
 
+                  {/* CTO Backlog Draft — after freeze */}
+                  {phase !== "drafting" && (() => {
+                    generateBacklogFromBrief();
+                    return ctoBacklogCards.length > 0 ? (
+                      <CtoBacklogDraftPanel
+                        cards={ctoBacklogCards}
+                        onCardsChange={setCtoBacklogCards}
+                      />
+                    ) : null;
+                  })()}
+
                   {/* Frozen success state */}
                   {phase !== "drafting" && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-green/[0.06] border border-status-green/20">
