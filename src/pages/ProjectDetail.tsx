@@ -431,6 +431,18 @@ export default function ProjectDetail() {
             />
           </div>
 
+          {/* ══ PLANNING PACKAGE SUMMARY — Upstream Quality Audit ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={Target} title="Planning Package" />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Upstream planning quality audit — clarification, decomposition, backlog, and task drafts.
+            </p>
+            <PlanningPackageSummary
+              blueprintContractId={(project as any).blueprint_contract_id ?? null}
+              intakeRequestId={(project as any).intake_request_id ?? null}
+            />
+          </div>
+
           {/* ══ CTO BACKLOG DRAFT — Pre-Delivery Planning ══ */}
           {ctoBacklogCards.length > 0 && (
             <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
