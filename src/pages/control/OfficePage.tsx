@@ -381,6 +381,24 @@ export default function OfficePage() {
                           ))}
                         </div>
                       )}
+
+                      {/* Active project pills with delivery board links */}
+                      {roomProjects.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border/15">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30 mb-1.5">Active project work</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {roomProjects.map((p: any) => (
+                              <Link key={p.id} to={`/projects/${p.id}`} className="group">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/[0.04] border border-primary/10 text-[10px] font-semibold text-foreground/70 hover:text-foreground hover:bg-primary/[0.08] transition-colors">
+                                  <Columns3 className="h-3 w-3 text-primary/40 group-hover:text-primary/70 transition-colors" />
+                                  {p.name}
+                                  <ChevronRight className="h-2.5 w-2.5 text-muted-foreground/30 group-hover:text-foreground/50" />
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
