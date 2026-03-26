@@ -45,6 +45,9 @@ import { buildHandoffContract } from "@/lib/cto-handoff";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
+import type { ClarificationRequest } from "@/types/clarification-request";
+import { createClarificationRequest } from "@/types/clarification-request";
+import { ClarificationRequestCard } from "@/components/project-cockpit/ClarificationRequestCard";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { buildExecutionPlan } from "@/lib/execution-planner";
@@ -88,6 +91,7 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const [ctoBacklogCards, setCtoBacklogCards] = useState<CTOBacklogCardDraft[]>([]);
   const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
+  const [clarificationRequests, setClarificationRequests] = useState<ClarificationRequest[]>([]);
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
@@ -168,6 +172,39 @@ export default function ProjectDetail() {
     () => materializeDeliveryTasks(id!, taskSpecDrafts),
     [id, taskSpecDrafts],
   );
+
+  const handleCreateClarification = useCallback(
+    (moduleId: string, moduleName: string, ambiguity: string, requested: string) => {
+      const req = createClarificationRequest({
+        projectId: id!,
+        blueprintId: blueprintContractId,
+        affectedModuleId: moduleId,
+        affectedModuleName: moduleName,
+        ambiguityDescription: ambiguity,
+        requestedClarification: requested,
+      });
+      setClarificationRequests((prev) => [...prev, req]);
+    },
+    [id, blueprintContractId],
+  );
+
+  const handleResolveClarification = useCallback((reqId: string, note: string) => {
+    setClarificationRequests((prev) =>
+      prev.map((r) => r.id === reqId ? { ...r, status: "resolved" as const, resolvedAt: new Date().toISOString(), resolverNote: note } : r),
+    );
+  }, []);
+
+  const handleDismissClarification = useCallback((reqId: string) => {
+    setClarificationRequests((prev) =>
+      prev.map((r) => r.id === reqId ? { ...r, status: "dismissed" as const, resolvedAt: new Date().toISOString() } : r),
+    );
+  }, []);
+
+  // Sync open clarification requests to sessionStorage for CompanyLeadSession
+  useEffect(() => {
+    const open = clarificationRequests.filter((r) => r.status === "open");
+    sessionStorage.setItem("cto_clarification_requests", JSON.stringify(open));
+  }, [clarificationRequests]);
 
   const { data: deployments = [] } = useQuery({
     queryKey: ["project-deploys", id],
@@ -653,7 +690,22 @@ export default function ProjectDetail() {
             </div>
           )}
 
-          {/* ══ MATERIALIZE DELIVERY TASKS — Founder-Only Launch Action ══ */}
+          {/* ══ CTO CLARIFICATION REQUESTS — Return Path to Lead/Founder ══ */}
+          <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+            <SectionHeader icon={AlertTriangle} title="CTO Clarification Requests" count={clarificationRequests.filter(r => r.status === "open").length} />
+            <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+              Return path from CTO to Company Lead — CTO may request clarification but cannot mutate approved scope.
+            </p>
+            <ClarificationRequestCard
+              requests={clarificationRequests}
+              onResolve={handleResolveClarification}
+              onDismiss={handleDismissClarification}
+              showCreateForm={engineeringSlices.length > 0}
+              onCreateRequest={handleCreateClarification}
+              availableModules={engineeringSlices.map((s) => ({ id: s.moduleId, name: s.moduleName }))}
+            />
+          </div>
+
           {taskSpecDrafts.length > 0 && (
             <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
               <SectionHeader icon={Rocket} title="Materialize Delivery Tasks" count={taskSpecDrafts.length} />

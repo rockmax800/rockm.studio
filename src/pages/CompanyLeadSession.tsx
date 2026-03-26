@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   Send, Target, Layers, Clock, Coins, CheckCircle2, XCircle,
   RotateCcw, Users, AlertTriangle, ArrowRight, ArrowLeft,
-  Briefcase, Zap, Sparkles, MessageSquare, ChevronRight,
+  Briefcase, Zap, Sparkles, MessageSquare, MessageSquareWarning, ChevronRight,
   X, Maximize2, GraduationCap, User, ShieldCheck, FileText,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -30,6 +30,7 @@ import { buildExecutionPlan } from "@/lib/execution-planner";
 import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
+import type { ClarificationRequest } from "@/types/clarification-request";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
@@ -499,6 +500,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   // ── Independence acknowledgment for dependency-less multi-module projects ──
   const [independenceAcknowledged, setIndependenceAcknowledged] = useState(false);
 
+  // ── CTO Clarification Requests (received from ProjectDetail, stored locally for now) ──
+  // In a real system these would come from a shared store / URL params.
+  // For now, this surface shows any requests passed via sessionStorage.
+  const [ctoClarifications, setCtoClarifications] = useState<ClarificationRequest[]>(() => {
+    try {
+      const raw = sessionStorage.getItem("cto_clarification_requests");
+      return raw ? (JSON.parse(raw) as ClarificationRequest[]).filter(r => r.status === "open") : [];
+    } catch { return []; }
+  });
+
   // ── Planning Gate — blocks estimate if prerequisites are missing ──
   const planningGate: PlanningGateResult = useMemo(() => validatePlanningGate({
     clarificationComplete: clarificationLocked,
@@ -833,6 +844,29 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
             <p className="text-[10px] text-muted-foreground/50 px-1 -mt-2">
               Structured outputs extracted from the briefing conversation
             </p>
+
+            {/* CTO Clarification Requests — returned from engineering */}
+            {ctoClarifications.length > 0 && (
+              <div className="rounded-xl border border-status-amber/25 bg-status-amber/5 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquareWarning className="h-3.5 w-3.5 text-status-amber" />
+                  <span className="text-[11px] font-bold text-status-amber">Returned for Clarification</span>
+                </div>
+                {ctoClarifications.map((req) => (
+                  <div key={req.id} className="rounded-lg border border-border/30 bg-card px-3 py-2 space-y-1">
+                    <span className="text-[10px] font-bold text-foreground">{req.affectedModuleName}</span>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">{req.ambiguityDescription}</p>
+                    <div className="pt-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Requested</span>
+                      <p className="text-[10px] text-foreground/70 mt-0.5">{req.requestedClarification}</p>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[9px] text-muted-foreground/50 italic">
+                  CTO cannot mutate scope — address the ambiguity in conversation, then update planning if needed.
+                </p>
+              </div>
+            )}
 
             {/* Clarification Loop checklist — always visible */}
             <ClarificationChecklist
