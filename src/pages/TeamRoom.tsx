@@ -24,6 +24,8 @@ import {
   Sparkles, Clock, TrendingUp, Shield, BadgeCheck, FileText,
   GraduationCap, Eye,
 } from "lucide-react";
+import { GuidancePreview } from "@/components/team-room/GuidancePreview";
+import { deriveGuidancePack } from "@/types/project-guidance";
 
 /* ── Session seed data ────────────────────────────────────── */
 type EntryType = "scope" | "architecture" | "risk" | "question" | "task" | "general";
@@ -354,6 +356,17 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
   const { policy: globalPolicy } = useExecutionPolicy();
   const [execOverride, setExecOverride] = useState<SessionOverride>({ enabled: false, policy: globalPolicy });
 
+  // ── Derive project guidance from session context (seed data)
+  const projectGuidance = useMemo(() => deriveGuidancePack({
+    id: "session",
+    name: deptName,
+    purpose: extraction.scope[0]?.text ?? undefined,
+    state: "active",
+  }, {
+    taskCount: extraction.taskBreakdown.length,
+    riskLevel: extraction.risks.length > 0 ? "medium" : "low",
+  }), [deptName, extraction]);
+
   // ── Published training prompt query
   const { data: activeGuidance } = useQuery({
     queryKey: ["active-guidance", emp.id],
@@ -626,6 +639,9 @@ function SessionWorkspace({ emp, roles, deptName, onBack }: {
                   <p className="text-[11px] text-status-amber/80 font-medium leading-relaxed bg-status-amber/[0.04] border border-status-amber/10 rounded-lg px-3 py-1.5">{extraction.estimatedComplexity}</p>
                 </div>
               </div>
+
+              {/* ── Project Guidance Preview ── */}
+              <GuidancePreview guidancePack={projectGuidance} />
 
               {/* ── Active Guidance ── */}
               <div className="mx-4 mb-3 rounded-lg border border-border/20 bg-card/60 overflow-hidden">

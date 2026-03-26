@@ -13,6 +13,7 @@ import {
   Sparkles,
   ArrowDown,
   MessageCircle,
+  BookOpen,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 
@@ -514,6 +515,15 @@ export default function IntakeComposerV2() {
 
                 {/* Footer */}
                 <div className="px-5 py-4 border-t border-border shrink-0 space-y-3">
+                  {/* Guidance draft hint */}
+                  {filledCount >= 3 && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/[0.04] border border-primary/10">
+                      <BookOpen className="h-3.5 w-3.5 text-primary/40 shrink-0" />
+                      <p className="text-[10px] text-primary/60 leading-relaxed">
+                        A <span className="font-bold">Project Guidance Pack</span> will be generated from this brief — visible in the project cockpit after kickoff.
+                      </p>
+                    </div>
+                  )}
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
