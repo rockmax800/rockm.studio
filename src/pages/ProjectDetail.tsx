@@ -37,6 +37,7 @@ import { EngineeringSlicesPanel } from "@/components/project-cockpit/Engineering
 import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDraftsPanel";
 import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPanel";
 import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanityPanel";
+import { CtoConformancePanel } from "@/components/project-cockpit/CtoConformancePanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
@@ -44,6 +45,7 @@ import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { buildExecutionPlan } from "@/lib/execution-planner";
 import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
+import { evaluateConformance } from "@/lib/cto-conformance";
 import { useState, useMemo } from "react";
 
 const RISK_COLORS = {
@@ -81,6 +83,7 @@ export default function ProjectDetail() {
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
   const sanityReport = useMemo(() => validateTaskSpecDrafts(taskSpecDrafts, executionPlanResult.plan), [taskSpecDrafts, executionPlanResult.plan]);
+  const conformanceSummary = useMemo(() => evaluateConformance(taskSpecDrafts), [taskSpecDrafts]);
   const cardTitles = useMemo(() => {
     const map: Record<string, string> = {};
     for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
@@ -518,6 +521,17 @@ export default function ProjectDetail() {
                 Pre-delivery quality gate — must pass before live task materialization.
               </p>
               <TaskSpecSanityPanel report={sanityReport} />
+            </div>
+          )}
+
+          {/* ══ CTO CONFORMANCE — Post-Run Engineering Guardrail ══ */}
+          {taskSpecDrafts.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={ShieldCheck} title="CTO Conformance" count={conformanceSummary.totalDrafts} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Post-run conformance evaluation — engineering guardrail, does not replace Review/QA.
+              </p>
+              <CtoConformancePanel summary={conformanceSummary} />
             </div>
           )}
 

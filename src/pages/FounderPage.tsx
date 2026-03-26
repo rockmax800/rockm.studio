@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useApprovals, useProjects } from "@/hooks/use-data";
+import { useApprovals, useProjects, useTasks } from "@/hooks/use-data";
 import { useFounderInbox, useRiskAnalytics, useBottlenecks } from "@/hooks/use-founder-data";
 import { useSystemMode } from "@/hooks/use-system-mode";
 import { FounderStatusStrip } from "@/components/founder/FounderStatusStrip";
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Filter, ShieldCheck, ExternalLink, FolderKanban, ChevronRight, History, GraduationCap } from "lucide-react";
+import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
+import { evaluateConformance } from "@/lib/cto-conformance";
 
 export default function FounderPage() {
   const navigate = useNavigate();
@@ -107,6 +109,24 @@ export default function FounderPage() {
       });
     }
 
+    // Conformance violations from TaskSpec drafts (structural — no live telemetry on this branch)
+    const conformance = evaluateConformance(compileTaskSpecDrafts([]));
+    for (const r of conformance.results.filter((r) => r.overallStatus === "violation")) {
+      const proj = projects.find((p) => p.name === r.moduleId);
+      items.push({
+        id: `conformance-${r.taskSpecDraftId}`,
+        category: "conformance_violation",
+        projectName: proj?.name,
+        entityType: "task",
+        title: `Conformance violation: ${r.taskSpecTitle}`,
+        explanation: r.checks.filter((c) => c.status === "violation").map((c) => c.label).join(", "),
+        riskLevel: "critical",
+        evidenceCount: r.checks.filter((c) => c.status === "violation").length,
+        timestamp: new Date().toISOString(),
+        linkTo: proj ? `/projects/${proj.id}` : "/projects",
+      });
+    }
+
     items.sort((a, b) => {
       const order = { critical: 0, high: 1, normal: 2 };
       const d = order[a.riskLevel] - order[b.riskLevel];
@@ -114,7 +134,7 @@ export default function FounderPage() {
     });
 
     return items;
-  }, [pendingApprovals, escalations, retryLoops, degradedProviders, projectMap]);
+  }, [pendingApprovals, escalations, retryLoops, degradedProviders, projectMap, projects]);
 
   const filteredItems = useMemo(() => {
     let items = allItems;
