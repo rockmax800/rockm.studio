@@ -490,6 +490,7 @@ export default function EmployeeProfile() {
                 roleName={roleName}
                 attachedSkillPackIds={attachedSkillPacks}
                 guidanceDimensions={guidanceDimensions}
+                instinctSettings={instinctSettings}
               />
             )}
           </Section>
