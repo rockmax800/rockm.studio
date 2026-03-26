@@ -90,12 +90,13 @@ const LEAD_QUESTIONS: string[] = [
 const PHASE_LABELS: Record<string, string> = {
   discovery: "Discovery",
   decomposition: "Decomposition",
+  mvp_reduction: "MVP Reduction",
   consultation: "Team Review",
   estimate: "Estimate",
   decision: "Decision",
 };
 
-const PHASE_ORDER = ["discovery", "decomposition", "consultation", "estimate", "decision"] as const;
+const PHASE_ORDER = ["discovery", "decomposition", "mvp_reduction", "consultation", "estimate", "decision"] as const;
 
 const COMPLEXITY_CONFIG = {
   low: { label: "Low", color: "hsl(152 60% 42%)", bg: "hsl(152 60% 42% / 0.08)" },
