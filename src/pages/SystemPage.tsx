@@ -7,7 +7,7 @@ import { useSystemMode } from "@/hooks/use-system-mode";
 import { useWorkerNodes, useStalledEntities, useResourceMetrics } from "@/hooks/use-diagnostics-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette } from "lucide-react";
+import { Unplug, Settings, Activity, Shield, BookOpen, Server, AlertTriangle, Gauge, Cpu, Palette, Blocks } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { lazy, Suspense, useMemo } from "react";
 
@@ -16,6 +16,9 @@ const ExecutionPolicyPanel = lazy(() => import("@/components/system/ExecutionPol
 import { RunTraceMetaCard } from "@/components/system/RunTraceMetaCard";
 import { VerificationStatusPanel } from "@/components/system/VerificationStatusPanel";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LOCAL_RULES } from "@/config/harness-rules";
+import { LOCAL_COMMANDS } from "@/config/harness-commands";
+import { LOCAL_HOOKS } from "@/config/harness-hooks";
 
 function WorkerStatusBadge({ status }: { status: string }) {
   const variant = status === "online" ? "default"
@@ -81,6 +84,9 @@ export default function SystemPage() {
             </TabsTrigger>
             <TabsTrigger value="execution" className="gap-1.5">
               <Cpu className="h-3.5 w-3.5" /> Execution
+            </TabsTrigger>
+            <TabsTrigger value="harness" className="gap-1.5">
+              <Blocks className="h-3.5 w-3.5" /> Harness
             </TabsTrigger>
             <TabsTrigger value="docs" className="gap-1.5">
               <BookOpen className="h-3.5 w-3.5" /> Documentation
@@ -344,6 +350,123 @@ export default function SystemPage() {
             <Suspense fallback={<div className="text-xs text-muted-foreground text-center py-8">Loading execution settings…</div>}>
               <ExecutionPolicyPanel />
             </Suspense>
+          </TabsContent>
+
+          {/* HARNESS — Local Manifests */}
+          <TabsContent value="harness" className="space-y-4">
+            {/* Rules */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Shield className="h-4 w-4" /> Registered Rules
+                  <Badge variant="outline" className="ml-auto text-[10px]">{LOCAL_RULES.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Name</TableHead>
+                      <TableHead className="text-xs">Scope</TableHead>
+                      <TableHead className="text-xs">Enforcement</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {LOCAL_RULES.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="text-xs font-mono">{r.name}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-[10px]">{r.scope}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={r.enforcement === "hard" ? "destructive" : "secondary"} className="text-[10px]">
+                            {r.enforcement}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={r.status === "active" ? "default" : "outline"} className="text-[10px]">{r.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Commands */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Cpu className="h-4 w-4" /> Registered Commands
+                  <Badge variant="outline" className="ml-auto text-[10px]">{LOCAL_COMMANDS.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Name</TableHead>
+                      <TableHead className="text-xs">Scope</TableHead>
+                      <TableHead className="text-xs">Invoked By</TableHead>
+                      <TableHead className="text-xs">Confirm</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {LOCAL_COMMANDS.map((c) => (
+                      <TableRow key={c.id}>
+                        <TableCell className="text-xs font-mono">{c.name}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-[10px]">{c.scope}</Badge></TableCell>
+                        <TableCell className="text-xs">{c.invoked_by}</TableCell>
+                        <TableCell className="text-xs">{c.requires_confirmation ? "yes" : "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant={c.status === "active" ? "default" : "outline"} className="text-[10px]">{c.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Hooks */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Activity className="h-4 w-4" /> Registered Hooks
+                  <Badge variant="outline" className="ml-auto text-[10px]">{LOCAL_HOOKS.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Name</TableHead>
+                      <TableHead className="text-xs">Trigger</TableHead>
+                      <TableHead className="text-xs">Scope</TableHead>
+                      <TableHead className="text-xs">Approval</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {LOCAL_HOOKS.map((h) => (
+                      <TableRow key={h.id}>
+                        <TableCell className="text-xs font-mono">{h.name}</TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">{h.trigger}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-[10px]">{h.scope}</Badge></TableCell>
+                        <TableCell className="text-xs">{h.requires_founder_approval ? "required" : "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant={h.status === "active" ? "default" : "outline"} className="text-[10px]">{h.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <p className="text-[10px] text-muted-foreground text-center">
+              Read-only registry · Manifests are not wired into runtime automation yet
+            </p>
           </TabsContent>
 
           {/* DOCS */}
