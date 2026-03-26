@@ -49,7 +49,11 @@ import { buildExecutionPlan } from "@/lib/execution-planner";
 import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import { evaluateConformance } from "@/lib/cto-conformance";
 import { checkMaterializationGate, materializeDeliveryTasks } from "@/lib/materialize-delivery-tasks";
-import { useState, useMemo, useCallback } from "react";
+import {
+  usePersistedSlices, usePersistedTaskSpecs, usePersistedPlan, usePersistedConformance,
+  useSaveSlices, useSaveTaskSpecs, useSaveExecutionPlan,
+} from "@/hooks/use-ai-cto-planning";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
 const RISK_COLORS = {
   low: "bg-status-green/10 text-status-green",
