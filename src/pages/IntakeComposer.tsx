@@ -624,7 +624,7 @@ export default function IntakeComposerV2() {
                       riskLevel: "medium" as const, complexityEstimate: "medium" as const, mvpOptional: false,
                     }));
                     const gate = validatePlanningGate({
-                      clarificationComplete: phase !== "drafting",
+                      clarificationComplete: true, // brief is frozen = clarification done
                       modules,
                       dependencyEdges: [],
                       mvpReductionComplete: true,
