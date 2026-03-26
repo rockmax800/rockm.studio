@@ -283,11 +283,44 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   const handleDecompositionConfirm = () => {
     if (decompositionModules.length === 0) return;
     setDecompositionLocked(true);
-    toast.success("Decomposition confirmed — team consultation unlocked.");
-    addLeadMessage("System decomposition is confirmed. I am now consulting with the internal team — Architect, QA, and Reviewer — to assess feasibility based on the module map.\n\nPlease review the Internal Consultation panel.");
+    // Generate initial MVP reduction entries
+    const initialEntries = generateInitialReduction(decompositionModules);
+    setMvpReductionEntries(initialEntries);
+    const isMvp = clarification.projectType === "mvp";
+    if (isMvp) {
+      toast.success("Decomposition confirmed — MVP Reduction Pass is mandatory.");
+      addLeadMessage("System decomposition is confirmed. Since this is an MVP project, a Reduction Pass is mandatory.\n\nReview each module in the MVP Reduction panel — decide what to keep, defer, replace with SaaS, or remove for risk.");
+      setPhase("mvp_reduction");
+    } else {
+      toast.success("Decomposition confirmed — MVP Reduction available.");
+      addLeadMessage("System decomposition is confirmed. An optional MVP Reduction Pass is available — you can review scope reduction suggestions before proceeding.\n\nReview the panel or confirm to skip to team consultation.");
+      setPhase("mvp_reduction");
+    }
+  };
+
+  // ── MVP Reduction state (local draft — not persisted) ──
+  const [mvpReductionEntries, setMvpReductionEntries] = useState<MvpReductionEntry[]>([]);
+  const [mvpReductionLocked, setMvpReductionLocked] = useState(false);
+  const mvpReductionResult = useMemo(() => computeReductionResult(mvpReductionEntries), [mvpReductionEntries]);
+  const isMvpProject = clarification.projectType === "mvp";
+
+  // Effective modules for estimation = post-reduction in MVP mode
+  const effectiveModules = useMemo(() => {
+    if (mvpReductionLocked && mvpReductionResult.keptModules.length > 0) {
+      return getMvpScopeModules(decompositionModules, mvpReductionResult);
+    }
+    return decompositionModules;
+  }, [decompositionModules, mvpReductionLocked, mvpReductionResult]);
+
+  const effectiveModuleNames = useMemo(() => effectiveModules.map((m) => m.name), [effectiveModules]);
+
+  const handleMvpReductionConfirm = () => {
+    setMvpReductionLocked(true);
+    toast.success("MVP scope confirmed — team consultation unlocked.");
+    addLeadMessage(`MVP Reduction Pass complete. ${mvpReductionResult.keptModules.length} module${mvpReductionResult.keptModules.length !== 1 ? "s" : ""} in MVP scope, ${mvpReductionResult.deferredModules.length} deferred, ${mvpReductionResult.replacedModules.length} replaced with SaaS, ${mvpReductionResult.removedModules.length} removed.\n\nI am now consulting with the internal team based on the reduced scope.`);
     setPhase("consultation");
     setTimeout(() => {
-      addLeadMessage("Internal consultation is complete. The team has reviewed the decomposition.\n\nI have prepared the Estimate Panel with module-level breakdown, token budget, cost projection, and timeline.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel.");
+      addLeadMessage("Internal consultation is complete. The team has reviewed the post-reduction scope.\n\nEstimate Panel is ready — using MVP scope for projections.\n\nReview the estimate, then make your decision: Approve, Revise, or Cancel.");
       setPhase("estimate");
     }, 1500);
   };
