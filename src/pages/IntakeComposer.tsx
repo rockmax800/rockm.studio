@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +15,13 @@ import {
   ArrowDown,
   MessageCircle,
   BookOpen,
+  CheckCircle2,
+  AlertTriangle,
+  Snowflake,
 } from "lucide-react";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
+import { useIntakeBriefDraft } from "@/hooks/use-intake-brief-draft";
+import type { BriefSectionData } from "@/lib/intake-brief-transfer";
 
 /* ── Types ───────────────────────────────────────────────── */
 
