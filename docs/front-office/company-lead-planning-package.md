@@ -156,6 +156,17 @@ Intent → Delivery → Knowledge → Experience
 - Delivery tasks are only created after the canonical launch gate.
 - Knowledge Plane (market benchmarking, learning pipeline) may inform planning but cannot block or trigger planning transitions.
 
+### 6.1 — Handoff to AI CTO
+
+After the Company Lead completes all six phases, the planning package is handed off to the **AI CTO Engineering Package** (`docs/delivery/ai-cto-engineering-package.md`). The AI CTO:
+
+- Validates planning completeness (all six phases passed)
+- Normalizes CTO Backlog Drafts + AI Task Drafts into engineering slices
+- Compiles engineering slices into canonical TaskSpec drafts
+- Builds a dependency-aware execution plan (DAG)
+
+**Boundary rule:** The Company Lead decides *what* to build. The AI CTO decides *how* to slice it for execution. The founder approves both. The AI CTO does not modify scope, add modules, or perform MVP reduction.
+
 ---
 
 ## 7 — Current Implementation Status
