@@ -153,3 +153,4 @@ The `artifact_category` field is additive — the existing `artifact_type` enum 
 | `core/05-guard-matrix.md` | Contract violations are guard-level checks |
 | `core/06-orchestration-use-cases.md` | UC-03/UC-13 include contract validation |
 | `delivery/backend-architecture.md` | RoleContractEnforcementService added to service map |
+| `delivery/ai-cto-engineering-package.md` | AI CTO is the primary producer of TaskSpec drafts — compiles engineering slices into TaskSpec format. Role Contracts are selected (not created) by the AI CTO based on layer type. |
