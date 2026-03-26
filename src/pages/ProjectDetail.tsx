@@ -35,11 +35,13 @@ import { CtoBacklogDraftPanel } from "@/components/intake/CtoBacklogDraftPanel";
 import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDraftsPanel";
+import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
+import { buildExecutionPlan } from "@/lib/execution-planner";
 import { useState, useMemo } from "react";
 
 const RISK_COLORS = {
@@ -75,6 +77,7 @@ export default function ProjectDetail() {
   const [engineeringSlices, setEngineeringSlices] = useState<EngineeringSliceDraft[]>([]);
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
+  const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
   const cardTitles = useMemo(() => {
     const map: Record<string, string> = {};
     for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
@@ -486,6 +489,21 @@ export default function ProjectDetail() {
                 Pre-delivery engineering planning — compiled from engineering slices into canonical TaskSpec format.
               </p>
               <TaskSpecDraftsPanel drafts={taskSpecDrafts} />
+            </div>
+          )}
+
+          {/* ══ EXECUTION PLAN — Dependency-Ordered Batch Sequence ══ */}
+          {taskSpecDrafts.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={Activity} title="Execution Plan" count={executionPlanResult.plan.batches.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Dependency-ordered batch sequence — draft until launch gate. Founder may reorder.
+              </p>
+              <ExecutionPlanPanel
+                plan={executionPlanResult.plan}
+                warnings={executionPlanResult.warnings}
+                drafts={taskSpecDrafts}
+              />
             </div>
           )}
 
