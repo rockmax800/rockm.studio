@@ -445,6 +445,20 @@ export default function ProjectDetail() {
             </div>
           )}
 
+          {/* ══ AI TASK DRAFTS — Atomic Pre-Delivery Planning ══ */}
+          {aiTaskDrafts.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={Cpu} title="AI Task Drafts" count={aiTaskDrafts.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Atomic task drafts decomposed from CTO Backlog — each affects one layer only. Becomes live Delivery tasks after launch gate.
+              </p>
+              <AiTaskDraftPanel
+                drafts={aiTaskDrafts}
+                cardTitles={cardTitles}
+              />
+            </div>
+          )}
+
           {/* ══ DELIVERY BOARD ══ */}
           <div id="delivery-board" className="rounded-2xl bg-card border-2 border-primary/20 shadow-sm p-5 scroll-mt-6">
             <div className="flex items-center gap-3 mb-4">
