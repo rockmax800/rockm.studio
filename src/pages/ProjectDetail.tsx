@@ -459,6 +459,21 @@ export default function ProjectDetail() {
             />
           </div>
 
+          {/* ══ ENGINEERING SLICES — AI CTO Normalization Output ══ */}
+          {engineeringSlices.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={Layers} title="Engineering Slices" count={engineeringSlices.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Bounded engineering units normalized from planning modules — draft until launch gate.
+              </p>
+              <EngineeringSlicesPanel
+                slices={engineeringSlices}
+                onSlicesChange={setEngineeringSlices}
+                locked={project.state !== "draft" && project.state !== "scoped"}
+              />
+            </div>
+          )}
+
           {/* ══ CTO BACKLOG DRAFT — Pre-Delivery Planning ══ */}
           {ctoBacklogCards.length > 0 && (
             <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
