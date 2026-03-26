@@ -15,6 +15,7 @@ import { HumanTeamSuggestionPanel } from "@/components/intake/HumanTeamSuggestio
 import { MarketBenchmarkPanel } from "@/components/intake/MarketBenchmarkPanel";
 import { ClarificationChecklist } from "@/components/intake/ClarificationChecklist";
 import { SystemDecompositionPanel } from "@/components/intake/SystemDecompositionPanel";
+import { MvpReductionPanel } from "@/components/intake/MvpReductionPanel";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
 import { LEAD_PROFILE_ROUTE } from "@/lib/company-lead-identity";
 import { ExecutionPolicyBadge } from "@/components/ui/execution-policy-badge";
