@@ -36,12 +36,14 @@ import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDraftsPanel";
 import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPanel";
+import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanityPanel";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import type { TaskSpecDraft } from "@/types/taskspec-draft";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { buildExecutionPlan } from "@/lib/execution-planner";
+import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import { useState, useMemo } from "react";
 
 const RISK_COLORS = {
@@ -78,6 +80,7 @@ export default function ProjectDetail() {
   const aiTaskDrafts = useMemo(() => decomposeBacklogToTasks(ctoBacklogCards), [ctoBacklogCards]);
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
+  const sanityReport = useMemo(() => validateTaskSpecDrafts(taskSpecDrafts, executionPlanResult.plan), [taskSpecDrafts, executionPlanResult.plan]);
   const cardTitles = useMemo(() => {
     const map: Record<string, string> = {};
     for (const c of ctoBacklogCards) map[c.id] = c.featureSlice;
@@ -504,6 +507,17 @@ export default function ProjectDetail() {
                 warnings={executionPlanResult.warnings}
                 drafts={taskSpecDrafts}
               />
+            </div>
+          )}
+
+          {/* ══ CTO SANITY CHECK — Pre-Delivery Quality Gate ══ */}
+          {taskSpecDrafts.length > 0 && (
+            <div className="rounded-2xl bg-card border border-border/40 shadow-sm p-5">
+              <SectionHeader icon={ShieldCheck} title="CTO Sanity Check" count={taskSpecDrafts.length} />
+              <p className="text-[11px] text-muted-foreground/40 -mt-2 mb-4">
+                Pre-delivery quality gate — must pass before live task materialization.
+              </p>
+              <TaskSpecSanityPanel report={sanityReport} />
             </div>
           )}
 

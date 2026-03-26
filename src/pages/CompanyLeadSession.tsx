@@ -21,11 +21,13 @@ import { AiTaskDraftPanel } from "@/components/intake/AiTaskDraftPanel";
 import { EngineeringSlicesPanel } from "@/components/project-cockpit/EngineeringSlicesPanel";
 import { TaskSpecDraftsPanel } from "@/components/project-cockpit/TaskSpecDraftsPanel";
 import { ExecutionPlanPanel } from "@/components/project-cockpit/ExecutionPlanPanel";
+import { TaskSpecSanityPanel } from "@/components/project-cockpit/TaskSpecSanityPanel";
 import { generateBacklogCards } from "@/lib/cto-backlog";
 import { decomposeBacklogToTasks } from "@/lib/ai-task-decomposition";
 import { generateEngineeringSlices } from "@/lib/engineering-slices";
 import { compileTaskSpecDrafts } from "@/lib/taskspec-draft-compiler";
 import { buildExecutionPlan } from "@/lib/execution-planner";
+import { validateTaskSpecDrafts } from "@/lib/taskspec-sanity";
 import type { CTOBacklogCardDraft, AITaskDraft } from "@/types/front-office-planning";
 import type { EngineeringSliceDraft } from "@/types/engineering-slices";
 import leadAvatar from "@/assets/pixel/lead-avatar.png";
@@ -370,6 +372,7 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
   // ── TaskSpec Drafts — compiled from engineering slices (local draft) ──
   const taskSpecDrafts = useMemo(() => compileTaskSpecDrafts(engineeringSlices), [engineeringSlices]);
   const executionPlanResult = useMemo(() => buildExecutionPlan(taskSpecDrafts), [taskSpecDrafts]);
+  const sanityReport = useMemo(() => validateTaskSpecDrafts(taskSpecDrafts, executionPlanResult.plan), [taskSpecDrafts, executionPlanResult.plan]);
 
   useQuery({
     queryKey: ["departments"],
@@ -1166,6 +1169,16 @@ export default function CompanyLeadSession({ embedded = false, onClose }: { embe
                   warnings={executionPlanResult.warnings}
                   drafts={taskSpecDrafts}
                 />
+              </RailCard>
+            )}
+
+            {/* CTO Sanity Check — pre-delivery quality gate */}
+            {taskSpecDrafts.length > 0 && showEstimate && (
+              <RailCard title="CTO Sanity Check" icon={ShieldCheck}>
+                <p className="text-[10px] text-muted-foreground/50 mb-2">
+                  Pre-delivery quality gate — must pass before live task materialization.
+                </p>
+                <TaskSpecSanityPanel report={sanityReport} />
               </RailCard>
             )}
 
